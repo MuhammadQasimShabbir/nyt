@@ -1,0 +1,1072 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.JavaAccessBridge" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/JavaAccessBridge.py" lineno="214">
+<version/>
+<doc>Java application UI automation library using `Java Access Bridge technology`_.
+
+The library utilizes `java-access-bridge-wrapper`_ package to interact with
+Java UI. Currently only the 64-bit Windows OS is supported.
+
+**Inspecting elements**
+
+We have built an `Assistant`_ for working with Java application's element structure and `Java locators`_.
+The Assistant provides copy-paste-able locators for each element and also allows testing locators against
+selected application.
+
+If our tools fail to pick the locator from your target application, there is always the
+`Access Bridge Explorer`_ from Google that enables you to see the raw view. Please note that
+Access Bridge Explorer repository has been archived on July 27, 2022 and is no longer actively
+maintained.
+
+The `Accessibility Insights for Windows`_ can show element properties if application framework
+supports Windows UI Automation (UIA), see more at `using Accessibility Insights`_. Then the recommended
+library would be `RPA.Windows`_ library.
+
+**Steps to enable**
+
+    1. Enable the Java Access Bridge in Windows
+    2. Set environment variable `RC_JAVA_ACCESS_BRIDGE_DLL` as an absolute path to `WindowsAccessBridge-64.dll`.
+       It is also possible to give DLL location as library initialization parameter `access_bridge_path`.
+
+    .. code-block:: console
+
+        C:\path\to\java\bin\jabswitch -enable
+        set RC_JAVA_ACCESS_BRIDGE_DLL=C:\path\to\Java\bin\WindowsAccessBridge-64.dll
+
+    .. code:: robotframework
+
+        *** Settings ***
+        Library   RPA.JavaAccessBridge   access_bridge_path=C:\path\to\Java\bin\WindowsAccessBridge-64.dll
+
+.. _Java Access Bridge technology: https://www.oracle.com/java/technologies/javase/javase-tech-access-bridge.html
+.. _java-access-bridge-wrapper: https://github.com/robocorp/java-access-bridge-wrapper
+.. _Assistant: https://github.com/robocorp/working-with-java
+
+**About Java wrapper callbacks and actions**
+
+There might be a compatibility issue with callbacks and actions on target Java application. Possible reasons:
+
+- target application is executed with 32-bit Java
+- target application does not support callbacks and/or actions
+
+Workaround for this situation is to initialize `JavaAccessBridge` library with parameter `ignore_callbacks=True`.
+Then application's element information is still accessible and any actions on those elements can be performed
+with `RPA.Desktop` library. Keep in mind that you can still manuall refresh an element with ``Refresh Element``.
+
+*Note.* There are still keywords, for example. ``Call Element Action``, which will cause error if used in this
+situation.
+
+.. code:: robotframework
+
+    *** Settings ***
+    Library   RPA.JavaAccessBridge   ignore_callbacks=True
+
+**Controlling the Java window**
+
+Keyword for this purpose is ``Select Window``. Window selection is based on the ``title`` parameter, which can be
+given as a regular expressions to match the correct window. The keyword brings the window into focus and initially
+reads window's element structure.
+
+**Locating elements**
+
+To automate actions on the Java application, the robot needs locations to various elements
+using a feature called `Java locators`_. Locator describes properties of an element.
+
+At the moment library contains basic level support for locators.
+
+The common locator types are ``name`` and ``role``.
+
+To identify element with more than one property `and` can be used, for example:
+
+    .. code-block:: console
+
+        role:push button and name:Clear
+
+To address element within parent element `&gt;` can be used, for example:
+
+    .. code-block:: console
+
+        name:Find Purchase Orders &gt; name:NumberField
+
+Some keywords accept element as an parameter in place of locator.
+
+New locator type `strict` has been added in rpaframework==12.5.0. Currently
+property values of string type have been evaluated with `startsWith` which
+can match several property values. With `strict` set in the locator string,
+all locator on the right side of this definition will be matched using
+strict (equal matching), example:
+
+    .. code-block:: robotframework
+
+        # without strict, name can be 'Type', 'Type1', 'Type of'...
+        Get Elements   role:push button and name:Type
+        # name must be equal to 'Type'
+        Get Elements  role:push button and strict:True and name:Type
+
+Keyword ``Get Elements`` has extra parameter ``strict``, which when set to
+``True`` forces all locator value matches to be strict, example:
+
+    .. code-block:: robotframework
+
+        # without strict, name can be 'Type', 'Type1', 'Type of'...
+        Get Elements  role:push button and name:Type
+        # name must be equal to 'Type' and role must be equal to 'text'
+        Get Elements  role:text and name:Type  strict=True
+
+**About JavaElement object**
+
+The ``JavaElement`` was added in rpaframework==12.3.0 for easy access into
+``ContextNode`` objects which have been returned by ``Get Elements`` keyword.
+
+Keyword ``Get Elements`` still returns ``ContextNode`` objects, but with parameter
+``java_elements=True`` the keyword returns ``JavaElement`` objects instead (they
+still contain reference to ``ContextNode`` object via ``node`` property, e.g.
+JavaObject.node).
+
+Properties and methods included in the JavaElement:
+
+- name: str
+- role: str
+- description: str
+- states: list            # list presentation of states (string)
+- ancestry: int           # you can set the maximum depth based on this
+- checked: bool
+- selected: bool
+- visible: bool
+- enabled: bool
+- showing: bool
+- focusable: bool
+- states_string: str
+- x: int                  # left coordinate of the element
+- y: int                  # top coordinate of the element
+- width: int
+- height: int
+- node: ContextNode       # original ContextNode
+- row: int                # table row, -1 if element is not member of table
+- col: int                # table column, -1 if element is not member of table
+- text: str               # text content of the element
+- column_count: int       # table column count
+- visible_children: list  # visible children elements of this element
+- visible_children_count: int
+- index_in_parent: int    # position in the parent
+- click()                 # method for clicking element center
+- type_text()             # method for typing text into element (if possible)
+
+**Interacting with elements**
+
+By default application elements are interacted with Actions supported by the element.
+Most common example is `click` action supported by an button element.
+
+But because application and technology support for the actions might be limited, it is also
+possible to opt for interaction elements by their coordinates by giving keyword parameter
+``action=False`` if parameter is available.
+
+.. _Accessibility Insights for Windows: https://accessibilityinsights.io/en/downloads/
+.. _Access Bridge Explorer: https://github.com/google/access-bridge-explorer
+.. _using Accessibility Insights: https://accessibilityinsights.io/docs/en/windows/reference/faq/#can-i-use-accessibility-insights-for-windows-on-a-windows-app-written-with-java
+.. _RPA.Windows: https://robocorp.com/docs/libraries/rpa-framework/rpa-windows
+.. _Java locators: https://robocorp.com/docs/development-guide/locators#java-locators
+
+**Examples**
+
+*robotframework*
+
+.. code:: robotframework
+
+    *** Settings ***
+    Library   RPA.JavaAccessBridge
+    Library   Process
+
+    *** Tasks ***
+    Write text into Swing application
+        Start Process    java -jar BasicSwing.jar
+        ...              shell=${TRUE}
+        ...              cwd=${CURDIR}
+        Select Window    Chat Frame
+        Type Text    role:text
+        ...          text for the textarea
+        Type Text    role:text
+        ...          text for the input field
+        ...          index=1
+        ...          clear=${TRUE}
+        Click Element    role:push button and name:Send
+
+*Python*
+
+.. code:: python
+
+    from RPA.JavaAccessBridge import JavaAccessBridge
+    import subprocess
+
+    jab = JavaAccessBridge()
+
+    subprocess.Popen(
+        ["java", "-jar", "BasicSwing.jar"],
+        shell=True,
+        cwd=".",
+        close_fds=True
+    )
+    jab.select_window("Chat Frame")
+    jab.type_text(
+        "role:text",
+        "text for the textarea",
+        enter=True
+    )
+    jab.type_text(
+        "role:text",
+        "text for the input field",
+        index=1,
+        clear=True
+    )
+    jab.click_element("role:push button and name:Send")</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="439">
+<arguments repr="ignore_callbacks: bool = False, access_bridge_path: str | None = None, max_depth: int | None = None, disable_refresh: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ignore_callbacks: bool = False">
+<name>ignore_callbacks</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="access_bridge_path: str | None = None">
+<name>access_bridge_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="max_depth: int | None = None">
+<name>max_depth</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="disable_refresh: bool = False">
+<name>disable_refresh</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>If library is not given ``access_bridge_path`` then path needs to be given
+by the environment variable ``RC_JAVA_ACCESS_BRIDGE_DLL``.
+
+The ``ignore_callbacks`` can be set to ``True`` if the target application
+does not support Java callback feature (property value change listeners).
+
+:param ignore_callbacks: set to `True` if application does not support
+    Java callback feature, defaults to False
+:param access_bridge_path: absolute filepath to the DLL, defaults to None
+:param max_depth: limit the height of the element tree (how deep the search
+    goes); by default every element is taken into account and the tree of
+    elements is built until reaching the last leaf (which might be
+    time-consuming)
+:param disable_refresh: disables automatic app/element refresh when this is
+    `True` (saves time); by default, automatic app/element refreshes are
+    triggered with keywords like ``Read Table``, ``Wait Until Element Exists``</doc>
+<shortdoc>If library is not given ``access_bridge_path`` then path needs to be given by the environment variable ``RC_JAVA_ACCESS_BRIDGE_DLL``.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Application Refresh" lineno="965">
+<arguments repr="">
+</arguments>
+<doc>Refresh application element tree
+
+Might be required action after application element
+structure changes after window refresh.</doc>
+<shortdoc>Refresh application element tree</shortdoc>
+</kw>
+<kw name="Call Element Action" lineno="899">
+<arguments repr="locator: str, action: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="action: str">
+<name>action</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Call element action
+
+:param locator: target element
+:param action: name of the element action to call</doc>
+<shortdoc>Call element action</shortdoc>
+</kw>
+<kw name="Click Coordinates" lineno="927">
+<arguments repr="x: int, y: int, click_type: str = click, delay: float = 0.5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="x: int">
+<name>x</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="y: int">
+<name>y</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="click_type: str = click">
+<name>click_type</name>
+<type name="str" typedoc="string">str</type>
+<default>click</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="delay: float = 0.5">
+<name>delay</name>
+<type name="float" typedoc="float">float</type>
+<default>0.5</default>
+</arg>
+</arguments>
+<doc>Keyword to mouse click at specific coordinates.
+
+:param x: horizontal coordinate
+:param y: vertical coordinates
+:param click_type: default `click`, see `RPA.Desktop` for different
+ click options
+:param delay: how much in seconds to delay after click, defaults to 0.5</doc>
+<shortdoc>Keyword to mouse click at specific coordinates.</shortdoc>
+</kw>
+<kw name="Click Element" lineno="861">
+<arguments repr="locator: str, index: int = 0, action: bool = True, timeout: int = 10, click_type: str = click">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="action: bool = True">
+<name>action</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 10">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="click_type: str = click">
+<name>click_type</name>
+<type name="str" typedoc="string">str</type>
+<default>click</default>
+</arg>
+</arguments>
+<doc>Click element
+
+:param locator: element to click
+:param index: target element index if multiple are returned
+:param action: call click action on element (default), or use coordinates
+:param timeout: timeout in seconds to find element
+:param click_type: default `click`, see `RPA.Desktop` for different
+ click options</doc>
+<shortdoc>Click element</shortdoc>
+</kw>
+<kw name="Click Push Button" lineno="1051">
+<arguments repr="button_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="button_name: str">
+<name>button_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Click element of role `push button`
+
+:param button_name: name of the button to click</doc>
+<shortdoc>Click element of role `push button`</shortdoc>
+</kw>
+<kw name="Close Java Window" lineno="1137">
+<arguments repr="">
+</arguments>
+<doc>Close active Java window which has been accessed
+via ```Select Window`` keyword.</doc>
+<shortdoc>Close active Java window which has been accessed via ```Select Window`` keyword.</shortdoc>
+</kw>
+<kw name="Get Element Actions" lineno="817">
+<arguments repr="locator: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get list of possible element actions
+
+:param locator: target element</doc>
+<shortdoc>Get list of possible element actions</shortdoc>
+</kw>
+<kw name="Get Element Text" lineno="778">
+<arguments repr="locator: str, index: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Get element text
+
+:param locator: target element
+:param index: target element index if multiple are returned</doc>
+<shortdoc>Get element text</shortdoc>
+</kw>
+<kw name="Get Elements" lineno="664">
+<arguments repr="locator: str, java_elements: bool = False, strict: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="java_elements: bool = False">
+<name>java_elements</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="strict: bool = False">
+<name>strict</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Get matching elements
+
+:param locator: elements to get
+:param java_elements: if True will return elements as ``JavaElement``
+ on False will return Java ContextNodes
+:param strict: on True all locator matches need to match exactly, on
+ False will be using startsWith matching on non-integer properties
+:return: list of ContextNodes or JavaElements
+
+Python example.
+
+.. code:: python
+
+    elements = java.get_elements("name:common", java_elements=True)
+    for e in elements:
+        print(e.name if e.name else "EMPTY", e.visible, e.x, e.y)
+        if e.role == "check box":
+            e.click()
+        else:
+            java.type_text(e, "new content", clear=True, typing=False)
+
+    # following does NOT return anything because search is strict
+    # and there are no 'push butto' role
+    elements = java.get_elements("role:push butto", strict=True)
+
+Robotframework  example.
+
+.. code:: robotframework
+
+    ${elements}=    Get Elements
+    ...    role:push button and name:Send
+    ...    java_elements=True
+    Evaluate   $elements[0].click()
+    Click Element    ${elements}[0]    action=False
+    Type Text
+    ...    ${elements}[0]
+    ...    moretext
+    ...    clear=True
+    ...    typing=False</doc>
+<shortdoc>Get matching elements</shortdoc>
+</kw>
+<kw name="Get Locator Tree" lineno="1001">
+<arguments repr="">
+</arguments>
+<doc>Return Java locator tree as list of objects.
+
+Mostly relevant object properties are:
+
+    - ancestry
+    - role
+    - name
+    - description
+    - indexInParent
+
+:return: list of objects</doc>
+<shortdoc>Return Java locator tree as list of objects.</shortdoc>
+</kw>
+<kw name="Get Version Info" lineno="1065">
+<arguments repr="">
+</arguments>
+<doc>Get Java Access Bridge version information</doc>
+<shortdoc>Get Java Access Bridge version information</shortdoc>
+</kw>
+<kw name="Highlight Element" lineno="836">
+<arguments repr="locator: str, index: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Highlight an element
+
+:param locator: element to highlight
+:param index: target element index if multiple are returned</doc>
+<shortdoc>Highlight an element</shortdoc>
+</kw>
+<kw name="List Java Windows" lineno="1146">
+<arguments repr="">
+</arguments>
+<doc>List all available Java windows.
+
+`JavaWindow` object contains following properties:
+
+    - Java process id (pid)
+    - Java window title
+    - Java window handle (hwnd)
+
+The pid and title can be used to get control of the
+Java process by.
+
+:return: list of `JavaWindow` objects
+
+**Python example.**
+
+.. code:: python
+
+    window_list = java.list_java_windows()
+    # By looping window list
+    for window in window_list:
+        if window.title == "my java window title":
+            logging.info("Java window found")
+            java.select_window_by_pid(window.pid)
+    # Directly accessing
+    if len(window_list) == 1:
+        java.select_window_by_pid(window_list[0].pid)
+
+**Robot Framework example.**
+
+.. code:: robotframework
+
+    @{window_list}=    List Java Windows
+    FOR    ${window}    IN    @{window_list}
+        IF    "${window.title}" == "my java window title"
+            Select Window By PID    ${window.pid}
+        END
+    END
+    IF    len($window_list)==1
+        Select Window By PID    ${window_list[0].pid}
+    END</doc>
+<shortdoc>List all available Java windows.</shortdoc>
+</kw>
+<kw name="Press Keys" lineno="974">
+<arguments repr="*keys">
+<arg kind="VAR_POSITIONAL" required="false" repr="*keys">
+<name>keys</name>
+</arg>
+</arguments>
+<doc>Press multiple keys down simultaneously
+
+See `Desktop`_ library documentation for supported keys
+
+.. _Desktop: https://rpaframework.org/libraries/desktop/index.html
+
+:param keys: keys to press</doc>
+<shortdoc>Press multiple keys down simultaneously</shortdoc>
+</kw>
+<kw name="Print Element Tree" lineno="986">
+<arguments repr="filename: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="filename: str | None = None">
+<name>filename</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Print current element into log and possibly into a file
+
+:param filename: filepath to save element tree
+:return: element tree</doc>
+<shortdoc>Print current element into log and possibly into a file</shortdoc>
+</kw>
+<kw name="Print Locator Tree" lineno="1017">
+<arguments repr="filename: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="filename: str | None = None">
+<name>filename</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Print current Java window locator list into log and possibly
+into a file.
+
+:param filename: filepath to save locator tree
+:return: locator tree</doc>
+<shortdoc>Print current Java window locator list into log and possibly into a file.</shortdoc>
+</kw>
+<kw name="Read Table" lineno="1078">
+<arguments repr="locator: str, visible_only: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="visible_only: bool = True">
+<name>visible_only</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Return Java table as list of lists (rows containing columns).
+
+Each cell element is represented by ``JavaElement`` class.
+
+:param locator: locator to match element with type of table
+:param visible_only: return all the children when this is `False`
+:return: list of lists
+
+Example.
+
+.. code:: python
+
+    table = java.read_table(locator_table)
+    for row in table:
+        for cell in row:
+            if cell.role == "check box":
+                print(cell.row, cell.col, str(cell.checked))
+            else:
+                print(cell.row, cell.col, cell.name)</doc>
+<shortdoc>Return Java table as list of lists (rows containing columns).</shortdoc>
+</kw>
+<kw name="Refresh Element" lineno="1318">
+<arguments repr="locator: str, index: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Refresh an element alone.
+
+This will ensure the latest data is available in the targeted element, thus
+gaining speed when dealing with big apps that won't require an entire global
+refresh. The obtained Java element is returned.
+
+:param locator: element to refresh
+:param index: target element index if multiple are returned
+:returns: the Java element found by the passed locator</doc>
+<shortdoc>Refresh an element alone.</shortdoc>
+</kw>
+<kw name="Select Menu" lineno="1041">
+<arguments repr="menu: str, menuitem: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="menu: str">
+<name>menu</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="menuitem: str">
+<name>menuitem</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Select menu by clicking menu elements
+
+:param menu: name of the menu
+:param menuitem: name of the menu item</doc>
+<shortdoc>Select menu by clicking menu elements</shortdoc>
+</kw>
+<kw name="Select Window" lineno="540">
+<arguments repr="title: str, bring_foreground: bool = True, timeout: int = 30">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="title: str">
+<name>title</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="bring_foreground: bool = True">
+<name>bring_foreground</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 30">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>30</default>
+</arg>
+</arguments>
+<doc>Selects Java application window as target for the automation using
+Java window title.
+
+:param title: application window title
+:param bring_foreground: if application is brought to foreground or not
+:param timeout: selection timeout</doc>
+<shortdoc>Selects Java application window as target for the automation using Java window title.</shortdoc>
+</kw>
+<kw name="Select Window By Pid" lineno="1209">
+<arguments repr="pid: int, bring_foreground: bool = True, timeout: int = 30">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pid: int">
+<name>pid</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="bring_foreground: bool = True">
+<name>bring_foreground</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 30">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>30</default>
+</arg>
+</arguments>
+<doc>Selects Java application window as target for the automation using
+Java process ID (pid).
+
+:param pid: application process id
+:param bring_foreground: if application is brought to foreground or not
+:param timeout: selection timeout</doc>
+<shortdoc>Selects Java application window as target for the automation using Java process ID (pid).</shortdoc>
+</kw>
+<kw name="Select Window By Title" lineno="1194">
+<arguments repr="title: str, bring_foreground: bool = True, timeout: int = 30">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="title: str">
+<name>title</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="bring_foreground: bool = True">
+<name>bring_foreground</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 30">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>30</default>
+</arg>
+</arguments>
+<doc>Selects Java application window as target for the automation using
+Java window title.
+
+:param title: application window title
+:param bring_foreground: if application is brought to foreground or not
+:param timeout: selection timeout</doc>
+<shortdoc>Selects Java application window as target for the automation using Java window title.</shortdoc>
+</kw>
+<kw name="Set Display Scale Factor" lineno="527">
+<arguments repr="factor: float">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="factor: float">
+<name>factor</name>
+<type name="float" typedoc="float">float</type>
+</arg>
+</arguments>
+<doc>Override library display scale factor.
+
+Keyword returns previous value.
+
+:param factor: value for the new display scale factor
+:return: previous display scale factor value</doc>
+<shortdoc>Override library display scale factor.</shortdoc>
+</kw>
+<kw name="Set Mouse Position" lineno="612">
+<arguments repr="element: object">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="element: object">
+<name>element</name>
+<type name="object">object</type>
+</arg>
+</arguments>
+<doc>Set mouse position to element center
+
+:param element: target element</doc>
+<shortdoc>Set mouse position to element center</shortdoc>
+</kw>
+<kw name="Shutdown Jab" lineno="1060">
+<arguments repr="">
+</arguments>
+<doc>Call Java Access Bridge process shutdown</doc>
+<shortdoc>Call Java Access Bridge process shutdown</shortdoc>
+</kw>
+<kw name="Toggle Drop Down" lineno="943">
+<arguments repr="locator: str, index: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Toggle dropdown action on element
+
+:param locator: element locator
+:param index: target element index if multiple are returned</doc>
+<shortdoc>Toggle dropdown action on element</shortdoc>
+</kw>
+<kw name="Type Text" lineno="624">
+<arguments repr="locator: str, text: str, index: int = 0, clear: bool = False, enter: bool = False, typing: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="clear: bool = False">
+<name>clear</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="enter: bool = False">
+<name>enter</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="typing: bool = True">
+<name>typing</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Type text into coordinates defined by locator
+
+:param locator: target element
+:param text: text to write
+:param index: target element if multiple are returned
+:param clear: should element be cleared before typing
+:param enter: should enter key be pressed after typing
+:param typing: if True (default) will use Desktop().type_text()
+ if False will use Desktop().press_keys()</doc>
+<shortdoc>Type text into coordinates defined by locator</shortdoc>
+</kw>
+<kw name="Wait Until Element Exists" lineno="1291">
+<arguments repr="locator: str, timeout: int = 10">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 10">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+</arguments>
+<doc>Wait until element(s) matching the locator are found within
+given timeout or raises ``ElementNotFound`` exception.
+
+:param locator: locator to match element
+:param timeout: timeout in seconds to find element
+:return: element(s) if found</doc>
+<shortdoc>Wait until element(s) matching the locator are found within given timeout or raises ``ElementNotFound`` exception.</shortdoc>
+</kw>
+<kw name="Wait Until Element Is Focused" lineno="757">
+<arguments repr="locator: str, index: int = 0, timeout: float = 0.5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: float = 0.5">
+<name>timeout</name>
+<type name="float" typedoc="float">float</type>
+<default>0.5</default>
+</arg>
+</arguments>
+<doc>Wait until element is focused
+
+:param locator: target element
+:param index: target element index if multiple are returned
+:param timeout: timeout in seconds to wait, default 0.5 seconds</doc>
+<shortdoc>Wait until element is focused</shortdoc>
+</kw>
+<kw name="Wait Until Element Text Contains" lineno="715">
+<arguments repr="locator: str, text: str, index: int = 0, timeout: float = 0.5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: float = 0.5">
+<name>timeout</name>
+<type name="float" typedoc="float">float</type>
+<default>0.5</default>
+</arg>
+</arguments>
+<doc>Wait until element text contains expected text
+
+:param locator: target element
+:param text: element text should contain this
+:param index: target element index if multiple are returned
+:param timeout: timeout in seconds to wait, default 0.5 seconds</doc>
+<shortdoc>Wait until element text contains expected text</shortdoc>
+</kw>
+<kw name="Wait Until Element Text Equals" lineno="736">
+<arguments repr="locator: str, text: str, index: int = 0, timeout: float = 0.5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="index: int = 0">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: float = 0.5">
+<name>timeout</name>
+<type name="float" typedoc="float">float</type>
+<default>0.5</default>
+</arg>
+</arguments>
+<doc>Wait until element text equals expected text
+
+:param locator: target element
+:param text: element text should match this
+:param index: target element index if multiple are returned
+:param timeout: timeout in seconds to wait, default 0.5 seconds</doc>
+<shortdoc>Wait until element text equals expected text</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Click Element</usage>
+<usage>Get Elements</usage>
+<usage>Read Table</usage>
+<usage>Select Window</usage>
+<usage>Select Window By Pid</usage>
+<usage>Select Window By Title</usage>
+<usage>Type Text</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Click Coordinates</usage>
+<usage>Set Display Scale Factor</usage>
+<usage>Wait Until Element Is Focused</usage>
+<usage>Wait Until Element Text Contains</usage>
+<usage>Wait Until Element Text Equals</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Click Coordinates</usage>
+<usage>Click Element</usage>
+<usage>Get Element Text</usage>
+<usage>Highlight Element</usage>
+<usage>Refresh Element</usage>
+<usage>Select Window</usage>
+<usage>Select Window By Pid</usage>
+<usage>Select Window By Title</usage>
+<usage>Toggle Drop Down</usage>
+<usage>Type Text</usage>
+<usage>Wait Until Element Exists</usage>
+<usage>Wait Until Element Is Focused</usage>
+<usage>Wait Until Element Text Contains</usage>
+<usage>Wait Until Element Text Equals</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Print Element Tree</usage>
+<usage>Print Locator Tree</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Call Element Action</usage>
+<usage>Click Coordinates</usage>
+<usage>Click Element</usage>
+<usage>Click Push Button</usage>
+<usage>Get Element Actions</usage>
+<usage>Get Element Text</usage>
+<usage>Get Elements</usage>
+<usage>Highlight Element</usage>
+<usage>Print Element Tree</usage>
+<usage>Print Locator Tree</usage>
+<usage>Read Table</usage>
+<usage>Refresh Element</usage>
+<usage>Select Menu</usage>
+<usage>Select Window</usage>
+<usage>Select Window By Title</usage>
+<usage>Toggle Drop Down</usage>
+<usage>Type Text</usage>
+<usage>Wait Until Element Exists</usage>
+<usage>Wait Until Element Is Focused</usage>
+<usage>Wait Until Element Text Contains</usage>
+<usage>Wait Until Element Text Equals</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

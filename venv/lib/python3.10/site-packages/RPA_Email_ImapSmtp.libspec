@@ -1,0 +1,1665 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Email.ImapSmtp" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/Email/ImapSmtp.py" lineno="193">
+<version/>
+<doc>`ImapSmtp` is a library for sending, reading, and deleting emails.
+`ImapSmtp` is interfacing with SMTP and IMAP protocols.
+
+***About criteria argument***
+
+Various keywords like ``List Messages`` and ``Move Messages`` have keyword
+argument called ``criterion`` which can be used to filter emails according
+to given criteria.
+
+Syntax needs to according to specification and more information about that
+can be read from https://robocorp.com/docs/development-guide/email/sending-emails-with-gmail-smtp#listing-email-messages-by-criteria
+
+**Troubleshooting**
+
+- Authentication error with GMail - "Application-specific password required"
+    See: https://support.google.com/mail/answer/185833?hl=en
+- More secure apps (XOAUTH2 protocol) - Use the OAuth2 flow as in this Portal robot:
+    `example-oauth-email &lt;https://github.com/robocorp/example-oauth-email&gt;`_
+
+    Make sure to specify a `provider` (and optionally a `tenant`) when importing
+    the library and planning to use this flow.
+
+**Examples**
+
+**Robot Framework**
+
+It is highly recommended to secure your passwords and take care
+that they are not stored in version control by mistake.
+See ``RPA.Robocorp.Vault`` to see how to store secrets in
+Robocorp Vault.
+
+When sending HTML content with IMG tags, the ``src`` filenames must match
+the base image name given with the ``images`` parameter.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Email.ImapSmtp   smtp_server=smtp.gmail.com  smtp_port=587
+    Task Setup  Authorize  account=${GMAIL_ACCOUNT}  password=${GMAIL_PASSWORD}
+
+    *** Variables ***
+    ${GMAIL_ACCOUNT}        ACCOUNT_NAME
+    ${GMAIL_PASSWORD}       APP_PASSWORD
+    ${RECIPIENT_ADDRESS}    RECIPIENT
+    ${BODY_IMG1}            ${IMAGEDIR}${/}approved.png
+    ${BODY_IMG2}            ${IMAGEDIR}${/}invoice.png
+    ${EMAIL_BODY}     &lt;h1&gt;Heading&lt;/h1&gt;&lt;p&gt;Status: &lt;img src='approved.png' alt='approved image'/&gt;&lt;/p&gt;
+    ...               &lt;p&gt;INVOICE: &lt;img src='invoice.png' alt='invoice image'/&gt;&lt;/p&gt;
+
+    *** Tasks ***
+    Sending email
+        Send Message  sender=${GMAIL_ACCOUNT}
+        ...           recipients=${RECIPIENT_ADDRESS}
+        ...           subject=Message from RPA Robot
+        ...           body=RPA Robot message body
+
+    Sending HTML Email With Image
+        [Documentation]     Sending email with HTML content and attachment
+        Send Message
+        ...                 sender=${GMAIL_ACCOUNT}
+        ...                 recipients=${RECIPIENT_ADDRESS}
+        ...                 subject=HTML email with body images (2) plus one attachment
+        ...                 body=${EMAIL_BODY}
+        ...                 html=${TRUE}
+        ...                 images=${BODY_IMG1}, ${BODY_IMG2}
+        ...                 attachments=example.png
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Email.ImapSmtp import ImapSmtp
+
+    gmail_account = "ACCOUNT_NAME"
+    gmail_password = "APP_PASSWORD"
+
+    mail = ImapSmtp(smtp_server="smtp.gmail.com", smtp_port=587)
+    mail.authorize(account=gmail_account, password=gmail_password)
+    mail.send_message(
+        sender=gmail_account,
+        recipients="RECIPIENT",
+        subject="Message from RPA Python",
+        body="RPA Python message body",
+    )</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="291">
+<arguments repr="smtp_server: str | None = None, smtp_port: int = 587, imap_server: str | None = None, imap_port: int = 993, account: str | None = None, password: str | None = None, encoding: str = utf-8, provider: OAuthProvider | str = GOOGLE, tenant: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="smtp_server: str | None = None">
+<name>smtp_server</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="smtp_port: int = 587">
+<name>smtp_port</name>
+<type name="int" typedoc="integer">int</type>
+<default>587</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="imap_server: str | None = None">
+<name>imap_server</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="imap_port: int = 993">
+<name>imap_port</name>
+<type name="int" typedoc="integer">int</type>
+<default>993</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account: str | None = None">
+<name>account</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="provider: OAuthProvider | str = GOOGLE">
+<name>provider</name>
+<type name="Union" union="true">OAuthProvider | str<type name="OAuthProvider" typedoc="OAuthProvider">OAuthProvider</type><type name="str" typedoc="string">str</type></type>
+<default>GOOGLE</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="tenant: str | None = None">
+<name>tenant</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Add Gmail Labels" lineno="1744">
+<arguments repr="labels, criterion, source_folder: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="labels">
+<name>labels</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="criterion">
+<name>criterion</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_folder: str = None">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Add GMail labels to messages matching criterion and if given,
+source folder
+
+:param labels: comma separated list of labels to add
+:param criterion: label messages matching criterion
+:param source_folder: look for messages in this folder, default all folders
+:return: status of the operation
+
+Example:
+
+.. code-block:: robotframework
+
+    Add Gmail Labels  customer1   SUBJECT "order confirmation"
+    Add Gmail Labels  wip         SUBJECT "order confirmation"   customerfolder</doc>
+<shortdoc>Add GMail labels to messages matching criterion and if given, source folder</shortdoc>
+</kw>
+<kw name="Authorize" lineno="463">
+<arguments repr="account: str | None = None, password: str | None = None, smtp_server: str | None = None, imap_server: str | None = None, smtp_port: int | None = None, imap_port: int | None = None, is_oauth: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account: str | None = None">
+<name>account</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="smtp_server: str | None = None">
+<name>smtp_server</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="imap_server: str | None = None">
+<name>imap_server</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="smtp_port: int | None = None">
+<name>smtp_port</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="imap_port: int | None = None">
+<name>imap_port</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="is_oauth: bool = False">
+<name>is_oauth</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Authorize user to SMTP and IMAP servers.
+
+:param account: user account as string, defaults to None
+:param password: user password as string, defaults to None
+:param smtp_server: SMTP server address, defaults to None
+:param imap_server: IMAP server address, defaults to None
+:param smtp_port: SMTP server port, defaults to None (587 for SMTP)
+:param imap_port: IMAP server port, defaults to None
+:param is_oauth: Use XOAUTH2 protocol with a base64 encoded OAuth2 string as
+    `password`
+
+Will use separately set credentials or those given in keyword call.
+
+Example:
+
+.. code-block:: robotframework
+
+    Authorize    ${username}   ${password}  smtp_server=smtp.gmail.com  smtp_port=587</doc>
+<shortdoc>Authorize user to SMTP and IMAP servers.</shortdoc>
+</kw>
+<kw name="Authorize Imap" lineno="410">
+<arguments repr="account: str | None = None, password: str | None = None, imap_server: str | None = None, imap_port: int | None = None, is_oauth: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account: str | None = None">
+<name>account</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="imap_server: str | None = None">
+<name>imap_server</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="imap_port: int | None = None">
+<name>imap_port</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="is_oauth: bool = False">
+<name>is_oauth</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Authorize to IMAP server.
+
+:param account: IMAP account name, defaults to None
+:param password: IMAP account password, defaults to None
+:param imap_server: IMAP server address, defaults to None
+:param imap_port: IMAP server port, defaults to None
+:param is_oauth: Use XOAUTH2 protocol with a base64 encoded OAuth2 string as
+    `password`
+
+Can be called without giving any parameters if library
+has been initialized with necessary information and/or
+keyword ``Set Credentials`` has been called.
+
+Example:
+
+.. code-block:: robotframework
+
+    Authorize IMAP    ${username}   ${password}  imap.gmail.com  993</doc>
+<shortdoc>Authorize to IMAP server.</shortdoc>
+</kw>
+<kw name="Authorize Smtp" lineno="356">
+<arguments repr="account: str | None = None, password: str | None = None, smtp_server: str | None = None, smtp_port: int | None = None, is_oauth: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account: str | None = None">
+<name>account</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="smtp_server: str | None = None">
+<name>smtp_server</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="smtp_port: int | None = None">
+<name>smtp_port</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="is_oauth: bool = False">
+<name>is_oauth</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Authorize to SMTP server.
+
+:param account: SMTP account name, defaults to None
+:param password: SMTP account password, defaults to None
+:param smtp_server: SMTP server address, defaults to None
+:param smtp_port: SMTP server port, defaults to None (587 for SMTP)
+:param is_oauth: Use XOAUTH2 protocol with a base64 encoded OAuth2 string as
+    `password`
+
+Can be called without giving any parameters if library
+has been initialized with necessary information and/or
+keyword ``Set Credentials`` has been called.
+
+Example:
+
+.. code-block:: robotframework
+
+    Authorize SMTP    ${username}   ${password}  smtp.gmail.com  587</doc>
+<shortdoc>Authorize to SMTP server.</shortdoc>
+</kw>
+<kw name="Convert Eml File Into Message" lineno="1960">
+<arguments repr="eml_filepath: str, save_attachments_directory: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="eml_filepath: str">
+<name>eml_filepath</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="save_attachments_directory: str | None = None">
+<name>save_attachments_directory</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Converts EML file into message dictionary.
+
+Returned dictionary contains:
+
+- **headers** of the email
+- **attachments** the filenames of the attachments or if attachments
+  have been saved then they are absolute filepaths to each attachment
+- **body_text** is the TEXT formatted content of the email body
+- **body_html** is the HTML formatted content of the email body
+
+:param eml_filepath: filepath to the EML file
+:param save_attachments_directory: path to the directory where possible
+ attachments will be saved to, if not given then attachment filenames are
+ returned in a list of the return dictionary in the key 'attachments'
+:return: dictionary containing information aboutthe EML message</doc>
+<shortdoc>Converts EML file into message dictionary.</shortdoc>
+</kw>
+<kw name="Create Folder" lineno="1450">
+<arguments repr="folder_name: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="folder_name: str = None">
+<name>folder_name</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Create email folder
+
+:param folder_name: name for the new folder
+:return: True if operation was successful, False if not
+
+Example:
+
+.. code-block:: robotframework
+
+    Create Folder   filtered</doc>
+<shortdoc>Create email folder</shortdoc>
+</kw>
+<kw name="Delete Folder" lineno="1422">
+<arguments repr="folder_name: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="folder_name: str = None">
+<name>folder_name</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Delete email folder
+
+:param folder_name: current folder name
+:return: True if operation was successful, False if not
+
+Example:
+
+.. code-block:: robotframework
+
+    Delete Folder   filtered</doc>
+<shortdoc>Delete email folder</shortdoc>
+</kw>
+<kw name="Delete Message" lineno="965">
+<arguments repr="criterion: str | dict = None, source_folder: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | dict = None">
+<name>criterion</name>
+<type name="Union" union="true">str | dict<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_folder: str = None">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Delete single message from server based on criterion.
+
+:param criterion: filter messages based on this search, can also be a
+ message dictionary
+:param source_folder: defaults to already selected folder, but can be
+ set to delete message in a specific folder
+:return: True if success, False if not
+
+If criterion does not return exactly 1 message then delete is not done.
+
+Example:
+
+.. code-block:: robotframework
+
+    Delete Message  SUBJECT "Greetings RPA developer"</doc>
+<shortdoc>Delete single message from server based on criterion.</shortdoc>
+</kw>
+<kw name="Delete Messages" lineno="1012">
+<arguments repr="criterion: str | list = None, limit: int = None, source_folder: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | list = None">
+<name>criterion</name>
+<type name="Union" union="true">str | list<type name="str" typedoc="string">str</type><type name="list" typedoc="list">list</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="limit: int = None">
+<name>limit</name>
+<type name="int" typedoc="integer">int</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_folder: str = None">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Delete messages from server based on criterion.
+
+:param criterion: filter messages based on this search, can also be a
+ list of message dictionaries
+:param limit: maximum number of message to delete
+:param source_folder: defaults to already selected folder, but can be
+ set to delete message in a specific folder
+:return: True if success, False if not
+
+Example:
+
+.. code-block:: robotframework
+
+    Delete Messages  SUBJECT Greetings</doc>
+<shortdoc>Delete messages from server based on criterion.</shortdoc>
+</kw>
+<kw name="Do Message Actions" lineno="1786">
+<arguments repr="criterion: str = , actions: list = None, source_folder: str = None, target_folder: str = None, labels: str = None, limit: int = None, overwrite: bool = False, prefix: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str = ">
+<name>criterion</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="actions: list = None">
+<name>actions</name>
+<type name="list" typedoc="list">list</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_folder: str = None">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_folder: str = None">
+<name>target_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="labels: str = None">
+<name>labels</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="limit: int = None">
+<name>limit</name>
+<type name="int" typedoc="integer">int</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="prefix: str = None">
+<name>prefix</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Do actions to messages matching criterion and if given,
+source folder
+
+Actions can be:
+
+- msg_copy
+- msg_delete
+- msg_flag
+- msg_unflag
+- msg_read
+- msg_unread
+- msg_save
+- msg_attachment_save
+- glabel_add
+- glabel_remove
+
+Result object contains following attributes:
+
+- actions_done, number of messages on which action was performed
+- message_count, number of messages matching criterion
+- ids, message ids matching criterion
+- uids, dictionary of message uids and message content
+
+:param criterion: perform actions on messages matching this
+:param actions: list of actions to perform on matching messages
+:param source_folder: look for messages in this folder, default all folders
+:param target_folder: can be file path or email folder
+ (for example action: msg_copy)
+:param labels: comma separated list of labels (for example action: glabel_add)
+:param limit:  maximum number of messages (for example action: msg_delete)
+:param overwrite: to control if file should overwrite
+ (for example action: msg_attachment_save)
+:param prefix: prefix to be added into filename (for example: msg_save)
+:return: result object
+
+Example:
+
+.. code-block:: robotframework
+
+    ${actions}=   Create List  msg_unflag  msg_read  msg_save  msg_attachment_save
+    Do Message Actions    SUBJECT "Order confirmation"
+    ...                   ${actions}
+    ...                   source_folder=XXX
+    ...                   target_folder=${CURDIR}
+    ...                   overwrite=True</doc>
+<shortdoc>Do actions to messages matching criterion and if given, source folder</shortdoc>
+</kw>
+<kw name="Email To Document" lineno="1866">
+<arguments repr="input_source: str | Path | BinaryIO | bytes, output_path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="input_source: str | Path | BinaryIO | bytes">
+<name>input_source</name>
+<type name="Union" union="true">str | Path | BinaryIO | bytes<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="BinaryIO">BinaryIO</type><type name="bytes" typedoc="bytes">bytes</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="output_path: str | Path">
+<name>output_path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Convert a raw e-mail into a Word document.
+
+This keyword extracts the HTML (or Text) content from the passed input e-mail
+and saves it into docx format at the provided output path.
+
+:param input_source: Path, bytes or file-like object with the input raw e-mail
+    content
+:param output_path: Where to save the output docx file
+
+Example:
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    Convert email to docx
+        ${mail_file} =     Get Work Item File    mail.eml
+        Email To Document    ${mail_file}    ${OUTPUT_DIR}${/}mail.docx
+
+**Python**
+
+.. code-block:: python
+
+    from pathlib import Path
+    from RPA.Email.ImapSmtp import ImapSmtp
+    from RPA.Robocorp.WorkItems import WorkItems
+
+    lib_work = WorkItems()
+    lib_mail = ImapSmtp()
+
+    def convert_email_to_docx():
+        lib_work.get_input_work_item()
+        mail_file = lib_work.get_work_item_file("mail.eml")
+        lib_mail.email_to_document(mail_file, Path("./output") / "mail.docx")</doc>
+<shortdoc>Convert a raw e-mail into a Word document.</shortdoc>
+</kw>
+<kw name="Flag Messages" lineno="1478">
+<arguments repr="criterion: str | dict = None, unflag: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | dict = None">
+<name>criterion</name>
+<type name="Union" union="true">str | dict<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="unflag: bool = False">
+<name>unflag</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Mark messages as `flagged`
+
+:param criterion: mark messages matching criterion
+:param unflag: to mark messages as not `flagged`
+:return: successful operations (int), matching messages (int)
+
+Example:
+
+.. code-block:: robotframework
+
+    ${flagged}  ${oftotal}    Flag Messages   SUBJECT rpa
+    ${unflagged}  ${oftotal}  Flag Messages   SUBJECT rpa  unflag=True</doc>
+<shortdoc>Mark messages as `flagged`</shortdoc>
+</kw>
+<kw name="Generate Oauth String" lineno="1933">
+<arguments repr="username: str, access_token: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="username: str">
+<name>username</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="access_token: str">
+<name>access_token</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Generate and return an OAuth2 string compatible with the IMAP/POP/SMTP
+XOAUTH2 protocol.
+
+This string usually gets passed to the ``Authorize`` keyword as `password` when
+`is_oauth=${True}`.
+
+:param username: The e-mail address you're going to send the e-mail with.
+:param access_token: Access token string found in the dictionary obtained with
+     ``Get OAuth Token`` or ``Refresh OAuth Token``.
+:returns: Base64 encoded string packing these credentials and replacing the
+    legacy `password` when enabling the OAuth2 flow.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Authorize ImapSmtp
+        ${password} =   Generate OAuth String    ${username}
+        ...    ${token}[access_token]
+        Authorize    account=${username}    is_oauth=${True}
+        ...     password=${password}</doc>
+<shortdoc>Generate and return an OAuth2 string compatible with the IMAP/POP/SMTP XOAUTH2 protocol.</shortdoc>
+</kw>
+<kw name="Generate Oauth Url" source="./RPA/Email/common.py" lineno="74">
+<arguments repr="client_id: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="client_id: str">
+<name>client_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Generates an authorization URL which must be opened by the user to start the
+OAuth2 flow and obtain an authorization code as response.
+
+:param client_id: Client app ID. (generated by the provider)
+:returns: Authorization URL string not containing any sensitive info in it.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Start OAuth Flow
+        ${auth_url} =    Generate OAuth URL
+        ...     client_id=810482312368-19htmcgcj*******googleusercontent.com
+        Log     Start OAuth2 flow: ${auth_url}</doc>
+<shortdoc>Generates an authorization URL which must be opened by the user to start the OAuth2 flow and obtain an authorization code as response.</shortdoc>
+</kw>
+<kw name="Get Decoded Email Body" lineno="713">
+<arguments repr="message, html_first: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="message">
+<name>message</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="html_first: bool = False">
+<name>html_first</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Decodes email body and extracts its text/html content.
+
+Automatically detects character set if the header is not set.
+
+:param message: Raw 7-bit message body input e.g. from `imaplib`. Double
+    encoded in quoted-printable and latin-1
+:param html_first: Prioritize html extraction over text when this is True
+:returns: Message body as unicode string and a boolean telling if the message
+    has attachments</doc>
+<shortdoc>Decodes email body and extracts its text/html content.</shortdoc>
+</kw>
+<kw name="Get Folder List" lineno="1327">
+<arguments repr="subdirectory: str = None, pattern: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="subdirectory: str = None">
+<name>subdirectory</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pattern: str = None">
+<name>pattern</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get list of folders on the server
+
+:param subdirectory: list subdirectories for this folder
+:param pattern: list folders matching this pattern
+:return: list of folders
+
+Example:
+
+.. code-block:: robotframework
+
+    @{folders}  Get Folder List
+    @{folders}  Get Folder List  pattern=important
+    @{folders}  Get Folder List  subdirectory=sub</doc>
+<shortdoc>Get list of folders on the server</shortdoc>
+</kw>
+<kw name="Get Oauth Token" source="./RPA/Email/common.py" lineno="114">
+<arguments repr="client_secret: str, response_url: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="client_secret: str">
+<name>client_secret</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="response_url: str">
+<name>response_url</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Exchanges the code obtained previously with ``Generate OAuth URL`` for a
+token.
+
+:param client_secret: Client app secret. (generated by the provider)
+:param response_url: The final URL containing the authorization `code` found in
+    the address bar after authenticating and authorizing the Client app
+    through the authorization URL.
+:returns: A dictionary containing the access &amp; refresh token, plus metadata.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Finish OAuth Flow
+        ${token} =      Get OAuth Token
+        ...     client_secret=GOCSPX-******mqZAW89
+        ...     response_url=${resp_url}  # redirect of `Generate OAuth URL`</doc>
+<shortdoc>Exchanges the code obtained previously with ``Generate OAuth URL`` for a token.</shortdoc>
+</kw>
+<kw name="List Messages" lineno="1101">
+<arguments repr="criterion: str = , source_folder: str = None, readonly: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str = ">
+<name>criterion</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_folder: str = None">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="readonly: bool = True">
+<name>readonly</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Return list of messages matching criterion.
+
+:param criterion: list emails matching this, defaults to ""
+:param source_folder: list messages from this folder
+:param readonly: set False if you want to mark matching messages as read
+:return: list of messages
+
+*Note.* listing messages without `source_folder` might take a long time
+
+Example:
+
+.. code-block:: robotframework
+
+    @{emails}  List Messages  SUBJECT "rpa task"
+    FOR  ${email}  IN  @{EMAILS}
+        Log  ${email}[Subject]
+        Log  ${email}[From]
+        Log  ${email}[Date]
+        Log  ${email}[Delivered-To]
+        Log  ${email}[Received]
+        Log  ${email}[Has-Attachments]
+        Log  ${email}[uid]
+    END</doc>
+<shortdoc>Return list of messages matching criterion.</shortdoc>
+</kw>
+<kw name="Mark As Read" lineno="1521">
+<arguments repr="criterion: str | dict = None, unread: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | dict = None">
+<name>criterion</name>
+<type name="Union" union="true">str | dict<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="unread: bool = False">
+<name>unread</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Mark messages as `read`
+
+:param criterion: mark messages matching criterion
+:param unread: to mark messages as not `read`
+:return: successful operations (int), matching messages (int)
+
+Example:
+
+.. code-block:: robotframework
+
+    ${read}  ${oftotal}  Mark As Read   SUBJECT rpa</doc>
+<shortdoc>Mark messages as `read`</shortdoc>
+</kw>
+<kw name="Mark As Unread" lineno="1548">
+<arguments repr="criterion: str | dict = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | dict = None">
+<name>criterion</name>
+<type name="Union" union="true">str | dict<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Mark messages as not `read`
+
+:param criterion: mark messages matching criterion
+:return: successful operations (int), matching messages (int)
+
+Example:
+
+.. code-block:: robotframework
+
+    ${unread}  ${oftotal}  Mark As Unread   SUBJECT rpa</doc>
+<shortdoc>Mark messages as not `read`</shortdoc>
+</kw>
+<kw name="Move Messages" lineno="1612">
+<arguments repr="criterion: str | dict = None, target_folder: str = None, source_folder: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | dict = None">
+<name>criterion</name>
+<type name="Union" union="true">str | dict<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_folder: str = None">
+<name>target_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_folder: str = None">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Move messages from source folder to target folder
+
+:param criterion: move messages matching criterion
+:param source_folder: location of the messages, default `INBOX`
+:param target_folder: where messages should be move into
+:return: True if all move operations succeeded, False if not
+
+Example:
+
+.. code-block:: robotframework
+
+    ${result}=    Move Messages
+    ...    criterion=SUBJECT "order confirmation 32"
+    ...    target_folder=yyy
+
+    ${result}=    Move Messages
+    ...    criterion=ALL
+    ...    source_folder=yyy
+    ...    target_folder=XXX</doc>
+<shortdoc>Move messages from source folder to target folder</shortdoc>
+</kw>
+<kw name="Move Messages By Ids" lineno="1677">
+<arguments repr="message_ids: str | List, target_folder: str, source_folder: str, use_gmail_search: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="message_ids: str | List">
+<name>message_ids</name>
+<type name="Union" union="true">str | List<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="target_folder: str">
+<name>target_folder</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source_folder: str">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_gmail_search: bool = False">
+<name>use_gmail_search</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Move message by their Message-ID's from source folder to target folder
+
+:param message_ids: one Message-ID as string or list of Message-IDs
+:param source_folder: location of the messages, default `INBOX`
+:param target_folder: where messages should be move into
+:param use_gmail_search: set to True to use `Rfc822msgid` search, default
+    is `HEADER Message-ID` search
+:return: True if all move operations succeeded, False if not</doc>
+<shortdoc>Move message by their Message-ID's from source folder to target folder</shortdoc>
+</kw>
+<kw name="Refresh Oauth Token" source="./RPA/Email/common.py" lineno="143">
+<arguments repr="client_id: str, client_secret: str, token: dict">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="client_id: str">
+<name>client_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="client_secret: str">
+<name>client_secret</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="token: dict">
+<name>token</name>
+<type name="dict" typedoc="dictionary">dict</type>
+</arg>
+</arguments>
+<doc>Refreshes the token as the access one usually expires after 1h and the
+refresh one never expires. (as long as it doesn't get revoked)
+
+:param client_id: Client app ID. (generated by the provider)
+:param client_secret: Client app secret. (generated by the provider)
+:param token: Full token dictionary previously obtained with
+    ``Get OAuth Token``.
+:returns: A token dictionary containing a new access token and updated
+    metadata.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Refresh OAuth Flow
+        ${token} =      Refresh OAuth Token
+        ...     client_id=810482312368-19htmcgcj*******googleusercontent.com
+        ...     client_secret=GOCSPX-******mqZAW89
+        ...     token=${token}  # from `Get OAuth Token`</doc>
+<shortdoc>Refreshes the token as the access one usually expires after 1h and the refresh one never expires. (as long as it doesn't get revoked)</shortdoc>
+</kw>
+<kw name="Remove Gmail Labels" lineno="1765">
+<arguments repr="labels, criterion, source_folder: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="labels">
+<name>labels</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="criterion">
+<name>criterion</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_folder: str = None">
+<name>source_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Remove GMail labels to messages matching criterion and if given,
+source folder
+
+:param labels: comma separated list of labels to remove
+:param criterion: unlabel messages matching criterion
+:param source_folder: look for messages in this folder, default all folders
+:return: status of the operation
+
+Example:
+
+.. code-block:: robotframework
+
+    Remove Gmail Labels  wip  SUBJECT "order confirmation"
+    Remove Gmail Labels  wip  SUBJECT "order confirmation"  customerfolder</doc>
+<shortdoc>Remove GMail labels to messages matching criterion and if given, source folder</shortdoc>
+</kw>
+<kw name="Rename Folder" lineno="1388">
+<arguments repr="oldname: str = None, newname: str = None, suppress_error: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="oldname: str = None">
+<name>oldname</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="newname: str = None">
+<name>newname</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="suppress_error: bool = False">
+<name>suppress_error</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Rename email folder
+
+:param oldname: current folder name
+:param newname: new name for the folder
+:param suppress_error: to silence warning message, defaults to False
+:return: True if operation was successful, False if not
+
+Example:
+
+.. code-block:: robotframework
+
+    Rename Folder   subfolder   filtered</doc>
+<shortdoc>Rename email folder</shortdoc>
+</kw>
+<kw name="Save Attachment" lineno="1186">
+<arguments repr="message: dict | Message, target_folder: str | None, overwrite: bool, prefix: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="message: dict | Message">
+<name>message</name>
+<type name="Union" union="true">dict | Message<type name="dict" typedoc="dictionary">dict</type><type name="Message">Message</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="target_folder: str | None">
+<name>target_folder</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="overwrite: bool">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="prefix: str | None = None">
+<name>prefix</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Save mail attachment of a single given email on the local disk.
+
+:param message: message item
+:param target_folder: local folder for saving attachments to (needs to exist),
+    defaults to user's home directory if None
+:param overwrite: overwrite existing file if True, defaults to False
+:param prefix: optional filename prefix added to the attachments, empty by
+    default
+:return: list of saved attachments (list of absolute filepaths) in one email
+
+Example:
+
+.. code-block:: robotframework
+
+    @{emails} =    List Messages    ALL
+    FOR    ${email}    IN    @{emails}
+        IF    ${email}[Has-Attachments]
+            Log To Console    Saving attachment for: ${email}[Subject]
+            ${attachments} =    Save Attachment
+            ...    ${email}
+            ...    target_folder=${CURDIR}
+            ...    overwrite=${True}
+            Log To Console    Saved attachments: ${attachments}
+        END
+    END</doc>
+<shortdoc>Save mail attachment of a single given email on the local disk.</shortdoc>
+</kw>
+<kw name="Save Attachments" lineno="1149">
+<arguments repr="criterion: str = , target_folder: str | None = None, overwrite: bool = False, prefix: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str = ">
+<name>criterion</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_folder: str | None = None">
+<name>target_folder</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="prefix: str | None = None">
+<name>prefix</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Save mail attachments of emails matching criterion on the local disk.
+
+:param criterion: attachments are saved for mails matching this, defaults to ""
+:param target_folder: local folder for saving attachments to (needs to exist),
+    defaults to user's home directory if None
+:param overwrite: overwrite existing file if True, defaults to False
+:param prefix: optional filename prefix added to the attachments, empty by
+    default
+:return: list of saved attachments (absolute file paths) of all emails
+
+Example:
+
+.. code-block:: robotframework
+
+    ${attachments} =    Save Attachments    SUBJECT "rpa task"
+    ...    target_folder=${CURDIR}${/}messages  overwrite=${True}
+    FOR  ${file}  IN  @{attachments}
+        OperatingSystem.File Should Exist  ${file}
+    END</doc>
+<shortdoc>Save mail attachments of emails matching criterion on the local disk.</shortdoc>
+</kw>
+<kw name="Save Messages" lineno="1056">
+<arguments repr="criterion: str | dict | list | None = None, target_folder: str | None = None, prefix: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | dict | list | None = None">
+<name>criterion</name>
+<type name="Union" union="true">str | dict | list | None<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type><type name="list" typedoc="list">list</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_folder: str | None = None">
+<name>target_folder</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="prefix: str | None = None">
+<name>prefix</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Save messages based on criteria and store them to target folder
+with attachment files.
+
+Does not save message if `target_folder` is not given.
+
+:param criterion: filter messages based on this, defaults to ""
+:param target_folder: path to folder where message are saved, defaults to None
+:param prefix: optional filename prefix added to the attachments, empty by
+    default
+:return: True if succeeded, False otherwise
+
+Example:
+
+.. code-block:: robotframework
+
+    Save Messages  SUBJECT Important message  target_folder=${USERDIR}${/}messages</doc>
+<shortdoc>Save messages based on criteria and store them to target folder with attachment files.</shortdoc>
+</kw>
+<kw name="Select Folder" lineno="1361">
+<arguments repr="folder_name: str = INBOX, readonly: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="folder_name: str = INBOX">
+<name>folder_name</name>
+<type name="str" typedoc="string">str</type>
+<default>INBOX</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="readonly: bool = False">
+<name>readonly</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Select folder by name
+
+:param folder_name: name of the folder to select
+:param readonly: if set to True then message flags are not modified
+:return: message count in the selected folder
+
+Returns number of messages in the folder or
+exception if folder does not exist on the server.
+
+Example:
+
+.. code-block:: robotframework
+
+    Select Folder   subfolder</doc>
+<shortdoc>Select folder by name</shortdoc>
+</kw>
+<kw name="Send Message" lineno="510">
+<arguments repr="sender: str, recipients: List[str] | str | None = None, subject: str = , body: str = , attachments: List[str] | str | None = None, html: bool = False, images: List[str] | str | None = None, cc: List[str] | str | None = None, bcc: List[str] | str | None = None, attachment_position: AttachmentPosition | None = TOP, in_reply_to: str | None = None, return_path: str | None = None, reply_to: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="sender: str">
+<name>sender</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="recipients: List[str] | str | None = None">
+<name>recipients</name>
+<type name="Union" union="true">List[str] | str | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="subject: str = ">
+<name>subject</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="body: str = ">
+<name>body</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="attachments: List[str] | str | None = None">
+<name>attachments</name>
+<type name="Union" union="true">List[str] | str | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="html: bool = False">
+<name>html</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="images: List[str] | str | None = None">
+<name>images</name>
+<type name="Union" union="true">List[str] | str | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cc: List[str] | str | None = None">
+<name>cc</name>
+<type name="Union" union="true">List[str] | str | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="bcc: List[str] | str | None = None">
+<name>bcc</name>
+<type name="Union" union="true">List[str] | str | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="attachment_position: AttachmentPosition | None = TOP">
+<name>attachment_position</name>
+<type name="Union" union="true">AttachmentPosition | None<type name="AttachmentPosition" typedoc="AttachmentPosition">AttachmentPosition</type><type name="None" typedoc="None">None</type></type>
+<default>TOP</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="in_reply_to: str | None = None">
+<name>in_reply_to</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="return_path: str | None = None">
+<name>return_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="reply_to: str | None = None">
+<name>reply_to</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Send SMTP email
+
+:param sender: who is sending, ie. 'from'
+:param recipients: who is receiving, ie. 'to'
+:param subject: mail subject field
+:param body: mail body content
+:param attachments: list of filepaths to attach
+:param html: if message content is in HTML, default `False`
+:param images: list of filepaths for inline images
+:param cc: list of email addresses for email 'cc' field
+:param bcc: list of email addresses for email 'bcc' field
+:param attachment_position: content position for attachment, default `top`
+:param in_reply_to: the 'Message ID' to which this message is in reply to,
+ for example `&lt;message_id_for_reply_to&gt;`
+:param return_path: email address which should receive "bounce messages"
+:param reply_to: email address which should receive the reply
+
+**Valid sender values**
+
+- First Lastname &lt;address@domain&gt;
+- address@domain
+
+**About in_reply_to**
+
+In addition of setting `in_reply_to` parameter to match the 'Message ID'
+of the email this message is replying to, some email servers require that
+also subject of the original email is included in the reply email subject
+with `re: ` prefix, ie. "re: Why it is best to use Robocorp RPA" or with
+the original email subject.
+
+And please note that `in_reply_to` the 'Message ID' needs to contain `&lt;` in
+the start of the ID and `&gt;` at the end of the ID.
+
+**About return_path**
+
+Email servers tend to set 'Return-Path' of the email on their own so in
+some cases user given address won't work as the email server does not
+use the user set address. If possible, the email server's configuration
+can be changed to ensure that 'Return-Path' header is respected.
+
+Example:
+
+.. code-block:: robotframework
+
+    Send Message  sender@domain.com  recipient@domain.com
+    ...           cc=need_to_know@domain.com
+    ...           bcc=hidden_copy@domain.com
+    ...           subject=Greetings Software Robot Developer
+    ...           body=${email_body}
+    ...           attachments=${CURDIR}${/}report.pdf
+
+    # Fixing attachments to the bottom of the content
+    Send Message  sender@domain.com  recipient@domain.com
+    ...           subject=Greetings Software Robot Developer
+    ...           body=${email_body}
+    ...           attachments=${CURDIR}${/}report.pdf
+    ...           attachment_position=bottom</doc>
+<shortdoc>Send SMTP email</shortdoc>
+</kw>
+<kw name="Send Smtp Hello" lineno="501">
+<arguments repr="">
+</arguments>
+<doc>Send hello message to SMTP server.
+
+Required step when creating SMTP connection.</doc>
+<shortdoc>Send hello message to SMTP server.</shortdoc>
+</kw>
+<kw name="Set Credentials" lineno="338">
+<arguments repr="account: str | None = None, password: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account: str | None = None">
+<name>account</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set credentials
+
+:param account: user account as string, defaults to None
+:param password: user password as string, defaults to None
+
+Example:
+
+.. code-block:: robotframework
+
+    Set Credentials   ${username}   ${password}
+    Authorize</doc>
+<shortdoc>Set credentials</shortdoc>
+</kw>
+<kw name="Unflag Messages" lineno="1506">
+<arguments repr="criterion: str | dict = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str | dict = None">
+<name>criterion</name>
+<type name="Union" union="true">str | dict<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Mark messages as not `flagged`
+
+:param criterion: mark messages matching criterion
+:return: successful operations (int), matching messages (int)
+
+Example:
+
+.. code-block:: robotframework
+
+    ${unflagged}  ${oftotal}  Unflag Messages   SUBJECT rpa</doc>
+<shortdoc>Mark messages as not `flagged`</shortdoc>
+</kw>
+<kw name="Wait For Message" lineno="1277">
+<arguments repr="criterion: str = , timeout: float = 5.0, interval: float = 1.0, readonly: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="criterion: str = ">
+<name>criterion</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: float = 5.0">
+<name>timeout</name>
+<type name="float" typedoc="float">float</type>
+<default>5.0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="interval: float = 1.0">
+<name>interval</name>
+<type name="float" typedoc="float">float</type>
+<default>1.0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="readonly: bool = True">
+<name>readonly</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Wait for email matching `criterion` to arrive into mailbox.
+
+:param criterion: message filter to wait for, defaults to ""
+:param timeout: total time in seconds to wait for email, defaults to 5.0
+:param interval: time in seconds for new check, defaults to 1.0
+:param readonly: set False if you want to mark matching messages as read
+:return: list of messages
+
+Example:
+
+.. code-block:: robotframework
+
+    @{emails}  Wait For Message  SUBJECT "rpa task"  timeout=300  interval=10</doc>
+<shortdoc>Wait for email matching `criterion` to arrive into mailbox.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="AttachmentPosition">
+<doc>Possible attachment positions in the message content.</doc>
+<members>
+<member name="TOP" value="1"/>
+<member name="BOTTOM" value="2"/>
+</members>
+</enum>
+<enum name="OAuthProvider">
+<doc>OAuth2 tested providers.</doc>
+<members>
+<member name="GOOGLE" value="google"/>
+<member name="MICROSOFT" value="microsoft"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="AttachmentPosition" type="Enum">
+<doc>Possible attachment positions in the message content.</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Send Message</usage>
+</usages>
+<members>
+<member name="TOP" value="1"/>
+<member name="BOTTOM" value="2"/>
+</members>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Authorize</usage>
+<usage>Authorize Imap</usage>
+<usage>Authorize Smtp</usage>
+<usage>Do Message Actions</usage>
+<usage>Flag Messages</usage>
+<usage>Get Decoded Email Body</usage>
+<usage>List Messages</usage>
+<usage>Mark As Read</usage>
+<usage>Move Messages By Ids</usage>
+<usage>Rename Folder</usage>
+<usage>Save Attachment</usage>
+<usage>Save Attachments</usage>
+<usage>Select Folder</usage>
+<usage>Send Message</usage>
+<usage>Wait For Message</usage>
+</usages>
+</type>
+<type name="bytes" type="Standard">
+<doc>Strings are converted to bytes so that each Unicode code point
+below 256 is directly mapped to a matching byte. Higher code
+points are not allowed. Robot Framework's ``\xHH`` escape syntax is
+convenient with bytes having non-printable values.
+
+Examples: ``good``, ``hyvä`` (same as ``hyv\xE4``), ``\x00`` (the null byte)
+</doc>
+<accepts>
+<type>string</type>
+<type>bytearray</type>
+</accepts>
+<usages>
+<usage>Email To Document</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Delete Message</usage>
+<usage>Flag Messages</usage>
+<usage>Mark As Read</usage>
+<usage>Mark As Unread</usage>
+<usage>Move Messages</usage>
+<usage>Refresh Oauth Token</usage>
+<usage>Save Attachment</usage>
+<usage>Save Messages</usage>
+<usage>Unflag Messages</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Wait For Message</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Authorize</usage>
+<usage>Authorize Imap</usage>
+<usage>Authorize Smtp</usage>
+<usage>Delete Messages</usage>
+<usage>Do Message Actions</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Delete Messages</usage>
+<usage>Do Message Actions</usage>
+<usage>Move Messages By Ids</usage>
+<usage>Save Messages</usage>
+<usage>Send Message</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Authorize</usage>
+<usage>Authorize Imap</usage>
+<usage>Authorize Smtp</usage>
+<usage>Convert Eml File Into Message</usage>
+<usage>Save Attachment</usage>
+<usage>Save Attachments</usage>
+<usage>Save Messages</usage>
+<usage>Send Message</usage>
+<usage>Set Credentials</usage>
+</usages>
+</type>
+<type name="OAuthProvider" type="Enum">
+<doc>OAuth2 tested providers.</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+</usages>
+<members>
+<member name="GOOGLE" value="google"/>
+<member name="MICROSOFT" value="microsoft"/>
+</members>
+</type>
+<type name="Path" type="Standard">
+<doc>Strings are converted [https://docs.python.org/library/pathlib.html|Path] objects.
+On Windows ``/`` is converted to ``\`` automatically.
+
+Examples: ``/tmp/absolute/path``, ``relative/path/to/file.ext``, ``name.txt``
+</doc>
+<accepts>
+<type>string</type>
+<type>PurePath</type>
+</accepts>
+<usages>
+<usage>Email To Document</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Add Gmail Labels</usage>
+<usage>Authorize</usage>
+<usage>Authorize Imap</usage>
+<usage>Authorize Smtp</usage>
+<usage>Convert Eml File Into Message</usage>
+<usage>Create Folder</usage>
+<usage>Delete Folder</usage>
+<usage>Delete Message</usage>
+<usage>Delete Messages</usage>
+<usage>Do Message Actions</usage>
+<usage>Email To Document</usage>
+<usage>Flag Messages</usage>
+<usage>Generate Oauth String</usage>
+<usage>Generate Oauth Url</usage>
+<usage>Get Folder List</usage>
+<usage>Get Oauth Token</usage>
+<usage>List Messages</usage>
+<usage>Mark As Read</usage>
+<usage>Mark As Unread</usage>
+<usage>Move Messages</usage>
+<usage>Move Messages By Ids</usage>
+<usage>Refresh Oauth Token</usage>
+<usage>Remove Gmail Labels</usage>
+<usage>Rename Folder</usage>
+<usage>Save Attachment</usage>
+<usage>Save Attachments</usage>
+<usage>Save Messages</usage>
+<usage>Select Folder</usage>
+<usage>Send Message</usage>
+<usage>Set Credentials</usage>
+<usage>Unflag Messages</usage>
+<usage>Wait For Message</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

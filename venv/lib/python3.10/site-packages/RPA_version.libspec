@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.version" type="LIBRARY" format="ROBOT" scope="GLOBAL" generated="2024-07-04T11:59:07+00:00" specversion="5" source="./RPA/version.py" lineno="1">
+<version>28.6.1</version>
+<doc>Documentation for library ``RPA.version``.</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+</typedocs>
+</keywordspec>

@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.DocumentAI.Nanonets" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/DocumentAI/Nanonets.py" lineno="12">
+<version/>
+<doc>Library to support `Nanonets &lt;https://nanonets.com/&gt;`_ service for intelligent document processing (IDP).
+
+Library requires at the minimum `rpaframework` version **19.0.0**.
+
+Service supports identifying fields in the documents, which can be given to the
+service in multiple different file formats and via URL.
+
+**Robot Framework example usage**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library   RPA.DocumentAI.Nanonets
+    Library   RPA.Robocorp.Vault
+
+    *** Tasks ***
+    Identify document
+        ${secrets}=   Get Secret  nanonets-auth
+        Set Authorization    ${secrets}[apikey]
+        ${result}=    Predict File
+        ...  ${CURDIR}${/}files${/}eckero.jpg
+        ...  ${secrets}[receipts-model-id]
+        ${fields}=    Get Fields From Prediction Result    ${result}
+        FOR    ${field}    IN    @{fields}
+            Log To Console    Label:${field}[label] Text:${field}[ocr_text]
+        END
+        ${tables}=    Get Tables From Prediction Result    ${result}
+        FOR    ${table}    IN    @{tables}
+            FOR    ${rows}    IN    ${table}[rows]
+                FOR    ${row}    IN    @{rows}
+                    ${cells}=    Evaluate    [cell['text'] for cell in $row]
+                    Log To Console    ROW:${{" | ".join($cells)}}
+                END
+            END
+        END
+
+
+**Python example usage**
+
+.. code-block:: python
+
+    from RPA.DocumentAI.Nanonets import Nanonets
+    from RPA.Robocorp.Vault import Vault
+
+    secrets = Vault().get_secret("nanonets-auth")
+    nanolib = Nanonets()
+    nanolib.set_authorization(secrets["apikey"])
+    result = nanolib.predict_file(file_to_scan, secrets["receipts-model-id"])
+    fields = nanolib.get_fields_from_prediction_result(result)
+    for field in fields:
+        print(f"Label: {field['label']} Text: {field['ocr_text']}")
+    tables = nanolib.get_tables_from_prediction_result(result)
+    for table in tables:
+        rpatable = Tables().create_table(table["rows"])
+        for row in table["rows"]:
+            cells = [cell["text"] for cell in row]
+            print(f"ROW: {' | '.join(cells)}")</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Get All Models" lineno="160">
+<arguments repr="">
+</arguments>
+<doc>Get all available models related to the API key.
+
+:return: object containing available models
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${models}=  Get All Models
+    FOR  ${model}  IN  @{models}
+        Log To Console  Model ID: ${model}[model_id]
+        Log To Console  Model Type: ${model}[model_type]
+    END
+
+Python example:
+
+.. code-block:: python
+
+    models = nanolib.get_all_models()
+    for model in models:
+        print(f"model id: {model['model_id']}")
+        print(f"model type: {model['model_type']}")</doc>
+<shortdoc>Get all available models related to the API key.</shortdoc>
+</kw>
+<kw name="Get Fields From Prediction Result" lineno="249">
+<arguments repr="prediction: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="prediction: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<name>prediction</name>
+<type name="Union" union="true">Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None<type name="Dict" typedoc="dictionary">Dict[Hashable, str | int | float | bool | list | dict | None]<type name="Hashable">Hashable</type><type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="List" typedoc="list">List[str | int | float | bool | list | dict | None]<type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+</arg>
+</arguments>
+<doc>Helper keyword to get found fields from a prediction result.
+
+For example. see ``Predict File`` keyword
+
+:param prediction: prediction result dictionary
+:return: list of found fields</doc>
+<shortdoc>Helper keyword to get found fields from a prediction result.</shortdoc>
+</kw>
+<kw name="Get Tables From Prediction Result" lineno="263">
+<arguments repr="prediction: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="prediction: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<name>prediction</name>
+<type name="Union" union="true">Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None<type name="Dict" typedoc="dictionary">Dict[Hashable, str | int | float | bool | list | dict | None]<type name="Hashable">Hashable</type><type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="List" typedoc="list">List[str | int | float | bool | list | dict | None]<type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+</arg>
+</arguments>
+<doc>Helper keyword to get found tables from a prediction result.
+
+For another example. see ``Predict File`` keyword
+
+:param prediction: prediction result dictionary
+:return: list of found tables
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    # It is possible to create ``RPA.Tables`` compatible tables from the result
+    ${tables}=    Get Tables From Prediction Result    ${result}
+    FOR    ${table}    IN    @{tables}
+        ${rpatable}=    Create Table    ${table}[rows]
+        FOR    ${row}    IN    @{rpatable}
+            Log To Console    ${row}
+        END
+    END
+
+Python example:
+
+.. code-block:: python
+
+    # It is possible to create ``RPA.Tables`` compatible tables from the result
+    tables = nanolib.get_tables_from_prediction_result(result)
+    for table in tables:
+        rpatable = Tables().create_table(table["rows"])
+        for row in rpatable:
+            print(row)</doc>
+<shortdoc>Helper keyword to get found tables from a prediction result.</shortdoc>
+</kw>
+<kw name="Ocr Fulltext" lineno="112">
+<arguments repr="filename: str, filepath: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filepath: str">
+<name>filepath</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>OCR fulltext a given file. Returns words and full text.
+
+Filename and filepath needs to be given separately.
+
+:param filename: name of the file
+:param filepath: path of the file
+:return: the result in a list format
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${results}=  OCR Fulltext
+    ...   invoice.pdf
+    ...   ${CURDIR}${/}invoice.pdf
+    FOR  ${result}  IN  @{results}
+        Log To Console  Filename: ${result}[filename]
+        FOR  ${pagenum}  ${page}  IN ENUMERATE  @{result.pagedata}   start=1
+            Log To Console  Page ${pagenum} raw Text: ${page}[raw_text]
+        END
+    END
+
+Python example:
+
+.. code-block:: python
+
+    results = nanolib.ocr_fulltext("IMG_8277.jpeg", "./IMG_8277.jpeg")
+    for result in results:
+        print(f"FILENAME: {result['filename']}")
+        for page in result["page_data"]:
+            print(f"Page {page['page']+1}: {page['raw_text']}")</doc>
+<shortdoc>OCR fulltext a given file. Returns words and full text.</shortdoc>
+</kw>
+<kw name="Predict File" lineno="193">
+<arguments repr="filepath: str, model_id: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filepath: str">
+<name>filepath</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="model_id: str">
+<name>model_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get prediction result for a file by a given model id.
+
+:param filepath: filepath to the file
+:param model_id: id of the Nanonets model to categorize a file
+:return: the result in a list format
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${result}=  Predict File  ./document.pdf   ${MODEL_ID}
+    ${fields}=    Get Fields From Prediction Result    ${result}
+    FOR    ${field}    IN    @{fields}
+        Log To Console    Label:${field}[label] Text:${field}[ocr_text]
+    END
+    ${tables}=    Get Tables From Prediction Result    ${result}
+    FOR    ${table}    IN    @{tables}
+        FOR    ${rows}    IN    ${table}[rows]
+            FOR    ${row}    IN    @{rows}
+                ${cells}=    Evaluate    [cell['text'] for cell in $row]
+                Log To Console    ROW:${{" | ".join($cells)}}
+            END
+        END
+    END
+
+Python example:
+
+.. code-block:: python
+
+    result = nanolib.predict_file("./docu.pdf", secrets["receipts-model-id"])
+    fields = nanolib.get_fields_from_prediction_result(result)
+    for field in fields:
+        print(f"Label: {field['label']} Text: {field['ocr_text']}")
+    tables = nanolib.get_tables_from_prediction_result(result)
+    for table in tables:
+        for row in table["rows"]:
+            cells = [cell["text"] for cell in row]
+            print(f"ROW: {' | '.join(cells)}")</doc>
+<shortdoc>Get prediction result for a file by a given model id.</shortdoc>
+</kw>
+<kw name="Set Authorization" lineno="90">
+<arguments repr="apikey: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="apikey: str">
+<name>apikey</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Set Nanonets request headers with key related to API.
+
+:param apikey: key related to the API
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${secrets}=   Get Secret  nanonets-auth
+    Set Authorization    ${secrets}[apikey]
+
+Python example:
+
+.. code-block:: python
+
+    secrets = Vault().get_secret("nanonets-auth")
+    nanolib = Nanonets()
+    nanolib.set_authorization(secrets["apikey"])</doc>
+<shortdoc>Set Nanonets request headers with key related to API.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Tables From Prediction Result</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Tables From Prediction Result</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Tables From Prediction Result</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Tables From Prediction Result</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Tables From Prediction Result</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Tables From Prediction Result</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Tables From Prediction Result</usage>
+<usage>Ocr Fulltext</usage>
+<usage>Predict File</usage>
+<usage>Set Authorization</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

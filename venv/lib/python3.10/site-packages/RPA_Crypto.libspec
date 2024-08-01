@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Crypto" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/Crypto.py" lineno="71">
+<version/>
+<doc>Library for common encryption and hashing operations.
+
+Library uses by default the
+`Fernet &lt;https://github.com/fernet/spec/blob/master/Spec.md&gt;`_ format
+for encryption. More specifically, it uses AES in CBC mode with
+a 128-bit key for encryption and HMAC with SHA256 for authentication.
+
+Alternative encryption format for the library is
+`AES256 &lt;https://en.wikipedia.org/wiki/Advanced_Encryption_Standard&gt;`_.
+
+To use the encryption features, generate a key with the command line
+utility ``rpa-crypto`` or with the keyword ``Generate Key``. Store
+the key in a secure place, such as Robocorp Vault, and load it within
+the execution before calling encryption/decryption keywords.
+
+**Example usage with Robocorp Vault**
+
+Create an encryption key with the CLI utility:
+
+.. code-block:: console
+
+    &gt; rpa-crypto key
+    rGx1edA07yz7uD08ChiPSunn8vaauRxw0pAbsal9zjM=
+
+Store the key in Robocorp Vault, in this case with the name ``EncryptionKey``.
+
+Load the key from the vault before encryption operations:
+
+.. code-block:: robotframework
+
+    Use encryption key from vault    EncryptionKey
+    ${encrypted}=   Encrypt file    orders.xlsx
+    Add work item file    ${encrypted}    name=Orders
+
+In another task, this same key can be used to decrypt the file:
+
+.. code-block:: robotframework
+
+    Use encryption key from vault    EncryptionKey
+    ${encrypted}=    Get work item file    Orders
+    ${orders}=   Decrypt file    ${encrypted}</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="118">
+<arguments repr="encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Decrypt File" lineno="400">
+<arguments repr="path: str, output: str | None = None, encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="output: str | None = None">
+<name>output</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Decrypt a file.
+
+:param path: Path to encrypted input file
+:param output: Path to decrypted output file
+:return: Path to the decrypted file
+
+If no output path is given, it will generate one from the input path.
+The resulting output path is returned.
+
+Example:
+
+.. code-block:: robotframework
+
+    Use encryption key    ${key}
+    ${path}=    Decrypt file    orders.xlsx.enc
+    Log    Path to decrypted file is: ${path}</doc>
+<shortdoc>Decrypt a file.</shortdoc>
+</kw>
+<kw name="Decrypt String" lineno="300">
+<arguments repr="data: bytes | str, encoding: str = utf-8, encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="data: bytes | str">
+<name>data</name>
+<type name="Union" union="true">bytes | str<type name="bytes" typedoc="bytes">bytes</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Decrypt a string.
+
+:param data: Encrypted data as base64 string
+:param encoding: Original encoding of string
+:return: Decrypted string or raw bytes, if None given as encoding
+
+Returns the decrypted string that is parsed with the given encoding,
+or if the encoding is ``None`` the raw bytes are returned.
+
+Example:
+
+.. code-block:: robotframework
+
+    Use encryption key    ${key}
+    ${text}=    Decrypt string    ${token}
+    Log    Secret string is: ${text}</doc>
+<shortdoc>Decrypt a string.</shortdoc>
+</kw>
+<kw name="Encrypt File" lineno="355">
+<arguments repr="path: str, output: str | None = None, encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="output: str | None = None">
+<name>output</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Encrypt a file.
+
+:param path: Path to source input file
+:param output: Path to encrypted output file
+:return: Path to the encrypted file
+
+If no output path is given, it will generate one from the input path.
+The resulting output path is returned.
+
+Example:
+
+.. code-block:: robotframework
+
+    Use encryption key    ${key}
+    ${path}=    Encrypt file    orders.xlsx
+    Log    Path to encrypted file is: ${path}</doc>
+<shortdoc>Encrypt a file.</shortdoc>
+</kw>
+<kw name="Encrypt String" lineno="266">
+<arguments repr="text: bytes | str, encoding: str = utf-8, encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: bytes | str">
+<name>text</name>
+<type name="Union" union="true">bytes | str<type name="bytes" typedoc="bytes">bytes</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Encrypt a string.
+
+:param text: Source text to encrypt
+:param encoding: Used text encoding
+:return: Token of the encrypted string in bytes
+
+Example:
+
+.. code-block:: robotframework
+
+    Use encryption key    ${key}
+    ${token}=    Encrypt string    This is a secret, don't share it</doc>
+<shortdoc>Encrypt a string.</shortdoc>
+</kw>
+<kw name="Generate Key" lineno="129">
+<arguments repr="encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Generate a Fernet encryption key as base64 string.
+
+:return: Generated key as a string
+
+This key can be used for encryption/decryption operations
+with this library.
+
+*NOTE:* Store the generated key in a secure place!
+If the key is lost, the encrypted data can not be recovered.
+If anyone else gains access to it, they can decrypt your data.</doc>
+<shortdoc>Generate a Fernet encryption key as base64 string.</shortdoc>
+</kw>
+<kw name="Hash File" lineno="241">
+<arguments repr="path: str, method: Hash = SHA1">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="method: Hash = SHA1">
+<name>method</name>
+<type name="Hash" typedoc="Hash">Hash</type>
+<default>SHA1</default>
+</arg>
+</arguments>
+<doc>Calculate a hash from a file, in base64 format.
+
+:param path: Path to file
+:param method: The used hashing method
+:return: Hash digest of the file
+
+Example:
+
+.. code-block:: robotframework
+
+    ${digest}=    Hash file    orders.xlsx    method=MD5
+    Should not be equal    ${digest}    uSlyRHlbu8NzY29YMZhDUpdErP4=</doc>
+<shortdoc>Calculate a hash from a file, in base64 format.</shortdoc>
+</kw>
+<kw name="Hash String" lineno="217">
+<arguments repr="text: str, method: Hash = SHA1, encoding=utf-8">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="method: Hash = SHA1">
+<name>method</name>
+<type name="Hash" typedoc="Hash">Hash</type>
+<default>SHA1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding=utf-8">
+<name>encoding</name>
+<default>utf-8</default>
+</arg>
+</arguments>
+<doc>Calculate a hash from a string, in base64 format.
+
+:param text: String to hash
+:param method: Used hashing method
+:param encoding: Used text encoding
+:return: Hash digest of the string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${digest}=    Hash string    A value that will be hashed
+    Should be equal    ${digest}    uSlyRHlbu8NzY29YMZhDUpdErP4=</doc>
+<shortdoc>Calculate a hash from a string, in base64 format.</shortdoc>
+</kw>
+<kw name="Use Encryption Key" lineno="151">
+<arguments repr="key: bytes | str, encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="key: bytes | str">
+<name>key</name>
+<type name="Union" union="true">bytes | str<type name="bytes" typedoc="bytes">bytes</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set key for all following encryption/decryption operations.
+
+:param key: Encryption key as base64 string
+
+Assumes the given key has been generated previously using
+either the keyword ``Generate Key`` or with the matching command
+line utility.
+
+Example:
+
+.. code-block:: robotframework
+
+    ${key}=    Read file    encryption.key
+    Use encryption key      ${key}</doc>
+<shortdoc>Set key for all following encryption/decryption operations.</shortdoc>
+</kw>
+<kw name="Use Encryption Key From Vault" lineno="180">
+<arguments repr="name: str, key: str | None = None, encryption_type: str | EncryptionType | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="key: str | None = None">
+<name>key</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encryption_type: str | EncryptionType | None = None">
+<name>encryption_type</name>
+<type name="Union" union="true">str | EncryptionType | None<type name="str" typedoc="string">str</type><type name="EncryptionType" typedoc="EncryptionType">EncryptionType</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Load an encryption key from Robocorp Vault.
+
+:param name: Name of secret in Vault
+:param key: Name of encryption key in secret
+
+If the secret only has one value, the key argument is optional.
+
+Example:
+
+.. code-block:: robotframework
+
+    # Secret with one value
+    Use encryption key from vault    Encryption
+    # Secret with multiple values
+    Use encryption key from vault    name=Encryption    key=CryptoKey</doc>
+<shortdoc>Load an encryption key from Robocorp Vault.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="EncryptionType">
+<doc>Enum to specify encryption type</doc>
+<members>
+<member name="FERNET" value="1"/>
+<member name="AES256" value="2"/>
+</members>
+</enum>
+<enum name="Hash">
+<doc>Supported hashing algorithms.</doc>
+<members>
+<member name="MD5" value="1"/>
+<member name="SHA1" value="2"/>
+<member name="SHA224" value="3"/>
+<member name="SHA256" value="4"/>
+<member name="SHA384" value="5"/>
+<member name="SHA3_224" value="6"/>
+<member name="SHA3_256" value="7"/>
+<member name="SHA3_384" value="8"/>
+<member name="SHA3_512" value="9"/>
+<member name="SHA512" value="10"/>
+<member name="SHA512_224" value="11"/>
+<member name="SHA512_256" value="12"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="bytes" type="Standard">
+<doc>Strings are converted to bytes so that each Unicode code point
+below 256 is directly mapped to a matching byte. Higher code
+points are not allowed. Robot Framework's ``\xHH`` escape syntax is
+convenient with bytes having non-printable values.
+
+Examples: ``good``, ``hyvä`` (same as ``hyv\xE4``), ``\x00`` (the null byte)
+</doc>
+<accepts>
+<type>string</type>
+<type>bytearray</type>
+</accepts>
+<usages>
+<usage>Decrypt String</usage>
+<usage>Encrypt String</usage>
+<usage>Use Encryption Key</usage>
+</usages>
+</type>
+<type name="EncryptionType" type="Enum">
+<doc>Enum to specify encryption type</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Decrypt File</usage>
+<usage>Decrypt String</usage>
+<usage>Encrypt File</usage>
+<usage>Encrypt String</usage>
+<usage>Generate Key</usage>
+<usage>Use Encryption Key</usage>
+<usage>Use Encryption Key From Vault</usage>
+</usages>
+<members>
+<member name="FERNET" value="1"/>
+<member name="AES256" value="2"/>
+</members>
+</type>
+<type name="Hash" type="Enum">
+<doc>Supported hashing algorithms.</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Hash File</usage>
+<usage>Hash String</usage>
+</usages>
+<members>
+<member name="MD5" value="1"/>
+<member name="SHA1" value="2"/>
+<member name="SHA224" value="3"/>
+<member name="SHA256" value="4"/>
+<member name="SHA384" value="5"/>
+<member name="SHA3_224" value="6"/>
+<member name="SHA3_256" value="7"/>
+<member name="SHA3_384" value="8"/>
+<member name="SHA3_512" value="9"/>
+<member name="SHA512" value="10"/>
+<member name="SHA512_224" value="11"/>
+<member name="SHA512_256" value="12"/>
+</members>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Decrypt File</usage>
+<usage>Decrypt String</usage>
+<usage>Encrypt File</usage>
+<usage>Encrypt String</usage>
+<usage>Generate Key</usage>
+<usage>Use Encryption Key</usage>
+<usage>Use Encryption Key From Vault</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Decrypt File</usage>
+<usage>Decrypt String</usage>
+<usage>Encrypt File</usage>
+<usage>Encrypt String</usage>
+<usage>Generate Key</usage>
+<usage>Hash File</usage>
+<usage>Hash String</usage>
+<usage>Use Encryption Key</usage>
+<usage>Use Encryption Key From Vault</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

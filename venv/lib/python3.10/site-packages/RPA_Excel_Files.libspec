@@ -1,0 +1,1939 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Excel.Files" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/Excel/Files.py" lineno="71">
+<version/>
+<doc>The `Excel.Files` library can be used to read and write Excel
+files without the need to start the actual Excel application.
+
+It supports both legacy ``.xls`` files and modern ``.xlsx`` files.
+
+**Note:** To run macros or load password protected worksheets,
+please use the Excel application library.
+
+**Examples**
+
+**Robot Framework**
+
+A common use-case is to load an existing Excel file as a table,
+which can be iterated over later in a Robot Framework keyword or task:
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Tables
+    Library    RPA.Excel.Files
+
+    *** Keywords ***
+    Read orders as table
+        Open workbook    ${ORDERS_FILE}
+        ${worksheet}=    Read worksheet   header=${TRUE}
+        ${orders}=       Create table     ${worksheet}
+        [Return]         ${orders}
+        [Teardown]       Close workbook
+
+Processing all worksheets in the Excel file and checking row count:
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Excel.Files
+
+    *** Variables ***
+    ${EXCEL_FILE}   /path/to/excel.xlsx
+
+    *** Tasks ***
+    Rows in the sheet
+        [Setup]      Open Workbook    ${EXCEL_FILE}
+        @{sheets}=   List Worksheets
+        FOR  ${sheet}  IN   @{sheets}
+            ${count}=  Get row count in the sheet   ${sheet}
+            Log   Worksheet '${sheet}' has ${count} rows
+        END
+
+    *** Keywords ***
+    Get row count in the sheet
+        [Arguments]      ${SHEET_NAME}
+        ${sheet}=        Read Worksheet   ${SHEET_NAME}
+        ${rows}=         Get Length  ${sheet}
+        [Return]         ${rows}
+
+Creating a new Excel file with a dictionary:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Creating new Excel
+        Create Workbook  my_new_excel.xlsx
+        FOR    ${index}    IN RANGE    20
+            &amp;{row}=       Create Dictionary
+            ...           Row No   ${index}
+            ...           Amount   ${index * 25}
+            Append Rows to Worksheet  ${row}  header=${TRUE}
+        END
+        Save Workbook
+
+Creating a new Excel file with a list:
+
+.. code-block:: robotframework
+
+    *** Variables ***
+    @{heading}   Row No   Amount
+    @{rows}      ${heading}
+
+    *** Tasks ***
+    Creating new Excel
+        Create Workbook  my_new_excel.xlsx
+        FOR    ${index}    IN RANGE   1  20
+            @{row}=         Create List   ${index}   ${index * 25}
+            Append To List  ${rows}  ${row}
+        END
+        Append Rows to Worksheet  ${rows}
+        Save Workbook
+
+**Python**
+
+The library can also be imported directly into Python.
+
+.. code-block:: python
+
+    from RPA.Excel.Files import Files
+
+    def read_excel_worksheet(path, worksheet):
+        lib = Files()
+        lib.open_workbook(path)
+        try:
+            return lib.read_worksheet(worksheet)
+        finally:
+            lib.close_workbook()</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Append Rows To Worksheet" lineno="715">
+<arguments repr="content: Any, name: str | None = None, header: bool = False, start: int | None = None, formatting_as_empty: bool | None = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="content: Any">
+<name>content</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="header: bool = False">
+<name>header</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="start: int | None = None">
+<name>start</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="formatting_as_empty: bool | None = False">
+<name>formatting_as_empty</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Append values to the end of the worksheet.
+
+:param content: Rows of values to append
+:param name:    Name of worksheet to append to (optional).
+                Defaults to the active worksheet.
+:param header:  Set rows according to existing header row
+:param start:   Start of data, NOTE: Only required when header is True
+:param formatting_as_empty: if True, the cells containing only
+                formatting (no values) are considered empty.
+:return:        List of dictionaries that represents the worksheet
+
+The ``content`` argument can be of any tabular format. Typically,
+this is a Table object created by the ``RPA.Tables`` library,
+but it can also be a list of lists, or a list of dictionaries.
+
+If the ``header`` flag is enabled, the existing header in the worksheet
+is used to insert values in the correct columns. This assumes that
+that source data has this data available.
+
+If the header is not on the first row of the worksheet,
+the ``start`` argument can be used to give the correct row index.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Append an existing Table object
+     # Create a new table using a Dictionary of Lists
+    @{table_name}=    Create List    Sara    Beth    Amy
+    @{table_age}=    Create List    ${48}    ${21}    ${57}
+    &amp;{table}=    Create Dictionary    name=${table_name}    age=${table_age}
+    Create Table    ${table}
+    Append rows to worksheet    ${table}
+    Save Workbook
+
+    # Append to a worksheet with headers on row 5
+     # Create a new table using a Dictionary of Lists
+    @{table_name}=    Create List    Sara    Beth    Amy
+    @{table_age}=    Create List    ${48}    ${21}    ${57}
+    &amp;{table}=    Create Dictionary    name=${table_name}    age=${table_age}
+    Create Table    ${table}
+    Append rows to worksheet    ${table}    header=${TRUE}   start=5
+    Save Workbook
+
+.. code-block:: python
+
+    # Append an existing Table object
+    table = {
+        "name": ["Sara", "Beth", "Amy"],
+        "age":  [    48,     21,     57],
+        }
+    lib.append_rows_to_worksheet(table)
+    lib.save_workbook()
+
+    # Append to a worksheet with headers on row 5
+    table = {
+        "name": ["Sara", "Beth", "Amy"],
+        "age":  [    48,     21,     57],
+        }
+    lib.append_rows_to_worksheet(table, header=True, start=5)
+    lib.save_workbook()</doc>
+<shortdoc>Append values to the end of the worksheet.</shortdoc>
+</kw>
+<kw name="Auto Size Columns" lineno="1443">
+<arguments repr="start_column: int | str, end_column: int | str | None = None, width: int | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="start_column: int | str">
+<name>start_column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end_column: int | str | None = None">
+<name>end_column</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="width: int | None = None">
+<name>width</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Auto size column widths.
+
+Note. non-default font sizes might cause auto sizing issues
+
+:param start_column: column number or name to start from
+:param end_column: optional column number or name for last column
+:param width: if given will resize columns to this size, otherwise
+ will auto_size
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Auto Size Columns   A   D    # will try auto size
+    Auto Size Columns   B   D   16  # will set A-D columns sizes to 16
+    Auto Size Columns   A   width=24  # will set column A size to 24
+
+Python example.
+
+.. code-block:: python
+
+    lib.auto_size_columns("A", "D")
+    lib.auto_size_columns("C", width=40)</doc>
+<shortdoc>Auto size column widths.</shortdoc>
+</kw>
+<kw name="Clear Cell Range" lineno="1045">
+<arguments repr="range_string: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="range_string: str">
+<name>range_string</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Clear cell values for a given range.
+
+:param range_string: single cell or range of cells
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    # area of cells
+    Clear Cell Range    A9:A100
+    # single cell
+    Clear Cell Range    A2
+
+Python example.
+
+.. code-block:: python
+
+    lib.clear_cell_range("A1")
+    lib.clear_cell_range("B2:B50")</doc>
+<shortdoc>Clear cell values for a given range.</shortdoc>
+</kw>
+<kw name="Close Workbook" lineno="359">
+<arguments repr="">
+</arguments>
+<doc>Close the active workbook.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Close active workbook
+    Close Workbook
+
+.. code-block:: python
+
+    # Close active workbook
+    lib.close_workbook()</doc>
+<shortdoc>Close the active workbook.</shortdoc>
+</kw>
+<kw name="Copy Cell Values" lineno="1251">
+<arguments repr="source_range: str, target: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source_range: str">
+<name>source_range</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="target: str">
+<name>target</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Copy cells from source to target.
+
+:param source_range: single cell or range of cells
+:param target: copy to this cell
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Copy Cell Values   A1:D4   G10
+
+Python example.
+
+.. code-block:: python
+
+    lib.copy_cell_values("A1:D4", "G10")</doc>
+<shortdoc>Copy cells from source to target.</shortdoc>
+</kw>
+<kw name="Create Workbook" lineno="220">
+<arguments repr="path: str | None = None, fmt: str = xlsx, sheet_name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | None = None">
+<name>path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="fmt: str = xlsx">
+<name>fmt</name>
+<type name="str" typedoc="string">str</type>
+<default>xlsx</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="sheet_name: str | None = None">
+<name>sheet_name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Create and open a new Excel workbook.
+
+Automatically also creates a new worksheet with the name `sheet_name`.
+(defaults to "Sheet")
+
+**Note:** Must be paired with the ``Save Workbook`` keyword
+or the newly created workbook will be deleted upon robot completion.
+
+**Note:** The file name/path must be set in either the ``Create Workbook``
+keyword or the ``Save Workbook`` keyword and must include the file extension.
+
+:param path: Save path for workbook; defaults to robot root if not provided.
+:param fmt: Format of workbook, i.e. xlsx or xls; Defaults to xlsx if not
+    provided.
+:param sheet_name: Custom name for the initial sheet.
+:return: Workbook object.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Create modern format workbook.
+    Create Workbook
+    Save Workbook    orders.xlsx
+
+    # Create modern format workbook with custom sheet name.
+    Create Workbook  sheet_name=MyCustomSheetName
+    Save Workbook    orders.xlsx
+
+    # Create modern format workbook with a path set.
+    Create Workbook    path=${OUTPUT_DIR}${/}orders.xlsx
+    Save Workbook
+
+    # Create legacy format workbook.
+    Create Workbook    fmt=xls
+    Save Workbook    orders.xls
+
+    # Create legacy format workbook with a path set.
+    # Note that the file name must be set in the `Create Workbook` keyword
+    #  if the path argument is used.
+    Create Workbook    path=${OUTPUT_DIR}${/}orders.xls    fmt=xls
+    Save Workbook
+
+.. code-block:: python
+
+    # Create modern format workbook with defaults.
+    lib = Files()
+    lib.create_workbook()
+    lib.save_workbook("orders.xlsx")
+
+    # Create modern format workbook with a path set.
+    lib = Files()
+    lib.create_workbook(path="./output/orders.xlsx", fmt="xlsx")
+    lib.save_workbook()
+
+    # Create legacy format workbook.
+    lib = Files()
+    lib.create_workbook(fmt="xls")
+    lib.save_workbook("orders.xls")
+
+    # Create legacy format workbook with a path set.
+    # Note that the file name must be set in the `Create Workbook` keyword
+    #  if the path is used.
+    lib = Files()
+    lib.create_workbook(path="./output/orders.xls", fmt="xls")
+    lib.save_workbook()</doc>
+<shortdoc>Create and open a new Excel workbook.</shortdoc>
+</kw>
+<kw name="Create Worksheet" lineno="539">
+<arguments repr="name: str, content: Any | None = None, exist_ok: bool | None = False, header: bool | None = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="content: Any | None = None">
+<name>content</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="exist_ok: bool | None = False">
+<name>exist_ok</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="header: bool | None = False">
+<name>header</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Create a new worksheet in the current workbook.
+
+:param name:     Name of new worksheet
+:param content:  Optional content for worksheet
+:param exist_ok: If `False`, raise an error if name is already in use
+:param header:   If content is provided, write headers to worksheet
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Create a new blank worksheet named "Customers"
+    Create Worksheet    Customers
+
+    # Create a new worksheet with headers and contents using
+    # a List of Dictonaries
+    # Don't forget to `Save Workbook` once your changes are complete
+    &amp;{Employees_Row1}=    Create Dictionary    name=Mark    age=${58}
+    &amp;{Employees_Row2}=    Create Dictionary    name=John    age=${22}
+    &amp;{Employees_Row3}=    Create Dictionary    name=Adam    age=${67}
+    @{Worksheet_Data}=    Create List
+    ...    ${Worksheet_Data_row1}
+    ...    ${Worksheet_Data_row2}
+    ...    ${Worksheet_Data_row3}
+    Create Worksheet
+    ...    name=Employees
+    ...    content=${Worksheet_Data}
+    ...    header=True
+    Save Workbook
+
+    # Create a new workseet using a Dictionary of Lists
+    # Don't forget to `Save Workbook` once your changes are complete
+    @{Employees_name}=    Create List    Mark    John    Adam
+    @{Employees_age}=    Create List    ${58}    ${22}    ${67}
+    &amp;{Worksheet_Data}=    Create Dictionary
+    ...    name=${Worksheet_Data_name}
+    ...    age=${Worksheet_Data_age}
+    Create Worksheet
+    ...    name=Employees
+    ...    content=${Worksheet_Data}
+    ...    header=True
+    Save Workbook
+
+.. code-block:: python
+
+    # Create a new blank worksheet named "Customers"
+    lib.create_worksheet("Customers")
+
+    # Create a new workseet using a List of Dictionaries
+    # Don't forget to `Save Workbook` once your changes are complete
+    Worksheet_Data = [
+        {"name": "Mark", "age": 58},
+        {"name": "John", "age": 22},
+        {"name": "Adam", "age": 67},
+        ]
+    lib.create_worksheet(name="Employees",content=Worksheet_Data,header=True)
+    lib.save_workbook()
+
+    # Create a new workseet using a Dictionary of Lists
+    # Don't forget to `Save Workbook` once your changes are complete
+    Worksheet_Data = {
+        "name": ["Mark", "John", "Adam"],
+        "age":  [    58,     22,     67],
+        }
+    lib.create_worksheet(name="Employees",content=Worksheet_Data,header=True)
+    lib.save_workbook()</doc>
+<shortdoc>Create a new worksheet in the current workbook.</shortdoc>
+</kw>
+<kw name="Delete Columns" lineno="1103">
+<arguments repr="start: int | str, end: int | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="start: int | str">
+<name>start</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end: int | str | None = None">
+<name>end</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Delete column or columns beginning from start column number/name to
+possible end column number/name.
+
+:param start: column number or name to start deletion from
+:param end: optional column number or name for last column to delete
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Delete Columns   C       # delete column C
+    Delete Columns   3       # delete column 3 (same as C)
+    Delete Columns   E  AA   # delete rows E-AA
+
+Python example.
+
+.. code-block:: python
+
+    lib.delete_columns("D")
+    lib.delete_rows(1, "JJ")</doc>
+<shortdoc>Delete column or columns beginning from start column number/name to possible end column number/name.</shortdoc>
+</kw>
+<kw name="Delete Rows" lineno="1076">
+<arguments repr="start: int, end: int | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="start: int">
+<name>start</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end: int | None = None">
+<name>end</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Delete row or rows beginning from start row number to
+possible end row number.
+
+:param start: row number to start deletion from
+:param end: optional row number for last row to delete
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Delete Rows   2       # delete row 2
+    Delete Rows   5  10   # delete rows 5-10
+
+Python example.
+
+.. code-block:: python
+
+    lib.delete_rows(2)
+    lib.delete_rows(5,10)</doc>
+<shortdoc>Delete row or rows beginning from start row number to possible end row number.</shortdoc>
+</kw>
+<kw name="Find Empty Row" lineno="838">
+<arguments repr="name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Find the first empty row after existing content,
+and return the row number.
+
+:param name:    Name of worksheet (optional). Defaults to the active worksheet.
+:return:        First row number of empty row
+
+Examples:
+
+.. code-block:: robotframework
+
+    ${next}=    Find empty row
+
+.. code-block:: python
+
+    next = lib.find_empty_row()</doc>
+<shortdoc>Find the first empty row after existing content, and return the row number.</shortdoc>
+</kw>
+<kw name="Get Active Worksheet" lineno="487">
+<arguments repr="">
+</arguments>
+<doc>Get the name of the worksheet which is currently active.
+
+
+:return:    Active worksheet name
+
+Examples:
+
+.. code-block:: robotframework
+
+    ${Active_Worksheet}=    Get Active Worksheet
+
+.. code-block:: python
+
+    Active_Worksheet = lib.get_active_worksheet()</doc>
+<shortdoc>Get the name of the worksheet which is currently active.</shortdoc>
+</kw>
+<kw name="Get Cell Value" lineno="858">
+<arguments repr="row: int, column: str | int, name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: str | int">
+<name>column</name>
+<type name="Union" union="true">str | int<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get a cell value in the given worksheet.
+
+:param row:     Index of row to read, e.g. 3
+:param column:  Name or index of column, e.g. C or 7
+:param name:    Name of worksheet (optional). Defaults to active worksheet.
+:return:        Cell value
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Read header names
+    ${column1}=    Get cell value    1    A
+    ${column2}=    Get cell value    1    B
+    ${column3}=    Get cell value    1    C
+
+.. code-block:: python
+
+    # Read header names
+    column1 = lib.get_cell_value(1, "A")
+    column2 = lib.get_cell_value(1, "B")
+    column3 = lib.get_cell_value(1, "C")</doc>
+<shortdoc>Get a cell value in the given worksheet.</shortdoc>
+</kw>
+<kw name="Get Worksheet Value" lineno="1022">
+<arguments repr="row: int, column: str | int, name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: str | int">
+<name>column</name>
+<type name="Union" union="true">str | int<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Alias for keyword ``Get cell value``, see the original keyword
+for documentation.</doc>
+<shortdoc>Alias for keyword ``Get cell value``, see the original keyword for documentation.</shortdoc>
+</kw>
+<kw name="Hide Columns" lineno="1496">
+<arguments repr="start_column: int | str, end_column: int | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="start_column: int | str">
+<name>start_column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end_column: int | str | None = None">
+<name>end_column</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Hide column or columns in worksheet.
+
+:param start_column: column number or name to start from
+:param end_column: optional column number or name for last column
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Hide Columns   A   D    # hide columns A-D
+    Hide Columns   A        # hide column A
+
+Python example.
+
+.. code-block:: python
+
+    lib.hide_columns("A", "D")
+    lib.hide_columns("A")</doc>
+<shortdoc>Hide column or columns in worksheet.</shortdoc>
+</kw>
+<kw name="Insert Columns After" lineno="1170">
+<arguments repr="column: int | str, amount: int = 1">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="amount: int = 1">
+<name>amount</name>
+<type name="int" typedoc="integer">int</type>
+<default>1</default>
+</arg>
+</arguments>
+<doc>Insert column or columns after a column number/name.
+
+:param column: insert after this column
+:param amount: number of columns to insert, default 1
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Insert Columns After   C      # insert 1 column after column C
+    Insert Columns Before   A  3   # insert 3 columns after column A
+
+Python example.
+
+.. code-block:: python
+
+    lib.insert_columns_after("C")
+    lib.insert_columns_after("A", 3)</doc>
+<shortdoc>Insert column or columns after a column number/name.</shortdoc>
+</kw>
+<kw name="Insert Columns Before" lineno="1141">
+<arguments repr="column: int | str, amount: int = 1">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="amount: int = 1">
+<name>amount</name>
+<type name="int" typedoc="integer">int</type>
+<default>1</default>
+</arg>
+</arguments>
+<doc>Insert column or columns before a column number/name.
+
+:param column: insert before this column
+:param amount: number of columns to insert, default 1
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Insert Columns Before   C      # insert 1 column before column C
+    Insert Columns Before   A  3   # insert 3 columns before column A
+
+Python example.
+
+.. code-block:: python
+
+    lib.insert_columns_before("C")
+    lib.insert_columns_before("A", 3)</doc>
+<shortdoc>Insert column or columns before a column number/name.</shortdoc>
+</kw>
+<kw name="Insert Image To Worksheet" lineno="978">
+<arguments repr="row: int, column: int | str, path: str, scale: float = 1.0, name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="scale: float = 1.0">
+<name>scale</name>
+<type name="float" typedoc="float">float</type>
+<default>1.0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Insert an image into the given cell.
+
+The ``path`` argument should be a local file path to the image file.
+
+By default the image is inserted in the original size, but it can
+be scaled with the ``scale`` argument. It's scaled with a factor
+where the value ``1.0`` is the default.
+
+:param row:     Index of row to write
+:param column:  Name or index of column
+:param path:    Path to image file
+:param scale:   Scale of image (optional). Default value is "1.0".
+:param name:    Name of worksheet (optional). Defaults to the active worksheet.
+
+Examples:
+
+.. code-block:: robotframework
+
+    Insert image to worksheet    ${last_row}    A    screenshot.png
+
+.. code-block:: python
+
+    lib.insert_image_to_worksheet(last_row, "A", "screenshot.png")</doc>
+<shortdoc>Insert an image into the given cell.</shortdoc>
+</kw>
+<kw name="Insert Rows After" lineno="1225">
+<arguments repr="row: int, amount: int = 1">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="amount: int = 1">
+<name>amount</name>
+<type name="int" typedoc="integer">int</type>
+<default>1</default>
+</arg>
+</arguments>
+<doc>Insert row or rows after a row number.
+
+:param row: insert after this row
+:param amount: number of rows to insert, default 1
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Insert Rows After   3      # insert 1 row after row 3
+    Insert Rows After   1  3   # insert 3 rows after row 1
+
+Python example.
+
+.. code-block:: python
+
+    lib.insert_rows_after(1)
+    lib.insert_rows_after(1, 3)</doc>
+<shortdoc>Insert row or rows after a row number.</shortdoc>
+</kw>
+<kw name="Insert Rows Before" lineno="1199">
+<arguments repr="row: int, amount: int = 1">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="amount: int = 1">
+<name>amount</name>
+<type name="int" typedoc="integer">int</type>
+<default>1</default>
+</arg>
+</arguments>
+<doc>Insert row or rows before a row number.
+
+:param row: insert before this row
+:param amount: number of rows to insert, default 1
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Insert Rows Before   3      # insert 1 row before row 3
+    Insert Rows Before   1  3   # insert 3 rows before row 1
+
+Python example.
+
+.. code-block:: python
+
+    lib.insert_rows_before(1)
+    lib.insert_rows_before(1, 3)</doc>
+<shortdoc>Insert row or rows before a row number.</shortdoc>
+</kw>
+<kw name="List Worksheets" lineno="440">
+<arguments repr="">
+</arguments>
+<doc>List all names of worksheets in the given workbook.
+
+:return:    List containing the names of the worksheets
+
+Examples:
+
+.. code-block:: robotframework
+
+    # List Worksheets will read the worksheet names into a list variable
+    # The variable should be declared with the List type "@" when being used
+    # to store the sheet names from the List Worksets keyword
+    @{sheets}=    List Worksheets
+
+.. code-block:: python
+
+    # List Worksheets will read the worksheet names into a list variable
+    # The variable should be declared with the List type "@" when being used
+    # to store the sheet names from the List Worksets keyword
+    sheets = lib.list_worksheets()</doc>
+<shortdoc>List all names of worksheets in the given workbook.</shortdoc>
+</kw>
+<kw name="Move Range" lineno="1627">
+<arguments repr="range_string: str, rows: int = 0, columns: int = 0, translate: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="range_string: str">
+<name>range_string</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="rows: int = 0">
+<name>rows</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="columns: int = 0">
+<name>columns</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="translate: bool = True">
+<name>translate</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Move range of cells by given amount of rows and columns.
+
+Formulas are translated to match new location by default.
+
+*Note*. There is a bug in the openpyxl on moving negative rows/columns.
+
+:param range_string: cell range
+:param rows: number of rows to move
+:param columns: number of columns to move
+:param translate: are formulas translated for a new location
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    # move range 4 rows down
+    Move Range   E2:E10    rows=4
+    # move range 2 rows down, 2 columns right
+    Move Range   E2:E10    rows=2  columns=2
+
+Python example.
+
+.. code-block:: python
+
+    lib.move_range("E2:E10", rows=4)
+    lib.move_range("E2:E10", rows=2, columns=2)</doc>
+<shortdoc>Move range of cells by given amount of rows and columns.</shortdoc>
+</kw>
+<kw name="Open Workbook" lineno="310">
+<arguments repr="path: str, data_only: bool | None = False, read_only: bool | None = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data_only: bool | None = False">
+<name>data_only</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="read_only: bool | None = False">
+<name>read_only</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Open an existing Excel workbook.
+
+Opens the workbook in memory and sets it as the active workbook.
+**This library can only have one workbook open at a time, and
+any previously opened workbooks are closed first.**
+
+The file can be in either ``.xlsx`` or ``.xls`` format.
+
+:param path: path to Excel file
+:param data_only: controls whether cells with formulas have either
+ the formula (default, False) or the value stored the last time Excel
+ read the sheet (True). Affects only ``.xlsx`` files.
+:return: Workbook object
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Open workbook with only path provided
+    Open Workbook    path/to/file.xlsx
+
+    # Open workbook with path provided and reading formulas in cells
+    # as the value stored
+    # Note: Can only be used with XLSX workbooks
+    Open Workbook    path/to/file.xlsx    data_only=True
+
+.. code-block:: python
+
+    # Open workbook with only path provided
+    lib.open_workbook(path="path/to/file.xlsx")
+
+    # Open workbook with path provided and reading formulas in cells
+    # as the value stored
+    # Note: Can only be used with XLSX workbooks
+    lib.open_workbook(path="path/to/file.xlsx", data_only=True)</doc>
+<shortdoc>Open an existing Excel workbook.</shortdoc>
+</kw>
+<kw name="Read Worksheet" lineno="621">
+<arguments repr="name: str | None = None, header: bool | None = False, start: int | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="header: bool | None = False">
+<name>header</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="start: int | None = None">
+<name>start</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Read the content of a worksheet into a list of dictionaries.
+
+Each key in the dictionary will be either values from the header row,
+or Excel-style column letters.
+
+:param name:   Name of worksheet to read (optional).
+               Defaults to the active worksheet.
+:param header: If `True`, use the first row of the worksheet
+               as headers for the rest of the rows. Default is `False`.
+:param start:  Row index to start reading data from (1-indexed).
+               Default value is row 1.
+:return:       List of dictionaries that represents the worksheet
+
+Examples:
+
+.. code-block:: robotframework
+
+    # The most simple form. Column keys will be Column letters.
+    ${rows}=    Read Worksheet
+
+    # Since `header=True` the keys will be the header values
+    ${rows}=    Read Worksheet     header=True
+
+    # Uses the header values as keys and starts reading at row 3
+    ${rows}=    Read Worksheet     header=True    start=${3}
+
+.. code-block:: python
+
+    # The most simple form. Keys will be Column letters.
+    rows = lib.read_worksheet()
+
+    # Since `header=True` the keys will be the header values
+    rows = lib.read_worksheet(header=True)
+
+    # Uses the header values as keys and starts reading at row 3
+    rows = lib.read_worksheet(header=True, start=3)</doc>
+<shortdoc>Read the content of a worksheet into a list of dictionaries.</shortdoc>
+</kw>
+<kw name="Read Worksheet As Table" lineno="667">
+<arguments repr="name: str | None = None, header: bool = False, trim: bool = True, start: int | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="header: bool = False">
+<name>header</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="trim: bool = True">
+<name>trim</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="start: int | None = None">
+<name>start</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Read the contents of a worksheet into a Table container. Allows
+sorting/filtering/manipulating using the ``RPA.Tables`` library.
+
+:param name:   Name of worksheet to read (optional).
+               Defaults to the active worksheet.
+:param header: If `True`, use the first row of the worksheet
+               as headers for the rest of the rows. Default value is False.
+:param trim:   Remove all empty rows from the end of the worksheet.
+               Default value is True.
+:param start:  Row index to start reading data from (1-indexed).
+               Default value is row 1.
+:return:       Table object that represents the worksheet
+
+Examples:
+
+.. code-block:: robotframework
+
+    # The most simple form. Column keys will be Column letters.
+    ${table}=    Read Worksheet As Table
+
+    # Since `header=True` the keys will be the header values
+    ${table}=    Read Worksheet As Table     header=True
+
+    # Uses the header values as keys and starts reading at row 3
+    ${table}=    Read Worksheet As Table     header=True    start=${3}
+
+.. code-block:: python
+
+    # The most simple form. Keys will be Column letters.
+    table = lib.read_worksheet_as_table()
+
+    # Since `header=True` the keys will be the header values
+    table = lib.read_worksheet_as_table(header=True)
+
+    # Uses the header values as keys and starts reading at row 3
+    table = lib.read_worksheet_as_table(header=True, start=3)</doc>
+<shortdoc>Read the contents of a worksheet into a Table container. Allows sorting/filtering/manipulating using the ``RPA.Tables`` library.</shortdoc>
+</kw>
+<kw name="Remove Worksheet" lineno="790">
+<arguments repr="name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Remove a worksheet from the active workbook.
+
+:param name: Name of worksheet to remove (optional).
+             Defaults to the active worksheet.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Remove last worksheet
+    ${sheets}=       List worksheets
+    Remove worksheet    ${sheets}[-1]
+
+    # Remove worksheet by name
+    Remove Worksheet    Sheet
+
+.. code-block:: python
+
+    # Remove last worksheet
+    sheets = lib.list_worksheets()
+    lib.remove_worksheet(sheets[-1])
+
+    # Remove worksheet by name
+    lib.remove_worksheet("Sheet")</doc>
+<shortdoc>Remove a worksheet from the active workbook.</shortdoc>
+</kw>
+<kw name="Rename Worksheet" lineno="819">
+<arguments repr="src_name: str, dst_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="src_name: str">
+<name>src_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="dst_name: str">
+<name>dst_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Rename an existing worksheet in the active workbook.
+
+:param src_name: Current name of worksheet
+:param dst_name: Future name of worksheet
+
+Examples:
+
+.. code-block:: robotframework
+
+    Rename worksheet    Sheet    Orders
+
+.. code-block:: python
+
+    lib.rename_worksheet("Sheet","Orders")</doc>
+<shortdoc>Rename an existing worksheet in the active workbook.</shortdoc>
+</kw>
+<kw name="Save Workbook" lineno="380">
+<arguments repr="path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | None = None">
+<name>path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Save the active workbook.
+
+**Note:** No changes to the workbook are saved to the actual file unless
+this keyword is called.
+
+:param path: Path to save to. If not given, uses path given
+             when opened or created.
+:return:     Workbook object
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Saving the active workbook to a new location/filename or saving to
+    # a new location/filename
+    # Note: You cannot use Save Workbook to convert from XLSX to XLS
+    # or vice-versa
+    Save Workbook   path=${OUTPUT_DIR}${/}orders.xlsx
+
+    # Saving the active workbook changes if location/filename were set
+    # in Create Workbook or Open Workbook
+    Save Workbook
+
+.. code-block:: python
+
+    # Saving the active workbook to a new location/filename or saving to
+    # a new location/filename
+    # Note: You cannot use Save Workbook to convert from XLSX to XLS
+    # or vice-versa
+    lib.save_workbook(path="./output/orders.xlsx")
+
+    # Saving the active workbook changes if location/filename were set
+    # in Create Workbook or Open Workbook
+    lib.save_workbook()</doc>
+<shortdoc>Save the active workbook.</shortdoc>
+</kw>
+<kw name="Set Active Worksheet" lineno="507">
+<arguments repr="value: str | int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: str | int">
+<name>value</name>
+<type name="Union" union="true">str | int<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type></type>
+</arg>
+</arguments>
+<doc>Set the active worksheet.
+
+This keyword can be used to set the default worksheet for keywords,
+which removes the need to specify the worksheet name for each keyword.
+It can always be overridden on a per-keyword basis.
+
+:param value: Index or name of worksheet
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Set using the name of the worksheet
+    Set Active Worksheet    Customers
+
+    # Set using the index of the worksheet
+    # Worksheet index begings at 0
+    Set Active Worksheet    2
+
+.. code-block:: python
+
+    # Set using the name of the worksheet
+    lib.set_active_worksheet("Customers")
+
+    # Set using the index of the worksheet
+    # Worksheet index begings at 0
+    lib.set_active_worksheet(2)</doc>
+<shortdoc>Set the active worksheet.</shortdoc>
+</kw>
+<kw name="Set Cell Format" lineno="930">
+<arguments repr="row: int, column: str | int, fmt: str | float, name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: str | int">
+<name>column</name>
+<type name="Union" union="true">str | int<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="fmt: str | float">
+<name>fmt</name>
+<type name="Union" union="true">str | float<type name="str" typedoc="string">str</type><type name="float" typedoc="float">float</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set format for cell.
+
+Does not affect the values themselves, but changes how the values
+are displayed when opening with an external application such as
+Microsoft Excel or LibreOffice Calc.
+
+:param row:     Index of row to write, e.g. 3
+:param column:  Name or index of column, e.g. C or 7
+:param fmt:     Format code for cell
+:param name:    Name of worksheet (optional). Defaults to active worksheet.
+
+The ``fmt`` argument accepts all format code values that
+are supported by the aforementioned applications.
+
+Some examples of valid values:
+
+======== ===========
+Format   Explanation
+======== ===========
+0.00     Number with two decimal precision
+0%       Percentage without decimals
+MM/DD/YY Date with month, day, and year
+@        Text value
+BOOLEAN  Boolean value
+======== ===========
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Set value to have one decimal precision
+    Set cell format   2  B    00.0
+
+.. code-block:: python
+
+    # Set value to have one decimal precision
+    lib.set_cell_format(2, "B", 00.0)</doc>
+<shortdoc>Set format for cell.</shortdoc>
+</kw>
+<kw name="Set Cell Formula" lineno="1574">
+<arguments repr="range_string: str, formula: str, transpose: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="range_string: str">
+<name>range_string</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="formula: str">
+<name>formula</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="transpose: bool = False">
+<name>transpose</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Set cell formula for given range of cells.
+
+If `transpose` is set then formula is set for first cell of the
+range and the rest of cells will transpose the function to match
+to that cell.
+
+Otherwise (by default) all cells will get the same formula.
+
+:param range_string: cell range
+:param formula: formula for the cell
+:param transpose: on True the cell formulas will be transposed
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    # all cells will have same formula
+    Set Cell Formula   E2:E10    =B2+5
+    # cells will have transposed formulas
+    # E2 will have =B2+5
+    # E3 will have =B3+5
+    # etc
+    Set Cell Formula   E2:E10    =B2+5   True
+
+Python example.
+
+.. code-block:: python
+
+    lib.set_cell_formula("E2:E10", "=B2+5")
+    lib.set_cell_formula("E2:E10", "=B2+5", True)</doc>
+<shortdoc>Set cell formula for given range of cells.</shortdoc>
+</kw>
+<kw name="Set Cell Value" lineno="887">
+<arguments repr="row: int, column: str | int, value: Any, name: str | None = None, fmt: str | float | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: str | int">
+<name>column</name>
+<type name="Union" union="true">str | int<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: Any">
+<name>value</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="fmt: str | float | None = None">
+<name>fmt</name>
+<type name="Union" union="true">str | float | None<type name="str" typedoc="string">str</type><type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set a cell value in the given worksheet.
+
+:param row:     Index of row to write, e.g. 3
+:param column:  Name or index of column, e.g. C or 7
+:param value:   New value of cell
+:param name:    Name of worksheet (optional). Defaults to active worksheet.
+:param fmt:     Format code for cell (optional)
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Set a value in the first row and column
+    Set cell value    1    1    Some value
+    Set cell value    1    A    Some value
+
+    # Set a value with cell formatting
+    Set cell value    2    B    ${value}    fmt=0%
+
+.. code-block:: python
+
+    # Set a value in the first row and column
+    lib.set_cell_value(1, 1, "Some value")
+    lib.set_cell_value(1, "A", "Some value")
+
+    # Set a value with cell formatting
+    lib.set_cell_value(2, "B", value, fmt="0%")</doc>
+<shortdoc>Set a cell value in the given worksheet.</shortdoc>
+</kw>
+<kw name="Set Cell Values" lineno="1665">
+<arguments repr="start_cell: str, values: list | Table, table_heading: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="start_cell: str">
+<name>start_cell</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="values: list | Table">
+<name>values</name>
+<type name="Union" union="true">list | Table<type name="list" typedoc="list">list</type><type name="Table">Table</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="table_heading: bool = False">
+<name>table_heading</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Set cell values given as list of lists or as a `RPA.Tables.Table`.
+
+*Note.* Will overwrite cells if table structure causes cells to overlap.
+
+:param start_cell: starting cell in a string
+:param values: list of lists or a Table
+:param table_heading: if values are given as a Table, this parameter
+ defines if Table headings should be inserted as a row
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    @{all_rows}=    Create List
+    ${headers}=    Create List    first    second   third  fourth
+    FOR    ${num}    IN RANGE    1    2000
+        @{row}=    Create List    ${num}    ${num+1}    ${num*2}    ${num*4}
+        Append To List    ${all_rows}    ${row}
+    END
+    #  Set Cell Values from Table (include headers)
+    ${table}=    Create Table    ${all_rows}    columns=${headers}
+    Set Cell Values   G1   ${table}   True
+    #  Set Cell Values from a list of lists
+    # uncomment if headings should be added
+    # Append To List  ${all_rows}   ${headers}
+    Set Cell Values   M1   ${all_rows}
+
+    # Simplest form of adding values
+    @{values}=    Evaluate    [[1,2,3],[4,5,6],['a','b','c','d']]
+    Set Cell Values   A1   ${values}
+
+Python example.
+
+.. code-block:: python
+
+    data =  [[1,2,3],[4,5,6],['a','b','c','d']]
+    lib.set_cell_values("E2", data)</doc>
+<shortdoc>Set cell values given as list of lists or as a `RPA.Tables.Table`.</shortdoc>
+</kw>
+<kw name="Set Styles" lineno="1295">
+<arguments repr="range_string: str, font_name: str | None = None, family: str | None = None, size: int | None = None, bold: bool = False, italic: bool = False, underline: bool = False, strikethrough: bool = False, cell_fill: str | None = None, color: str | None = None, align_horizontal: str | None = None, align_vertical: str | None = None, number_format: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="range_string: str">
+<name>range_string</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="font_name: str | None = None">
+<name>font_name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="family: str | None = None">
+<name>family</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="size: int | None = None">
+<name>size</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="bold: bool = False">
+<name>bold</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="italic: bool = False">
+<name>italic</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="underline: bool = False">
+<name>underline</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="strikethrough: bool = False">
+<name>strikethrough</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cell_fill: str | None = None">
+<name>cell_fill</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="color: str | None = None">
+<name>color</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="align_horizontal: str | None = None">
+<name>align_horizontal</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="align_vertical: str | None = None">
+<name>align_vertical</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="number_format: str | None = None">
+<name>number_format</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set styles for range of cells.
+
+Possible values for the `align_horizontal`:
+
+    - general
+    - left
+    - center
+    - right
+    - fill
+    - justify
+    - centerContinuous
+    - distributed
+
+Possible values for the `align_vertical`:
+
+    - top
+    - center
+    - bottom
+    - justify
+    - distributed
+
+Some examples for `number_formats`:
+
+    - General
+    - 0
+    - 0.00
+    - #,##0
+    - #,##0.00
+    - "$"#,##0_);("$"#,##0)
+    - "$"#,##0_);[Red]("$"#,##0)
+    - 0%
+    - 0.00%
+    - 0.00E+00
+    - # ?/?
+    - # ??/??
+    - mm-dd-yy
+    - d-mmm-yy
+    - d-mmm
+    - h:mm AM/PM
+    - h:mm:ss AM/PM
+    - h:mm
+    - h:mm:ss
+    - m/d/yy h:mm
+
+:param range_string: single cell or range of cells
+:param font_name: name of the font
+:param family: font family name
+:param size: size for the font
+:param bold: font style bold
+:param italic: font style italics
+:param underline: font style underline
+:param strikethrough: font style strikethrough
+:param cell_fill: cell fill color, in hex or color name
+:param color: font color, in hex or color name
+:param align_horizontal: cell horizontal alignment
+:param align_vertical: cell vertical alignment
+:param number_format: cell number format
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Set Styles    A1:D4
+    ...  bold=True
+    ...  cell_fill=lightblue
+    ...  align_horizontal=center
+    ...  number_format=h:mm AM/PM
+
+    Set Styles    E2
+    ...  strikethrough=True
+    ...  color=FF0000
+
+Python example.
+
+.. code-block:: python
+
+    lib.set_styles("A1:D4", bold=True, font_name="Arial", size=24)</doc>
+<shortdoc>Set styles for range of cells.</shortdoc>
+</kw>
+<kw name="Set Worksheet Value" lineno="1031">
+<arguments repr="row: int, column: str | int, value: Any, name: str | None = None, fmt: str | float | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int">
+<name>row</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: str | int">
+<name>column</name>
+<type name="Union" union="true">str | int<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: Any">
+<name>value</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="fmt: str | float | None = None">
+<name>fmt</name>
+<type name="Union" union="true">str | float | None<type name="str" typedoc="string">str</type><type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Alias for keyword ``Set cell value``, see the original keyword
+for documentation.</doc>
+<shortdoc>Alias for keyword ``Set cell value``, see the original keyword for documentation.</shortdoc>
+</kw>
+<kw name="Unhide Columns" lineno="1526">
+<arguments repr="start_column: int | str, end_column: int | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="start_column: int | str">
+<name>start_column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end_column: int | str | None = None">
+<name>end_column</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Unhide column or columns in worksheet.
+
+:param start_column: column number or name to start from
+:param end_column: optional column number or name for last column
+
+Examples:
+
+Robot Framework example.
+
+.. code-block:: robotframework
+
+    Unhide Columns   A   D    # unhide columns A-D
+    Unhide Columns   A        # unhide column A
+
+Python example.
+
+.. code-block:: python
+
+    lib.unhide_columns("A", "D")
+    lib.unhide_columns("A")</doc>
+<shortdoc>Unhide column or columns in worksheet.</shortdoc>
+</kw>
+<kw name="Worksheet Exists" lineno="465">
+<arguments repr="name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Return True if worksheet with given name is in workbook.
+
+:param name: Name of worksheet you are looking for
+:return: `True` if the worksheet exists, `False` otherwise
+
+Examples:
+
+.. code-block:: robotframework
+
+    # To use Worksheet Exists in a conditional statement set it to
+    # a variable first, like you see here, and then compare the
+    # variable to ${TRUE} or ${FALSE}
+    ${Does_Worksheet_Exist}=    Worksheet Exists    Sheet
+
+.. code-block:: python
+
+    Does_Worksheet_Exist = lib.worksheet_exists("Sheet")</doc>
+<shortdoc>Return True if worksheet with given name is in workbook.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Append Rows To Worksheet</usage>
+<usage>Create Worksheet</usage>
+<usage>Set Cell Value</usage>
+<usage>Set Worksheet Value</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Append Rows To Worksheet</usage>
+<usage>Create Worksheet</usage>
+<usage>Move Range</usage>
+<usage>Open Workbook</usage>
+<usage>Read Worksheet</usage>
+<usage>Read Worksheet As Table</usage>
+<usage>Set Cell Formula</usage>
+<usage>Set Cell Values</usage>
+<usage>Set Styles</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Insert Image To Worksheet</usage>
+<usage>Set Cell Format</usage>
+<usage>Set Cell Value</usage>
+<usage>Set Worksheet Value</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Append Rows To Worksheet</usage>
+<usage>Auto Size Columns</usage>
+<usage>Delete Columns</usage>
+<usage>Delete Rows</usage>
+<usage>Get Cell Value</usage>
+<usage>Get Worksheet Value</usage>
+<usage>Hide Columns</usage>
+<usage>Insert Columns After</usage>
+<usage>Insert Columns Before</usage>
+<usage>Insert Image To Worksheet</usage>
+<usage>Insert Rows After</usage>
+<usage>Insert Rows Before</usage>
+<usage>Move Range</usage>
+<usage>Read Worksheet</usage>
+<usage>Read Worksheet As Table</usage>
+<usage>Set Active Worksheet</usage>
+<usage>Set Cell Format</usage>
+<usage>Set Cell Value</usage>
+<usage>Set Styles</usage>
+<usage>Set Worksheet Value</usage>
+<usage>Unhide Columns</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Set Cell Values</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Append Rows To Worksheet</usage>
+<usage>Auto Size Columns</usage>
+<usage>Create Workbook</usage>
+<usage>Create Worksheet</usage>
+<usage>Delete Columns</usage>
+<usage>Delete Rows</usage>
+<usage>Find Empty Row</usage>
+<usage>Get Cell Value</usage>
+<usage>Get Worksheet Value</usage>
+<usage>Hide Columns</usage>
+<usage>Insert Image To Worksheet</usage>
+<usage>Open Workbook</usage>
+<usage>Read Worksheet</usage>
+<usage>Read Worksheet As Table</usage>
+<usage>Remove Worksheet</usage>
+<usage>Save Workbook</usage>
+<usage>Set Cell Format</usage>
+<usage>Set Cell Value</usage>
+<usage>Set Styles</usage>
+<usage>Set Worksheet Value</usage>
+<usage>Unhide Columns</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Append Rows To Worksheet</usage>
+<usage>Auto Size Columns</usage>
+<usage>Clear Cell Range</usage>
+<usage>Copy Cell Values</usage>
+<usage>Create Workbook</usage>
+<usage>Create Worksheet</usage>
+<usage>Delete Columns</usage>
+<usage>Find Empty Row</usage>
+<usage>Get Cell Value</usage>
+<usage>Get Worksheet Value</usage>
+<usage>Hide Columns</usage>
+<usage>Insert Columns After</usage>
+<usage>Insert Columns Before</usage>
+<usage>Insert Image To Worksheet</usage>
+<usage>Move Range</usage>
+<usage>Open Workbook</usage>
+<usage>Read Worksheet</usage>
+<usage>Read Worksheet As Table</usage>
+<usage>Remove Worksheet</usage>
+<usage>Rename Worksheet</usage>
+<usage>Save Workbook</usage>
+<usage>Set Active Worksheet</usage>
+<usage>Set Cell Format</usage>
+<usage>Set Cell Formula</usage>
+<usage>Set Cell Value</usage>
+<usage>Set Cell Values</usage>
+<usage>Set Styles</usage>
+<usage>Set Worksheet Value</usage>
+<usage>Unhide Columns</usage>
+<usage>Worksheet Exists</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

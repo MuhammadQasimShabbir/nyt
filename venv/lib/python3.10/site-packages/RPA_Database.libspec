@@ -1,0 +1,617 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Database" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/Database.py" lineno="118">
+<version/>
+<doc>`Database` is a library for handling different database operations.
+
+All database operations are supported. Keywords `Query` and `Get Rows`
+return values by default in `RPA.Table` format.
+
+Library is compatible with any Database API Specification 2.0 module.
+
+**Workaround for inserting large JSON data for Call Stored Procedure**
+
+Workaround is to use instead `Query` keyword. At the moment there is
+no known fix for the `Call Stored Procedure` keyword as it fails if
+JSON string is more than 8000 characters long.
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    ${data}=    Load JSON from file    random_data.json
+    ${json}=    Convert JSON to String    ${data}
+    # Single quotes around ${json} string are necessary
+    Query    exec InsertJsonDataToSampleTable '${json}'
+
+References:
+
+- Database API Specification 2.0 - http://www.python.org/dev/peps/pep-0249/
+- Lists of DB API 2.0 - http://wiki.python.org/moin/DatabaseInterfaces
+- Python Database Programming - http://wiki.python.org/moin/DatabaseProgramming/
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library         RPA.Database
+
+    *** Tasks ***
+    Get Orders From Database
+        Connect To Database  pymysql  tester  user  password  127.0.0.1
+        @{orders}            Query    Select * FROM incoming_orders
+        FOR   ${order}  IN  @{orders}
+            Handle Order  ${order}
+        END
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Database import Database
+    from RPA.Robocorp.Vault import FileSecrets
+
+    filesecrets = FileSecrets("secrets.json")
+    secrets = filesecrets.get_secret("databasesecrets")
+
+    db = Database()
+    db.connect_to_database('pymysql',
+                        secrets["DATABASE"],
+                        secrets["USERNAME"],
+                        secrets["PASSWORD"],
+                        '127.0.0.1'
+                        )
+    orders = db.query("SELECT * FROM incoming_orders")
+    for order in orders:
+        print(order)</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Call Stored Procedure" lineno="419">
+<arguments repr="name: str, params: List[str] | None = None, sanstran: bool | None = False, as_table: bool | None = True, multiple: bool | None = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="params: List[str] | None = None">
+<name>params</name>
+<type name="Union" union="true">List[str] | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="sanstran: bool | None = False">
+<name>sanstran</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_table: bool | None = True">
+<name>as_table</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="multiple: bool | None = False">
+<name>multiple</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Call stored procedure with name and params.
+
+:param name: procedure name
+:param params: parameters for the procedure as a list, defaults to None
+:param sanstran: Run the query without an implicit transaction commit or
+    rollback if such additional action was detected. (turned off by default)
+:param as_table: If the result should be an instance of `Table`, otherwise a
+    `list` will be returned. (defaults to `True`)
+:param multiple: Return results for one result set (default `False`) or multiple
+    results from all result sets (set this parameter to `True`)
+:returns: list of results
+
+Example:
+
+.. code-block:: robotframework
+
+    @{params}     Create List   FirstParam   SecondParam   ThirdParam
+    @{results}    Call Stored Procedure   mystpr  ${params}</doc>
+<shortdoc>Call stored procedure with name and params.</shortdoc>
+</kw>
+<kw name="Connect To Database" lineno="198">
+<arguments repr="module_name: str | None = None, database: str | None = None, username: str | None = None, password: str | None = None, host: str | None = None, port: int | None = None, charset: str | None = None, config_file: str | None = db.cfg, autocommit: bool | None = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="module_name: str | None = None">
+<name>module_name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="database: str | None = None">
+<name>database</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="username: str | None = None">
+<name>username</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="host: str | None = None">
+<name>host</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="port: int | None = None">
+<name>port</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="charset: str | None = None">
+<name>charset</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="config_file: str | None = db.cfg">
+<name>config_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>db.cfg</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="autocommit: bool | None = False">
+<name>autocommit</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Connect to database using DB API 2.0 module.
+
+**Note.** The SSL support had been added for `mysql`
+module in `rpaframework==17.7.0`. The extra configuration
+parameters can be given via configuration file. Extra
+parameters are:
+
+- ssl_ca
+- ssl_cert
+- ssl_key
+- client_flags
+
+Example configuration file:
+
+.. code-block:: ini
+
+    [default]
+    host=hostname.mysql.database.azure.com
+    port=3306
+    username=username@hostname
+    database=databasename
+    client_flags=SSL,FOUND_ROWS
+    ssl_ca=DigiCertGlobalRootG2.crt.pem
+
+:param module_name: database module to use
+:param database: name of the database
+:param username: of the user accessing the database
+:param password: of the user accessing the database
+:param host: SQL server address
+:param port: SQL server port
+:param charset: for example, "utf-8", defaults to None
+:param config_file: location of configuration file, defaults to "db.cfg"
+:param autocommit: set autocommit value for connect
+
+Example:
+
+.. code-block:: robotframework
+
+    Connect To Database  pymysql  database  username  password  host  port
+    Connect To Database  ${CURDIR}${/}resources${/}dbconfig.cfg
+
+    ${secrets}=    Get Secret    azuredb
+    Connect To Database
+    ...    mysql.connector
+    ...    password=${secrets}[password]
+    ...    config_file=${CURDIR}${/}azure.cfg</doc>
+<shortdoc>Connect to database using DB API 2.0 module.</shortdoc>
+</kw>
+<kw name="Description" lineno="486">
+<arguments repr="table: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: str">
+<name>table</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get description of the SQL table
+
+:param table: name of the SQL table
+:returns: database descripton as a list
+
+Example:
+
+.. code-block:: robotframework
+
+    Connect To Database    pymysql  mydb  user  pass  127.0.0.1
+    ${db_description}      Description  mytable</doc>
+<shortdoc>Get description of the SQL table</shortdoc>
+</kw>
+<kw name="Disconnect From Database" lineno="509">
+<arguments repr="">
+</arguments>
+<doc>Close connection to SQL database
+
+Example:
+
+.. code-block:: robotframework
+
+    Connect To Database    pymysql  mydb  user  pass  127.0.0.1
+    ${result}              Query   Select firstname, lastname FROM table
+    Disconnect From Database</doc>
+<shortdoc>Close connection to SQL database</shortdoc>
+</kw>
+<kw name="Execute Sql Script" lineno="525">
+<arguments repr="filename: str, sanstran: bool | None = False, encoding: str | None = utf-8">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="sanstran: bool | None = False">
+<name>sanstran</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str | None = utf-8">
+<name>encoding</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>utf-8</default>
+</arg>
+</arguments>
+<doc>Execute content of SQL script as SQL commands.
+
+:param filename: filepath to SQL script to execute
+:param sanstran: Run the query without an implicit transaction commit or
+    rollback if such additional action was detected. (turned off by default)
+:param encoding: character encoding of file (utf-8 by default)
+
+Example:
+
+.. code-block:: robotframework
+
+    Execute SQL Script   script.sql</doc>
+<shortdoc>Execute content of SQL script as SQL commands.</shortdoc>
+</kw>
+<kw name="Get Number Of Rows" lineno="778">
+<arguments repr="table: str, conditions: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: str">
+<name>table</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="conditions: str | None = None">
+<name>conditions</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get number of rows in a table. Conditions can be given
+as arguments for WHERE clause.
+
+:param table: name of the SQL table
+:param conditions: restrictions for selections, defaults to None
+:returns: number or rows
+
+Example:
+
+.. code-block:: robotframework
+
+    ${count}   Get Number Of Rows  tablename
+    ${count}   Get Number Of Rows  tablename  column1=5 and column2='x'</doc>
+<shortdoc>Get number of rows in a table. Conditions can be given as arguments for WHERE clause.</shortdoc>
+</kw>
+<kw name="Get Rows" lineno="744">
+<arguments repr="table, columns: str | None = None, conditions: str | None = None, as_table: bool | None = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table">
+<name>table</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="columns: str | None = None">
+<name>columns</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="conditions: str | None = None">
+<name>conditions</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_table: bool | None = True">
+<name>as_table</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Get rows from table. Columns and conditions can be
+set to filter result.
+
+:param table: name of the SQL table
+:param columns: name of columns to return, defaults to `None`
+ means that all columns are returned
+:param conditions: limiting result by WHERE clause, defaults to `None`
+:param as_table: if result should be instance of ``Table``, defaults to `True`
+ `False` means that return type would be `list`
+:returns: table or list based on param as_table arguement
+
+Example:
+
+.. code-block:: robotframework
+
+    @{res}   Get Rows  tablename  arvo
+    @{res}   Get Rows  tablename  arvo  columns=id,name
+    @{res}   Get Rows  tablename  columns=id  conditions=column1='newvalue'
+    @{res}   Get Rows  tablename  conditions=column2='updatedvalue'</doc>
+<shortdoc>Get rows from table. Columns and conditions can be set to filter result.</shortdoc>
+</kw>
+<kw name="Query" lineno="583">
+<arguments repr="statement: str, assertion: str | None = None, sanstran: bool | None = False, as_table: bool | None = True, returning: bool | None = None, data: Dict | Tuple | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="statement: str">
+<name>statement</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="assertion: str | None = None">
+<name>assertion</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="sanstran: bool | None = False">
+<name>sanstran</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_table: bool | None = True">
+<name>as_table</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="returning: bool | None = None">
+<name>returning</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data: Dict | Tuple | None = None">
+<name>data</name>
+<type name="Union" union="true">Dict | Tuple | None<type name="Dict" typedoc="dictionary">Dict</type><type name="Tuple" typedoc="tuple">Tuple</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Execute a SQL query and optionally return the execution result.
+
+Security Warning: In order to safely include untrusted data in SQL queries
+it is advisable to use parameterized queries. For more information about
+formatting for specific databases, please see https://bobby-tables.com/python
+
+:param statement: SQL statement to execute.
+:param assertion: Assert on query result, row_count or columns.
+    Works only for `SELECT` statements. (defaults to `None`)
+:param sanstran: Run the query without an implicit transaction commit or
+    rollback if such additional action was detected and this is set to `True`.
+    (turned off by default, meaning that *commit* is performed on successful
+    queries and *rollback* on failing ones automatically)
+:param as_table: If the result should be an instance of `Table`, otherwise a
+    `list` will be returned. (defaults to `True`)
+:param returning: Set this to `True` if you want to have rows explicitly
+    returned (instead of the query result), `False` otherwise. (by default a
+    heuristic detects if it should return or not)
+:param data: The data to use if the SQL statement is parameterized
+:returns: Fetched rows when `returning` is `True` or if the heuristic decides
+    that the statement should return (raw rows or as `Table` if `as_table` is
+    `True`), otherwise the object produced by the execution is returned.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Database
+
+    *** Tasks ***
+    Select Values From Table
+        @{rows} =    Query   SELECT id,value FROM table
+        FOR  ${row}  IN  @{rows}
+            Log   ${row}
+        END
+        @{res} =    Query   Select * FROM table   row_count &gt; ${EXPECTED}
+        @{res} =    Query   Select * FROM table   'value' in columns
+        @{res} =    Query   Select * FROM table   columns == ['id', 'value']
+        @{res} =    Query   Select * FROM table WHERE value = ?  data=("${d}", )
+        # Calling Stored Procedure with Query keyword requires that parameter
+        # 'returning' is set to 'True'
+        @{res} =    Query   Exec stored_procedure  returning=True
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Database import Database
+
+    lib = Database()
+
+    def insert_and_return_names():
+        lib.connect_to_database("sqlite3", "sqlite.db")
+        lib.query("DROP TABLE IF EXISTS orders;")
+        lib.query("CREATE TABLE orders(id INTEGER PRIMARY KEY, name TEXT);")
+        data1 = "my-1st-order"
+        data2 = "my-2nd-order"
+        lib.query(
+            'INSERT INTO orders(id, name) VALUES(1, ?), (2, ?);',
+            data=(data1, data2)
+        )
+        rows = lib.query(
+            'SELECT * FROM orders'
+        )
+        print([row["name"] for row in rows])  # ['my-1st-order', 'my-2nd-order']</doc>
+<shortdoc>Execute a SQL query and optionally return the execution result.</shortdoc>
+</kw>
+<kw name="Set Auto Commit" lineno="729">
+<arguments repr="autocommit: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="autocommit: bool = True">
+<name>autocommit</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Set database auto commit mode.
+
+:param autocommit: boolean value for auto commit, defaults to True
+
+Example:
+
+.. code-block:: robotframework
+
+    Set Auto Commit             # auto commit is set on
+    Set Auto Commit   False     # auto commit is turned off</doc>
+<shortdoc>Set database auto commit mode.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Call Stored Procedure</usage>
+<usage>Connect To Database</usage>
+<usage>Execute Sql Script</usage>
+<usage>Get Rows</usage>
+<usage>Query</usage>
+<usage>Set Auto Commit</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Query</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Connect To Database</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Call Stored Procedure</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Call Stored Procedure</usage>
+<usage>Connect To Database</usage>
+<usage>Execute Sql Script</usage>
+<usage>Get Number Of Rows</usage>
+<usage>Get Rows</usage>
+<usage>Query</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Call Stored Procedure</usage>
+<usage>Connect To Database</usage>
+<usage>Description</usage>
+<usage>Execute Sql Script</usage>
+<usage>Get Number Of Rows</usage>
+<usage>Get Rows</usage>
+<usage>Query</usage>
+</usages>
+</type>
+<type name="tuple" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#tuple|tuple]
+literals. They are converted to actual tuples using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+tuples and other containers.
+
+If the type has nested types like ``tuple[str, int, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``('one', 'two')``, ``(('one', 1), ('two', 2))``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Query</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

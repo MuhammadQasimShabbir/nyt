@@ -1,0 +1,1665 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.HTTP" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/HTTP.py" lineno="71">
+<version>0.9.7</version>
+<doc>The *RPA.HTTP* library extends functionality of the `RequestsLibrary`_.
+See that documentation for several examples of how to issue ``GET``
+requests and utilize the returned ``result`` objects.
+
+.. _RequestsLibrary: https://marketsquare.github.io/robotframework-requests/doc/RequestsLibrary.html
+
+This extension provides helper keywords to get an HTTP resource on a
+session. The ``HTTP Get`` and ``Download`` keywords will initiate a
+session if one does not exist for the provided URL, or use an existing
+session. When using these keywords, you do not need to manage
+sessions with ``Create Session``. Session management is still
+required if you use the underlying session keywords, e.g.,
+``* On Session``.</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="91">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Check Vulnerabilities" lineno="262">
+<arguments repr="">
+</arguments>
+<doc>Check for possible vulnerabilities in the installed runtime
+environment packages.
+
+Currently will check only for OpenSSL version and outputs warning message on any
+discovered vulnerability.
+
+:return: list of all check results
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Vulnerability Check
+        ${results}=    Check Vulnerabilities
+        FOR    ${result}    IN    @{results}
+            Log To Console    TYPE: ${result}[type]
+            Log To Console    VULNERABLE: ${result}[vulnerable]
+            Log To Console    MESSAGE: ${result}[message]
+        END</doc>
+<shortdoc>Check for possible vulnerabilities in the installed runtime environment packages.</shortdoc>
+</kw>
+<kw name="Create Client Cert Session" source="./RequestsLibrary/SessionKeywords.py" lineno="191">
+<arguments repr="alias, url, headers={}, cookies={}, client_certs=None, timeout=None, proxies=None, verify=False, debug=0, max_retries=3, backoff_factor=0.1, disable_warnings=0, retry_status_list=[], retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url">
+<name>url</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers={}">
+<name>headers</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cookies={}">
+<name>cookies</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="client_certs=None">
+<name>client_certs</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="proxies=None">
+<name>proxies</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify=False">
+<name>verify</name>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="debug=0">
+<name>debug</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="max_retries=3">
+<name>max_retries</name>
+<default>3</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="backoff_factor=0.1">
+<name>backoff_factor</name>
+<default>0.1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="disable_warnings=0">
+<name>disable_warnings</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_status_list=[]">
+<name>retry_status_list</name>
+<default>[]</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<name>retry_method_list</name>
+<default>['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']</default>
+</arg>
+</arguments>
+<doc>Create Session: create a HTTP session to a server
+
+``url`` Base url of the server
+
+``alias`` Robot Framework alias to identify the session
+
+``headers`` Dictionary of default headers
+
+``cookies`` Dictionary of cookies
+
+``client_certs`` ['client certificate', 'client key'] PEM files containing the client key and certificate
+
+``timeout`` Connection timeout
+
+``proxies`` Dictionary mapping protocol or protocol and host to the URL of the proxy
+        (e.g. {'http': 'foo.bar:3128', 'http://host.name': 'foo.bar:4012'})
+
+``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+         Defaults to False.
+
+``debug`` Enable http verbosity option more information
+        https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
+
+``max_retries`` Number of maximum retries each connection should attempt.
+                By default it will retry 3 times in case of connection errors only.
+                A 0 value will disable any kind of retries regardless of other retry settings.
+                In case the number of retries is reached a retry exception is raised.
+
+``disable_warnings`` Disable requests warning useful when you have large number of testcases
+
+``backoff_factor`` Introduces a delay time between retries that is longer after each retry.
+                   eg. if backoff_factor is set to 0.1
+                   the sleep between attemps will be: 0.0, 0.2, 0.4
+                   More info here: https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html
+
+``retry_method_list`` List of uppercased HTTP method verbs where retries are allowed.
+                      By default retries are allowed only on HTTP requests methods that are considered to be
+                      idempotent (multiple requests with the same parameters end with the same state).
+                      eg. set to ['POST', 'GET'] to retry only those kind of requests.
+
+``retry_status_list`` List of integer HTTP status codes that, if returned, a retry is attempted.
+                      eg. set to [502, 503] to retry requests if those status are returned.
+                      Note that max_retries must be greater than 0.</doc>
+<shortdoc>Create Session: create a HTTP session to a server</shortdoc>
+</kw>
+<kw name="Create Custom Session" source="./RequestsLibrary/SessionKeywords.py" lineno="277">
+<arguments repr="alias, url, auth, headers={}, cookies={}, timeout=None, proxies=None, verify=False, debug=0, max_retries=3, backoff_factor=0.1, disable_warnings=0, retry_status_list=[], retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url">
+<name>url</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="auth">
+<name>auth</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers={}">
+<name>headers</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cookies={}">
+<name>cookies</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="proxies=None">
+<name>proxies</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify=False">
+<name>verify</name>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="debug=0">
+<name>debug</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="max_retries=3">
+<name>max_retries</name>
+<default>3</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="backoff_factor=0.1">
+<name>backoff_factor</name>
+<default>0.1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="disable_warnings=0">
+<name>disable_warnings</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_status_list=[]">
+<name>retry_status_list</name>
+<default>[]</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<name>retry_method_list</name>
+<default>['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']</default>
+</arg>
+</arguments>
+<doc>Create Session: create a HTTP session to a server
+
+``url`` Base url of the server
+
+``alias`` Robot Framework alias to identify the session
+
+``headers`` Dictionary of default headers
+
+``cookies`` Dictionary of cookies
+
+``auth`` A Custom Authentication object to be passed on to the requests library.
+        http://docs.python-requests.org/en/master/user/advanced/#custom-authentication
+
+``timeout`` Connection timeout
+
+``proxies`` Dictionary mapping protocol or protocol and host to the URL of the proxy
+        (e.g. {'http': 'foo.bar:3128', 'http://host.name': 'foo.bar:4012'})
+
+``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+         Defaults to False.
+
+``debug`` Enable http verbosity option more information
+        https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
+
+``max_retries`` Number of maximum retries each connection should attempt.
+                By default it will retry 3 times in case of connection errors only.
+                A 0 value will disable any kind of retries regardless of other retry settings.
+                In case the number of retries is reached a retry exception is raised.
+
+``disable_warnings`` Disable requests warning useful when you have large number of testcases
+
+``backoff_factor`` Introduces a delay time between retries that is longer after each retry.
+                   eg. if backoff_factor is set to 0.1
+                   the sleep between attemps will be: 0.0, 0.2, 0.4
+                   More info here: https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html
+
+``retry_method_list`` List of uppercased HTTP method verbs where retries are allowed.
+                      By default retries are allowed only on HTTP requests methods that are considered to be
+                      idempotent (multiple requests with the same parameters end with the same state).
+                      eg. set to ['POST', 'GET'] to retry only those kind of requests.
+
+``retry_status_list`` List of integer HTTP status codes that, if returned, a retry is attempted.
+                      eg. set to [502, 503] to retry requests if those status are returned.
+                      Note that max_retries must be greater than 0.</doc>
+<shortdoc>Create Session: create a HTTP session to a server</shortdoc>
+</kw>
+<kw name="Create Digest Session" source="./RequestsLibrary/SessionKeywords.py" lineno="361">
+<arguments repr="alias, url, auth, headers={}, cookies={}, timeout=None, proxies=None, verify=False, debug=0, max_retries=3, backoff_factor=0.1, disable_warnings=0, retry_status_list=[], retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url">
+<name>url</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="auth">
+<name>auth</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers={}">
+<name>headers</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cookies={}">
+<name>cookies</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="proxies=None">
+<name>proxies</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify=False">
+<name>verify</name>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="debug=0">
+<name>debug</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="max_retries=3">
+<name>max_retries</name>
+<default>3</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="backoff_factor=0.1">
+<name>backoff_factor</name>
+<default>0.1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="disable_warnings=0">
+<name>disable_warnings</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_status_list=[]">
+<name>retry_status_list</name>
+<default>[]</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<name>retry_method_list</name>
+<default>['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']</default>
+</arg>
+</arguments>
+<doc>Create Session: create a HTTP session to a server
+
+``url`` Base url of the server
+
+``alias`` Robot Framework alias to identify the session
+
+``headers`` Dictionary of default headers
+
+``cookies`` Dictionary of cookies
+
+``auth`` ['DOMAIN', 'username', 'password'] for NTLM Authentication
+
+``timeout`` Connection timeout
+
+``proxies`` Dictionary mapping protocol or protocol and host to the URL of the proxy
+        (e.g. {'http': 'foo.bar:3128', 'http://host.name': 'foo.bar:4012'})
+
+``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+         Defaults to False.
+
+``debug`` Enable http verbosity option more information
+        https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
+
+``max_retries`` Number of maximum retries each connection should attempt.
+                By default it will retry 3 times in case of connection errors only.
+                A 0 value will disable any kind of retries regardless of other retry settings.
+                In case the number of retries is reached a retry exception is raised.
+
+``disable_warnings`` Disable requests warning useful when you have large number of testcases
+
+``backoff_factor`` Introduces a delay time between retries that is longer after each retry.
+                   eg. if backoff_factor is set to 0.1
+                   the sleep between attemps will be: 0.0, 0.2, 0.4
+                   More info here: https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html
+
+``retry_method_list`` List of uppercased HTTP method verbs where retries are allowed.
+                      By default retries are allowed only on HTTP requests methods that are considered to be
+                      idempotent (multiple requests with the same parameters end with the same state).
+                      eg. set to ['POST', 'GET'] to retry only those kind of requests.
+
+``retry_status_list`` List of integer HTTP status codes that, if returned, a retry is attempted.
+                      eg. set to [502, 503] to retry requests if those status are returned.
+                      Note that max_retries must be greater than 0.</doc>
+<shortdoc>Create Session: create a HTTP session to a server</shortdoc>
+</kw>
+<kw name="Create Ntlm Session" source="./RequestsLibrary/SessionKeywords.py" lineno="439">
+<arguments repr="alias, url, auth, headers={}, cookies={}, timeout=None, proxies=None, verify=False, debug=0, max_retries=3, backoff_factor=0.1, disable_warnings=0, retry_status_list=[], retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url">
+<name>url</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="auth">
+<name>auth</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers={}">
+<name>headers</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cookies={}">
+<name>cookies</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="proxies=None">
+<name>proxies</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify=False">
+<name>verify</name>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="debug=0">
+<name>debug</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="max_retries=3">
+<name>max_retries</name>
+<default>3</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="backoff_factor=0.1">
+<name>backoff_factor</name>
+<default>0.1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="disable_warnings=0">
+<name>disable_warnings</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_status_list=[]">
+<name>retry_status_list</name>
+<default>[]</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<name>retry_method_list</name>
+<default>['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']</default>
+</arg>
+</arguments>
+<doc>Create Session: create a HTTP session to a server
+
+``url`` Base url of the server
+
+``alias`` Robot Framework alias to identify the session
+
+``headers`` Dictionary of default headers
+
+``cookies`` Dictionary of cookies
+
+``auth`` ['DOMAIN', 'username', 'password'] for NTLM Authentication
+
+``timeout`` Connection timeout
+
+``proxies`` Dictionary mapping protocol or protocol and host to the URL of the proxy
+        (e.g. {'http': 'foo.bar:3128', 'http://host.name': 'foo.bar:4012'})
+
+``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+         Defaults to False.
+
+``debug`` Enable http verbosity option more information
+        https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
+
+``max_retries`` Number of maximum retries each connection should attempt.
+                By default it will retry 3 times in case of connection errors only.
+                A 0 value will disable any kind of retries regardless of other retry settings.
+                In case the number of retries is reached a retry exception is raised.
+
+``disable_warnings`` Disable requests warning useful when you have large number of testcases
+
+``backoff_factor`` Introduces a delay time between retries that is longer after each retry.
+                   eg. if backoff_factor is set to 0.1
+                   the sleep between attemps will be: 0.0, 0.2, 0.4
+                   More info here: https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html
+
+``retry_method_list`` List of uppercased HTTP method verbs where retries are allowed.
+                      By default retries are allowed only on HTTP requests methods that are considered to be
+                      idempotent (multiple requests with the same parameters end with the same state).
+                      eg. set to ['POST', 'GET'] to retry only those kind of requests.
+
+``retry_status_list`` List of integer HTTP status codes that, if returned, a retry is attempted.
+                      eg. set to [502, 503] to retry requests if those status are returned.
+                      Note that max_retries must be greater than 0.</doc>
+<shortdoc>Create Session: create a HTTP session to a server</shortdoc>
+</kw>
+<kw name="Create Session" source="./RequestsLibrary/SessionKeywords.py" lineno="109">
+<arguments repr="alias, url, headers={}, cookies={}, auth=None, timeout=None, proxies=None, verify=False, debug=0, max_retries=3, backoff_factor=0.1, disable_warnings=0, retry_status_list=[], retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url">
+<name>url</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers={}">
+<name>headers</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cookies={}">
+<name>cookies</name>
+<default>{}</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="auth=None">
+<name>auth</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="proxies=None">
+<name>proxies</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify=False">
+<name>verify</name>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="debug=0">
+<name>debug</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="max_retries=3">
+<name>max_retries</name>
+<default>3</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="backoff_factor=0.1">
+<name>backoff_factor</name>
+<default>0.1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="disable_warnings=0">
+<name>disable_warnings</name>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_status_list=[]">
+<name>retry_status_list</name>
+<default>[]</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="retry_method_list=['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']">
+<name>retry_method_list</name>
+<default>['HEAD', 'TRACE', 'PUT', 'OPTIONS', 'DELETE', 'GET']</default>
+</arg>
+</arguments>
+<doc>Create Session: create a HTTP session to a server
+
+``alias`` Robot Framework alias to identify the session
+
+``url`` Base url of the server
+
+``headers`` Dictionary of default headers
+
+``cookies`` Dictionary of cookies
+
+``auth`` List of username &amp; password for HTTP Basic Auth
+
+``timeout`` Connection timeout
+
+``proxies`` Dictionary mapping protocol or protocol and host to the URL of the proxy
+        (e.g. {'http': 'foo.bar:3128', 'http://host.name': 'foo.bar:4012'})
+
+``verify`` Whether the SSL cert will be verified. A CA_BUNDLE path can also be provided.
+
+``debug`` Enable http verbosity option more information
+        https://docs.python.org/2/library/httplib.html#httplib.HTTPConnection.set_debuglevel
+
+``max_retries`` Number of maximum retries each connection should attempt.
+                By default it will retry 3 times in case of connection errors only.
+                A 0 value will disable any kind of retries regardless of other retry settings.
+                In case the number of retries is reached a retry exception is raised.
+
+``disable_warnings`` Disable requests warning useful when you have large number of testcases
+
+``backoff_factor`` Introduces a delay time between retries that is longer after each retry.
+                   eg. if backoff_factor is set to 0.1
+                   the sleep between attemps will be: 0.0, 0.2, 0.4
+                   More info here: https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html
+
+``retry_method_list`` List of uppercased HTTP method verbs where retries are allowed.
+                      By default retries are allowed only on HTTP requests methods that are considered to be
+                      idempotent (multiple requests with the same parameters end with the same state).
+                      eg. set to ['POST', 'GET'] to retry only those kind of requests.
+
+``retry_status_list`` List of integer HTTP status codes that, if returned, a retry is attempted.
+                      eg. set to [502, 503] to retry requests if those status are returned.
+                      Note that max_retries must be greater than 0.</doc>
+<shortdoc>Create Session: create a HTTP session to a server</shortdoc>
+</kw>
+<kw name="DELETE" source="./RequestsLibrary/utils.py" lineno="136">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a DELETE request.
+
+The endpoint used to send the request is the ``url`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a DELETE request.</shortdoc>
+</kw>
+<kw name="Delete All Sessions" source="./RequestsLibrary/SessionKeywords.py" lineno="544">
+<arguments repr="">
+</arguments>
+<doc>Removes all the session objects</doc>
+<shortdoc>Removes all the session objects</shortdoc>
+</kw>
+<kw name="DELETE On Session" source="./RequestsLibrary/utils.py" lineno="149">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a DELETE request on a previously created HTTP Session.
+
+Session will be identified using the ``alias`` name.
+The endpoint used to send the request is the ``url`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a DELETE request on a previously created HTTP Session.</shortdoc>
+</kw>
+<kw name="Delete Request" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="261">
+<arguments repr="alias, uri, data=None, json=None, params=None, headers=None, allow_redirects=None, timeout=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="uri">
+<name>uri</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data=None">
+<name>data</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json=None">
+<name>json</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="params=None">
+<name>params</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="allow_redirects=None">
+<name>allow_redirects</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use `DELETE On Session` instead.
+
+Send a DELETE request on the session object found using the
+given `alias`
+
+``alias`` that will be used to identify the Session object in the cache
+
+``uri`` to send the DELETE request to
+
+``json`` a value that will be json encoded
+       and sent as request data if data is not specified
+
+``headers`` a dictionary of headers to use with the request
+
+``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+
+``timeout`` connection timeout</doc>
+<shortdoc>*DEPRECATED* Please use `DELETE On Session` instead.</shortdoc>
+</kw>
+<kw name="Download" lineno="188">
+<arguments repr="url: str, target_file: str | None = None, verify: bool | str = True, force_new_session: bool = False, overwrite: bool = False, stream: bool = False, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
+<name>url</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_file: str | None = None">
+<name>target_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify: bool | str = True">
+<name>verify</name>
+<type name="Union" union="true">bool | str<type name="bool" typedoc="boolean">bool</type><type name="str" typedoc="string">str</type></type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="force_new_session: bool = False">
+<name>force_new_session</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="stream: bool = False">
+<name>stream</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>An alias for the ``HTTP Get`` keyword.
+
+The difference in use is that the URL is always downloaded based on
+the URL path (even without ``target_file``). If there is a filename
+in the path, then that is used as ``target_file`` to save to. By default,
+the filename will be "downloaded.html".
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.HTTP
+
+    *** Variables ***
+    ${DOWNLOAD_PATH}=   ${OUTPUT DIR}${/}downloads
+    ${WORD_EXAMPLE}=    https://file-examples.com/wp-content/uploads/2017/02/file-sample_100kB.doc
+    ${EXCEL_EXAMPLE}=   https://file-examples.com/wp-content/uploads/2017/02/file_example_XLS_10.xls
+
+    *** Tasks ***
+    Download files with reused session with provided file names
+        # Starts a new session
+        Download    ${WORD_EXAMPLE}    target_file=${DOWNLOAD_PATH}
+        # Uses the previous session
+        Download    ${EXCEL_EXAMPLE}    target_file=${DOWNLOAD_PATH}
+        # Above files are downloaded using the same names as they have
+        # on the remote server.
+
+:param url: target URL for GET request
+:param target_file: filepath to save request content, default ``None``
+:param verify: if SSL verification should be done, default ``True``,
+ a CA_BUNDLE path can also be provided
+:param force_new_session: if new HTTP session should be created,
+ default ``False``
+:param overwrite: used together with ``target_file``, if ``True`` will overwrite
+ the target file, default ``False``
+:param stream: if ``False`` the response content will be immediately downloaded
+:return: request response as a dict</doc>
+<shortdoc>An alias for the ``HTTP Get`` keyword.</shortdoc>
+</kw>
+<kw name="GET" source="./RequestsLibrary/utils.py" lineno="136">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a GET request.
+
+The endpoint used to retrieve the resource is the ``url``, while query
+string parameters can be passed as string, dictionary (or list of tuples or bytes)
+through the ``params``.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs`` here is a list:
+
+| ``data``     | Dictionary, list of tuples, bytes, or file-like object to send in the body of the request. |
+| ``json``     | A JSON serializable Python object to send in the body of the request. |
+| ``headers``  | Dictionary of HTTP Headers to send with the request. |
+| ``cookies``  | Dict or CookieJar object to send with the request. |
+| ``files``    | Dictionary of file-like-objects (or ``{'name': file-tuple}``) for multipart encoding upload. |
+| ``file-tuple`` | can be a 2-tuple ``('filename', fileobj)``, 3-tuple ``('filename', fileobj, 'content_type')`` or a 4-tuple ``('filename', fileobj, 'content_type', custom_headers)``, where ``'content-type'`` is a string defining the content type of the given file and ``custom_headers`` a dict-like object containing additional headers to add for the file. |
+| ``auth`` | Auth tuple to enable Basic/Digest/Custom HTTP Auth. |
+| ``timeout`` | How many seconds to wait for the server to send data before giving up, as a float, or a ``(connect timeout, read timeout)`` tuple. |
+| ``allow_redirects`` | Boolean. Enable/disable GET/OPTIONS/POST/PUT/PATCH/DELETE/HEAD redirection. Defaults to ``${True}``. |
+| ``proxies`` | Dictionary mapping protocol or protocol and host to the URL of the proxy (e.g. {'http': 'foo.bar:3128', 'http://host.name': 'foo.bar:4012'}) |
+| ``verify``  | Either a boolean, in which case it controls whether we verify the server's TLS certificate, or a string, in which case it must be a path to a CA bundle to use. Defaults to ``${True}``. Warning: if a session has been created with ``verify=${False}`` any other requests will not verify the SSL certificate. |
+| ``stream`` | if ``${False}``, the response content will be immediately downloaded. |
+| ``cert`` | if String, path to ssl client cert file (.pem). If Tuple, ('cert', 'key') pair. |
+
+For more updated and complete information verify the official Requests api documentation:
+https://requests.readthedocs.io/en/latest/api/</doc>
+<shortdoc>Sends a GET request.</shortdoc>
+</kw>
+<kw name="Get Current Session Alias" lineno="181">
+<arguments repr="">
+</arguments>
+<doc>Get request session alias that was used with the ``HTTP Get`` keyword.
+
+:return: name of session alias as a string</doc>
+<shortdoc>Get request session alias that was used with the ``HTTP Get`` keyword.</shortdoc>
+</kw>
+<kw name="Get File For Streaming Upload" source="./RequestsLibrary/RequestsKeywords.py" lineno="142">
+<arguments repr="path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path">
+<name>path</name>
+</arg>
+</arguments>
+<doc>Opens and returns a file descriptor of a specified file to be passed as ``data`` parameter
+to other requests keywords.
+
+This allows streaming upload of large files without reading them into memory.
+
+File descriptor is binary mode and read only. Requests keywords will automatically close the file,
+if used outside this library it's up to the caller to close it.</doc>
+<shortdoc>Opens and returns a file descriptor of a specified file to be passed as ``data`` parameter to other requests keywords.</shortdoc>
+</kw>
+<kw name="GET On Session" source="./RequestsLibrary/utils.py" lineno="149">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a GET request on a previously created HTTP Session.
+
+Session will be identified using the ``alias`` name.
+The endpoint used to retrieve the resource is the ``url``, while query
+string parameters can be passed as string, dictionary (or list of tuples or bytes)
+through the ``params``.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a GET request on a previously created HTTP Session.</shortdoc>
+</kw>
+<kw name="Get Request" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="36">
+<arguments repr="alias, uri, headers=None, data=None, json=None, params=None, allow_redirects=None, timeout=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="uri">
+<name>uri</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data=None">
+<name>data</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json=None">
+<name>json</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="params=None">
+<name>params</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="allow_redirects=None">
+<name>allow_redirects</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use `GET On Session` instead.
+
+Send a GET request on the session object found using the
+given `alias`
+
+``alias`` that will be used to identify the Session object in the cache
+
+``uri`` to send the GET request to
+
+``params`` url parameters to append to the uri
+
+``headers`` a dictionary of headers to use with the request
+
+``data`` a dictionary of key-value pairs that will be urlencoded
+       and sent as GET data
+       or binary data that is sent as the raw body content
+
+``json`` a value that will be json encoded
+       and sent as GET data if data is not specified
+
+``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+
+``timeout`` connection timeout</doc>
+<shortdoc>*DEPRECATED* Please use `GET On Session` instead.</shortdoc>
+</kw>
+<kw name="HEAD" source="./RequestsLibrary/utils.py" lineno="136">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a HEAD request.
+
+The endpoint used to retrieve the HTTP headers is the ``url``.
+
+``allow_redirects`` parameter is not provided, it will be set to `False` (as
+opposed to the default behavior).
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a HEAD request.</shortdoc>
+</kw>
+<kw name="HEAD On Session" source="./RequestsLibrary/utils.py" lineno="149">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a HEAD request on a previously created HTTP Session.
+
+Session will be identified using the ``alias`` name.
+The endpoint used to retrieve the HTTP headers is the ``url``.
+
+``allow_redirects`` parameter is not provided, it will be set to `False` (as
+opposed to the default behavior).
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a HEAD request on a previously created HTTP Session.</shortdoc>
+</kw>
+<kw name="Head Request" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="308">
+<arguments repr="alias, uri, headers=None, allow_redirects=None, timeout=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="uri">
+<name>uri</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="allow_redirects=None">
+<name>allow_redirects</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use `HEAD On Session` instead.
+
+Send a HEAD request on the session object found using the
+given `alias`
+
+``alias`` that will be used to identify the Session object in the cache
+
+``uri`` to send the HEAD request to
+
+``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+
+``headers`` a dictionary of headers to use with the request
+
+``timeout`` connection timeout</doc>
+<shortdoc>*DEPRECATED* Please use `HEAD On Session` instead.</shortdoc>
+</kw>
+<kw name="Http Get" lineno="98">
+<arguments repr="url: str, target_file: str | None = None, verify: bool | str = True, force_new_session: bool = False, overwrite: bool = False, stream: bool = False, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
+<name>url</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_file: str | None = None">
+<name>target_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="verify: bool | str = True">
+<name>verify</name>
+<type name="Union" union="true">bool | str<type name="bool" typedoc="boolean">bool</type><type name="str" typedoc="string">str</type></type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="force_new_session: bool = False">
+<name>force_new_session</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="stream: bool = False">
+<name>stream</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>A helper method for ``Get Request`` that will create a session, perform GET
+request, and store the target file, if set by the ``target_file`` parameter.
+
+The old session will be used if the URL scheme and the host are the same as
+previously, e.g., 'https://www.google.fi' part of the URL.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.HTTP
+
+    *** Variables ***
+    ${DOWNLOAD_PATH}=   ${OUTPUT DIR}${/}downloads
+    ${WORD_EXAMPLE}=    https://file-examples.com/wp-content/uploads/2017/02/file-sample_100kB.doc
+    ${EXCEL_EXAMPLE}=   https://file-examples.com/wp-content/uploads/2017/02/file_example_XLS_10.xls
+
+    *** Tasks ***
+    Download files with reused session
+        # Starts a new session
+        HTTP Get    ${WORD_EXAMPLE}    target_file=${DOWNLOAD_PATH}${/}word-example.doc
+        # Uses the previous session
+        HTTP Get    ${EXCEL_EXAMPLE}    target_file=${DOWNLOAD_PATH}${/}excel-example.xls
+
+:param url: target URL for GET request
+:param target_file: filepath to save request content, default ``None``
+:param verify: if SSL verification should be done, default ``True``,
+    a CA_BUNDLE path can also be provided
+:param force_new_session: if new HTTP session should be created,
+    default ``False``
+:param overwrite: used together with ``target_file``, if ``True`` will overwrite
+    the target file, default ``False``
+:param stream: if ``False``, the response content will be immediately downloaded
+:return: request response as a dict</doc>
+<shortdoc>A helper method for ``Get Request`` that will create a session, perform GET request, and store the target file, if set by the ``target_file`` parameter.</shortdoc>
+</kw>
+<kw name="OPTIONS" source="./RequestsLibrary/utils.py" lineno="136">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a OPTIONS request.
+
+The endpoint used to retrieve the resource is the ``url``.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a OPTIONS request.</shortdoc>
+</kw>
+<kw name="OPTIONS On Session" source="./RequestsLibrary/utils.py" lineno="149">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a OPTIONS request on a previously created HTTP Session.
+
+Session will be identified using the ``alias`` name.
+The endpoint used to retrieve the resource is the ``url``.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a OPTIONS request on a previously created HTTP Session.</shortdoc>
+</kw>
+<kw name="Options Request" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="344">
+<arguments repr="alias, uri, headers=None, allow_redirects=None, timeout=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="uri">
+<name>uri</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="allow_redirects=None">
+<name>allow_redirects</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use `OPTIONS On Session` instead.
+
+Send an OPTIONS request on the session object found using the
+given `alias`
+
+``alias`` that will be used to identify the Session object in the cache
+
+``uri`` to send the OPTIONS request to
+
+``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+
+``headers`` a dictionary of headers to use with the request
+
+``timeout`` connection timeout</doc>
+<shortdoc>*DEPRECATED* Please use `OPTIONS On Session` instead.</shortdoc>
+</kw>
+<kw name="PATCH" source="./RequestsLibrary/utils.py" lineno="136">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a PUT request.
+
+The endpoint used to send the request is the ``url`` parameter, while its body
+can be passed using ``data`` or ``json`` parameters.
+
+``data`` can be a dictionary, list of tuples, bytes, or file-like object.
+If you want to pass a json body pass a dictionary as ``json`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a PUT request.</shortdoc>
+</kw>
+<kw name="PATCH On Session" source="./RequestsLibrary/utils.py" lineno="149">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a PATCH request on a previously created HTTP Session.
+
+Session will be identified using the ``alias`` name.
+The endpoint used to send the request is the ``url`` parameter, while its body
+can be passed using ``data`` or ``json`` parameters.
+
+``data`` can be a dictionary, list of tuples, bytes, or file-like object.
+If you want to pass a json body pass a dictionary as ``json`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a PATCH request on a previously created HTTP Session.</shortdoc>
+</kw>
+<kw name="Patch Request" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="147">
+<arguments repr="alias, uri, data=None, json=None, params=None, headers=None, files=None, allow_redirects=None, timeout=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="uri">
+<name>uri</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data=None">
+<name>data</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json=None">
+<name>json</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="params=None">
+<name>params</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="files=None">
+<name>files</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="allow_redirects=None">
+<name>allow_redirects</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use `PATCH On Session` instead.
+
+Send a PATCH request on the session object found using the
+given `alias`
+
+``alias`` that will be used to identify the Session object in the cache
+
+``uri`` to send the PATCH request to
+
+``data`` a dictionary of key-value pairs that will be urlencoded
+       and sent as PATCH data
+       or binary data that is sent as the raw body content
+       or file descriptor retrieved by Get File For Streaming Upload
+
+``json`` a value that will be json encoded
+       and sent as PATCH data if data is not specified
+
+``headers`` a dictionary of headers to use with the request
+
+``files`` a dictionary of file names containing file data to PATCH to the server
+
+``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+
+``params`` url parameters to append to the uri
+
+``timeout`` connection timeout</doc>
+<shortdoc>*DEPRECATED* Please use `PATCH On Session` instead.</shortdoc>
+</kw>
+<kw name="POST" source="./RequestsLibrary/utils.py" lineno="136">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a POST request.
+
+The endpoint used to send the request is the ``url`` parameter, while its body
+can be passed using ``data`` or ``json`` parameters.
+
+``data`` can be a dictionary, list of tuples, bytes, or file-like object.
+If you want to pass a json body pass a dictionary as ``json`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a POST request.</shortdoc>
+</kw>
+<kw name="POST On Session" source="./RequestsLibrary/utils.py" lineno="149">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a POST request on a previously created HTTP Session.
+
+Session will be identified using the ``alias`` name.
+The endpoint used to send the request is the ``url`` parameter, while its body
+can be passed using ``data`` or ``json`` parameters.
+
+``data`` can be a dictionary, list of tuples, bytes, or file-like object.
+If you want to pass a json body pass a dictionary as ``json`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a POST request on a previously created HTTP Session.</shortdoc>
+</kw>
+<kw name="Post Request" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="88">
+<arguments repr="alias, uri, data=None, json=None, params=None, headers=None, files=None, allow_redirects=None, timeout=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="uri">
+<name>uri</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data=None">
+<name>data</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json=None">
+<name>json</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="params=None">
+<name>params</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="files=None">
+<name>files</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="allow_redirects=None">
+<name>allow_redirects</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use `POST On Session` instead.
+
+Send a POST request on the session object found using the
+given `alias`
+
+``alias`` that will be used to identify the Session object in the cache
+
+``uri`` to send the POST request to
+
+``data`` a dictionary of key-value pairs that will be urlencoded
+       and sent as POST data
+       or binary data that is sent as the raw body content
+       or passed as such for multipart form data if ``files`` is also defined
+       or file descriptor retrieved by Get File For Streaming Upload
+
+``json`` a value that will be json encoded
+       and sent as POST data if files or data is not specified
+
+``params`` url parameters to append to the uri
+
+``headers`` a dictionary of headers to use with the request
+
+``files`` a dictionary of file names containing file data to POST to the server
+
+``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+
+``timeout`` connection timeout</doc>
+<shortdoc>*DEPRECATED* Please use `POST On Session` instead.</shortdoc>
+</kw>
+<kw name="PUT" source="./RequestsLibrary/utils.py" lineno="136">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a PUT request.
+
+The endpoint used to send the request is the ``url`` parameter, while its body
+can be passed using ``data`` or ``json`` parameters.
+
+``data`` can be a dictionary, list of tuples, bytes, or file-like object.
+If you want to pass a json body pass a dictionary as ``json`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a PUT request.</shortdoc>
+</kw>
+<kw name="PUT On Session" source="./RequestsLibrary/utils.py" lineno="149">
+<arguments repr="*args, **kwargs">
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Sends a PUT request on a previously created HTTP Session.
+
+Session will be identified using the ``alias`` name.
+The endpoint used to send the request is the ``url`` parameter, while its body
+can be passed using ``data`` or ``json`` parameters.
+
+``data`` can be a dictionary, list of tuples, bytes, or file-like object.
+If you want to pass a json body pass a dictionary as ``json`` parameter.
+
+By default this keyword fails if a status code with error values is returned in the response,
+this behavior can be modified using the ``expected_status`` and ``msg`` parameters,
+read more about it in `Status Should Be` keyword documentation.
+In order to disable this implicit assert mechanism you can pass as ``expected_status`` the values ``any`` or
+``anything``.
+
+Other optional requests arguments can be passed using ``**kwargs``
+see the `GET` keyword for the complete list.</doc>
+<shortdoc>Sends a PUT request on a previously created HTTP Session.</shortdoc>
+</kw>
+<kw name="Put Request" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="205">
+<arguments repr="alias, uri, data=None, json=None, params=None, files=None, headers=None, allow_redirects=None, timeout=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="uri">
+<name>uri</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data=None">
+<name>data</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json=None">
+<name>json</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="params=None">
+<name>params</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="files=None">
+<name>files</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="allow_redirects=None">
+<name>allow_redirects</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout=None">
+<name>timeout</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use `PUT On Session` instead.
+
+Send a PUT request on the session object found using the
+given `alias`
+
+``alias`` that will be used to identify the Session object in the cache
+
+``uri`` to send the PUT request to
+
+``data`` a dictionary of key-value pairs that will be urlencoded
+       and sent as PUT data
+       or binary data that is sent as the raw body content
+       or file descriptor retrieved by Get File For Streaming Upload
+
+``json`` a value that will be json encoded
+       and sent as PUT data if data is not specified
+
+``headers`` a dictionary of headers to use with the request
+
+``allow_redirects`` Boolean. Set to True if POST/PUT/DELETE redirect following is allowed.
+
+``params`` url parameters to append to the uri
+
+``timeout`` connection timeout</doc>
+<shortdoc>*DEPRECATED* Please use `PUT On Session` instead.</shortdoc>
+</kw>
+<kw name="Request Should Be Successful" source="./RequestsLibrary/RequestsKeywords.py" lineno="125">
+<arguments repr="response=None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="response=None">
+<name>response</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Fails if response status code is a client or server error (4xx, 5xx).
+
+``response`` is the output of other requests keywords like `GET On Session`.
+If omitted the last response will be used.
+
+In case of failure an HTTPError will be automatically raised.
+
+For a more versatile assert keyword see `Status Should Be`.</doc>
+<shortdoc>Fails if response status code is a client or server error (4xx, 5xx).</shortdoc>
+</kw>
+<kw name="Session Exists" source="./RequestsLibrary/SessionKeywords.py" lineno="532">
+<arguments repr="alias">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+</arguments>
+<doc>Return True if the session has been already created
+
+``alias`` that has been used to identify the Session object in the cache</doc>
+<shortdoc>Return True if the session has been already created</shortdoc>
+</kw>
+<kw name="Status Should Be" source="./RequestsLibrary/RequestsKeywords.py" lineno="77">
+<arguments repr="expected_status, response=None, msg=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="expected_status">
+<name>expected_status</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="response=None">
+<name>response</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="msg=None">
+<name>msg</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Fails if response status code is different than the expected.
+
+``expected_status`` could be the code number as an integer or as string.
+But it could also be a named status code like 'ok', 'created', 'accepted' or
+'bad request', 'not found' etc.
+
+``response`` is the output of other requests keywords like `GET` or `GET On Session`.
+If omitted the last response will be used.
+
+In case of failure an HTTPError will be automatically raised.
+A custom failure message ``msg`` can be added like in built-in keywords.
+
+New requests keywords like `GET` or `GET On Session` (starting from 0.8 version) already have an implicit assert
+mechanism that, by default, verifies the response status code.
+`Status Should Be` keyword can be useful when you disable implicit assert using ``expected_status=anything``.
+
+For example when you have a nested keyword that is used for both OK and ERROR responses:
+
+|   *** Test Cases ***
+|
+|   Test Get Request And Make Sure Is A 404 Response
+|       ${resp}=            GET Custom Keyword That Returns OK or ERROR Response  case=notfound
+|       Status Should Be    404    ${resp}
+|       Should Be Equal As Strings  NOT FOUND  ${resp.reason}
+|
+|   Test Get Request And Make Sure Is OK
+|       ${resp}=            GET Custom Keyword That Returns OK or ERROR Response  case=pass
+|       Status Should Be    200    ${resp}
+|       Should Be Equal As Strings  OK  ${resp.reason}
+|
+|   *** Keywords ***
+|
+|   GET Custom Keyword That Returns OK or ERROR Response
+|   [Arguments]  $case
+|        [...]
+|       IF $case == notfound
+|           $resp=     GET [...] expected_status=Anything
+|           [Return]   $resp
+|       ELSE
+|        [...]</doc>
+<shortdoc>Fails if response status code is different than the expected.</shortdoc>
+</kw>
+<kw name="To Json" deprecated="true" source="./RequestsLibrary/DeprecatedKeywords.py" lineno="15">
+<arguments repr="content, pretty_print=False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="content">
+<name>content</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pretty_print=False">
+<name>pretty_print</name>
+<default>False</default>
+</arg>
+</arguments>
+<doc>*DEPRECATED* Please use ${resp.json()} instead. Have a look at the improved HTML output as pretty printing replacement.
+
+Convert a string to a JSON object
+
+``content`` String content to convert into JSON
+
+``pretty_print`` If defined, will output JSON is pretty print format</doc>
+<shortdoc>*DEPRECATED* Please use ${resp.json()} instead. Have a look at the improved HTML output as pretty printing replacement.</shortdoc>
+</kw>
+<kw name="Update Session" source="./RequestsLibrary/SessionKeywords.py" lineno="552">
+<arguments repr="alias, headers=None, cookies=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="alias">
+<name>alias</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headers=None">
+<name>headers</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cookies=None">
+<name>cookies</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Updates HTTP Session Headers and Cookies.
+
+Session will be identified using the ``alias`` name.
+Dictionary of ``headers`` and ``cookies`` to be updated and merged into session data.</doc>
+<shortdoc>Updates HTTP Session Headers and Cookies.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Download</usage>
+<usage>Http Get</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Download</usage>
+<usage>Http Get</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Download</usage>
+<usage>Http Get</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

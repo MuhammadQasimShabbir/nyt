@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Word.Application" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:07+00:00" specversion="5" source="./RPA/Word/Application.py" lineno="20">
+<version/>
+<doc>`Word.Application` is a library for controlling the Word application.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library                 RPA.Word.Application
+    Task Setup              Open Application
+    Suite Teardown          Quit Application
+
+    *** Tasks ***
+    Open existing file
+        Open File           old.docx
+        Write Text          Extra Line Text
+        Write Text          Another Extra Line of Text
+        Save Document AS    ${CURDIR}${/}new.docx
+        ${texts}=           Get all Texts
+        Close Document
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Word.Application import Application
+
+    app = Application()
+    app.open_application()
+    app.open_file('old.docx')
+    app.write_text('Extra Line Text')
+    app.save_document_as('new.docx')
+    app.quit_application()
+
+**Caveats**
+
+This library works on a Windows operating system with UI enabled only, and you must
+ensure that you open the app first with ``Open Application`` before running any
+other relevant keyword which requires to operate on an open app. The application is
+automatically closed at the end of the task execution, so this can be changed by
+importing the library with the `autoexit=${False}` setting.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Excel|Outlook|Word.Application    autoexit=${False}
+
+If you're running the Process by Control Room through a custom self-hosted Worker
+service, then please make sure that you enable an RDP session by ticking "Use
+Desktop Connection" under the Step configuration.
+
+If you still encounter issues with opening a document, please ensure that file can
+be opened first manually and dismiss any alert potentially blocking the process.
+
+Check the documentation below for more info:
+
+- https://robocorp.com/docs/control-room/unattended/worker-setups/windows-desktop
+- https://robocorp.com/docs/faq/windows-server-2016</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" source="./RPA/application.py" lineno="116">
+<arguments repr="autoexit: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="autoexit: bool = True">
+<name>autoexit</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Initialize the library instance by wrapping the COM Windows app.
+
+:param autoexit: Automatically close the app when the process finishes.</doc>
+<shortdoc>Initialize the library instance by wrapping the COM Windows app.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Close Document" source="./RPA/application.py" lineno="179">
+<arguments repr="save_changes: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="save_changes: bool = False">
+<name>save_changes</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Close the active document and app (if open).
+
+:param save_changes: Enable changes saving on quit. (`False` by default)</doc>
+<shortdoc>Close the active document and app (if open).</shortdoc>
+</kw>
+<kw name="Copy Selection To Clipboard" lineno="330">
+<arguments repr="">
+</arguments>
+<doc>Copy current text selection to clipboard.</doc>
+<shortdoc>Copy current text selection to clipboard.</shortdoc>
+</kw>
+<kw name="Create New Document" lineno="103">
+<arguments repr="">
+</arguments>
+<doc>Create new document for Word application</doc>
+<shortdoc>Create new document for Word application</shortdoc>
+</kw>
+<kw name="Export To Pdf" lineno="108">
+<arguments repr="filename: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Export active document into PDF file.
+
+:param filename: PDF to export WORD into</doc>
+<shortdoc>Export active document into PDF file.</shortdoc>
+</kw>
+<kw name="Find Text" lineno="264">
+<arguments repr="text: str, cursor_position: CursorPosition = NO_MOVE, copy: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cursor_position: CursorPosition = NO_MOVE">
+<name>cursor_position</name>
+<type name="CursorPosition" typedoc="CursorPosition">CursorPosition</type>
+<default>NO_MOVE</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="copy: bool = False">
+<name>copy</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Find text in the document.
+
+:param text: text to find
+:param cursor_position: where to move cursor after finding text
+:param copy: copy found text into clipboard
+:raises AssertionError: if text is not found</doc>
+<shortdoc>Find text in the document.</shortdoc>
+</kw>
+<kw name="Get All Texts" lineno="184">
+<arguments repr="">
+</arguments>
+<doc>Get all texts from active document
+
+:return: texts</doc>
+<shortdoc>Get all texts from active document</shortdoc>
+</kw>
+<kw name="Get Current Line" lineno="196">
+<arguments repr="">
+</arguments>
+<doc>Get the text of the current line in the document.</doc>
+<shortdoc>Get the text of the current line in the document.</shortdoc>
+</kw>
+<kw name="Get Number Of Lines" lineno="204">
+<arguments repr="">
+</arguments>
+<doc>Get the number of lines in the document.</doc>
+<shortdoc>Get the number of lines in the document.</shortdoc>
+</kw>
+<kw name="Move Horizontally" lineno="247">
+<arguments repr="characters: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="characters: int = 0">
+<name>characters</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Move cursor horizontally from current cursor position.
+
+Remember that if cursor is already at the start the cursor can't move
+left and if cursor is already at the end the cursor can't move right.
+
+:param characters: characters to move</doc>
+<shortdoc>Move cursor horizontally from current cursor position.</shortdoc>
+</kw>
+<kw name="Move To End" lineno="217">
+<arguments repr="">
+</arguments>
+<doc>Move cursor to the end of the document.</doc>
+<shortdoc>Move cursor to the end of the document.</shortdoc>
+</kw>
+<kw name="Move To Line End" lineno="225">
+<arguments repr="">
+</arguments>
+<doc>Move cursor to end of the line on the current cursor position.</doc>
+<shortdoc>Move cursor to end of the line on the current cursor position.</shortdoc>
+</kw>
+<kw name="Move To Line Start" lineno="221">
+<arguments repr="">
+</arguments>
+<doc>Move cursor to start of the line on the current cursor position.</doc>
+<shortdoc>Move cursor to start of the line on the current cursor position.</shortdoc>
+</kw>
+<kw name="Move To Top" lineno="213">
+<arguments repr="">
+</arguments>
+<doc>Move cursor to the top of the document.</doc>
+<shortdoc>Move cursor to the top of the document.</shortdoc>
+</kw>
+<kw name="Move Vertically" lineno="229">
+<arguments repr="lines: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="lines: int = 0">
+<name>lines</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Move cursor vertically from current cursor position.
+
+Remember that if cursor is already at the top the cursor can't
+move up and if cursor is already at the bottom the cursor can't
+move down.
+
+:param lines: lines to move</doc>
+<shortdoc>Move cursor vertically from current cursor position.</shortdoc>
+</kw>
+<kw name="Open Application" source="./RPA/application.py" lineno="140">
+<arguments repr="visible: bool = False, display_alerts: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="visible: bool = False">
+<name>visible</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="display_alerts: bool = False">
+<name>display_alerts</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Open the application.
+
+:param visible: Show the window on opening. (`False` by default)
+:param display_alerts: Display alert popups. (`False` by default)</doc>
+<shortdoc>Open the application.</shortdoc>
+</kw>
+<kw name="Open File" lineno="67">
+<arguments repr="filename: str, read_only: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="read_only: bool = True">
+<name>read_only</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Open Word document with filename.
+
+:param filename: Word document path</doc>
+<shortdoc>Open Word document with filename.</shortdoc>
+</kw>
+<kw name="Paste From Clipboard" lineno="191">
+<arguments repr="">
+</arguments>
+<doc>Paste content from clipboard to the document's
+current cursor position.</doc>
+<shortdoc>Paste content from clipboard to the document's current cursor position.</shortdoc>
+</kw>
+<kw name="Quit Application" source="./RPA/application.py" lineno="204">
+<arguments repr="save_changes: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="save_changes: bool = False">
+<name>save_changes</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Quit the application.
+
+:param save_changes: Enable to save changes on quit. (`False` by default)</doc>
+<shortdoc>Quit the application.</shortdoc>
+</kw>
+<kw name="Replace Text" lineno="119">
+<arguments repr="find: str, replace: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="find: str">
+<name>find</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="replace: str">
+<name>replace</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Replace text in active document
+
+:param find: text to replace
+:param replace: new text</doc>
+<shortdoc>Replace text in active document</shortdoc>
+</kw>
+<kw name="Save Document" lineno="145">
+<arguments repr="">
+</arguments>
+<doc>Save active document</doc>
+<shortdoc>Save active document</shortdoc>
+</kw>
+<kw name="Save Document As" lineno="155">
+<arguments repr="filename: str, fileformat: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="fileformat: str | None = None">
+<name>fileformat</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Save document with filename and optionally with given fileformat
+
+:param filename: where to save document
+:param fileformat: see @FILEFORMATS dictionary for possible format,
+    defaults to None</doc>
+<shortdoc>Save document with filename and optionally with given fileformat</shortdoc>
+</kw>
+<kw name="Select Current Paragraph" lineno="326">
+<arguments repr="">
+</arguments>
+<doc>Select text in current active paragraph.</doc>
+<shortdoc>Select text in current active paragraph.</shortdoc>
+</kw>
+<kw name="Select Paragraph" lineno="334">
+<arguments repr="count: int = 1">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="count: int = 1">
+<name>count</name>
+<type name="int" typedoc="integer">int</type>
+<default>1</default>
+</arg>
+</arguments>
+<doc>Select paragraph(s) from current cursor position.
+
+Negative `count` moves cursor up number of paragraphs and
+positive `count` moves cursor down number of paragraphs.
+
+:param count: number of paragraphs to select</doc>
+<shortdoc>Select paragraph(s) from current cursor position.</shortdoc>
+</kw>
+<kw name="Set Footer" lineno="136">
+<arguments repr="text: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Set footer for the active document
+
+:param text: footer text to set</doc>
+<shortdoc>Set footer for the active document</shortdoc>
+</kw>
+<kw name="Set Header" lineno="127">
+<arguments repr="text: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Set header for the active document
+
+:param text: header text to set</doc>
+<shortdoc>Set header for the active document</shortdoc>
+</kw>
+<kw name="Set Object Property" source="./RPA/application.py" lineno="219">
+<arguments repr="object_instance, property_name: str, value: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_instance">
+<name>object_instance</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="property_name: str">
+<name>property_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: str">
+<name>value</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Set the property of any object.
+
+This is a utility keyword for Robot Framework syntax to set object
+property values.
+
+.. code-block:: robotframework
+
+    ${new_value}=    Replace String    ${value}    10.132.    5511.11.
+    Set Object Property    ${result}    Value    ${new_value}
+
+:param object_instance: object instance to set the property
+:param property_name: property name to set
+:param value: value to set</doc>
+<shortdoc>Set the property of any object.</shortdoc>
+</kw>
+<kw name="Write Text" lineno="297">
+<arguments repr="text: str, cursor_position: CursorPosition = NO_MOVE, end_of_text: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="cursor_position: CursorPosition = NO_MOVE">
+<name>cursor_position</name>
+<type name="CursorPosition" typedoc="CursorPosition">CursorPosition</type>
+<default>NO_MOVE</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end_of_text: bool = True">
+<name>end_of_text</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Writes given text at the end of the document
+
+:param text: string to write
+:param cursor_position: where to move cursor before writing
+:param end_of_text: if True moves cursor to the end of the text
+ before writing</doc>
+<shortdoc>Writes given text at the end of the document</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="CursorPosition">
+<doc>Enum for moving cursor position</doc>
+<members>
+<member name="NO_MOVE" value="0"/>
+<member name="START" value="1"/>
+<member name="END" value="2"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Close Document</usage>
+<usage>Find Text</usage>
+<usage>Open Application</usage>
+<usage>Open File</usage>
+<usage>Quit Application</usage>
+<usage>Write Text</usage>
+</usages>
+</type>
+<type name="CursorPosition" type="Enum">
+<doc>Enum for moving cursor position</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Find Text</usage>
+<usage>Write Text</usage>
+</usages>
+<members>
+<member name="NO_MOVE" value="0"/>
+<member name="START" value="1"/>
+<member name="END" value="2"/>
+</members>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Move Horizontally</usage>
+<usage>Move Vertically</usage>
+<usage>Select Paragraph</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Save Document As</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Export To Pdf</usage>
+<usage>Find Text</usage>
+<usage>Open File</usage>
+<usage>Replace Text</usage>
+<usage>Save Document As</usage>
+<usage>Set Footer</usage>
+<usage>Set Header</usage>
+<usage>Set Object Property</usage>
+<usage>Write Text</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

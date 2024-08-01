@@ -1,0 +1,42 @@
+Metadata-Version: 2.1
+Name: rpaframework-pdf
+Version: 7.3.2
+Summary: PDF library of RPA Framework
+Home-page: https://rpaframework.org/
+License: Apache-2.0
+Keywords: robotframework,rpa,automation,pdf
+Author: RPA Framework
+Author-email: rpafw@robocorp.com
+Requires-Python: >=3.8.1,<4.0.0
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Framework :: Robot Framework
+Classifier: Framework :: Robot Framework :: Library
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: fpdf2 (==2.7.5)
+Requires-Dist: pdfminer.six (==20221105)
+Requires-Dist: pypdf (>=3.16.2,<4.0.0)
+Requires-Dist: robotframework (>=4.0.0,!=4.0.1,!=6.1.0,<7.0.0)
+Requires-Dist: robotframework-pythonlibcore (>=4.2.0,<5.0.0)
+Requires-Dist: rpaframework-core (>=11.3.1,<12.0.0)
+Project-URL: Documentation, https://rpaframework.org/
+Project-URL: Repository, https://github.com/robocorp/rpaframework
+Description-Content-Type: text/x-rst
+
+rpaframework-pdf
+================
+
+This library enables various PDF features with `RPA Framework`_
+libraries, such as locating text by label.
+
+.. _RPA Framework: https://rpaframework.org
+

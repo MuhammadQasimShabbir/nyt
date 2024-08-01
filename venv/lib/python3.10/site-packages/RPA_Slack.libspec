@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Slack" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:07+00:00" specversion="5" source="./RPA/Slack.py" lineno="7">
+<version/>
+<doc>RPA Framework library for Slack operations.</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Slack Message Using Webhook" lineno="16">
+<arguments repr="webhook_url: str, channel: str, sender: str, text: str, icon_emoji: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="webhook_url: str">
+<name>webhook_url</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="channel: str">
+<name>channel</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="sender: str">
+<name>sender</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="icon_emoji: str | None = None">
+<name>icon_emoji</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Send message to Slack channel using webhook.
+
+:param webhook_url: needs to be configured for the Slack server
+:param channel: channel needs to exist in the Slack server
+:param sender: shown in the message post as sender
+:param text: text for the message post
+:param icon_emoji: icon for the message post, defaults to None</doc>
+<shortdoc>Send message to Slack channel using webhook.</shortdoc>
+</kw>
+<kw name="Slack Raw Message" lineno="43">
+<arguments repr="webhook: str, message: str | dict, channel: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="webhook: str">
+<name>webhook</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="message: str | dict">
+<name>message</name>
+<type name="Union" union="true">str | dict<type name="str" typedoc="string">str</type><type name="dict" typedoc="dictionary">dict</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="channel: str | None = None">
+<name>channel</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Send Slack message by custom JSON content.
+
+:param webhook_url: needs to be configured for the Slack server
+:param message: dictionary or string defining message content and structure
+:param channel: can be used to set channel into message structure</doc>
+<shortdoc>Send Slack message by custom JSON content.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Slack Raw Message</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Slack Message Using Webhook</usage>
+<usage>Slack Raw Message</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Slack Message Using Webhook</usage>
+<usage>Slack Raw Message</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

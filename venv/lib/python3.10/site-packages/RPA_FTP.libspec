@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.FTP" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/FTP.py" lineno="61">
+<version/>
+<doc>`FTP` library can be used to access an FTP server,
+and interact with files.
+
+The library is based on Python's built-in `ftplib`_.
+
+.. _ftplib: https://docs.python.org/3/library/ftplib.html
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.FTP
+
+    *** Variables ***
+    ${HOST}       127.0.0.1
+    ${PORT}       27345
+    ${USER}       user
+    ${PASS}       12345
+
+    *** Tasks ***
+    List files on the server directory
+        Connect   ${HOST}  ${PORT}  ${USER}  ${PASS}
+        @{files}  List Files
+        FOR  ${file}  IN  @{files}
+            Log  ${file}
+        END
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.FTP import FTP
+
+    library = FTP()
+    library.connect('127.0.0.1', 27345, 'user', '12345')
+    files = library.list_files()
+    for f in files:
+        print(f)</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Abort" lineno="312">
+<arguments repr="">
+</arguments>
+<doc>Abort a file transfer in progress
+
+:return: true or false based on success or failure</doc>
+<shortdoc>Abort a file transfer in progress</shortdoc>
+</kw>
+<kw name="Close" lineno="177">
+<arguments repr="">
+</arguments>
+<doc>Close connection to the server unilaterally</doc>
+<shortdoc>Close connection to the server unilaterally</shortdoc>
+</kw>
+<kw name="Connect" lineno="112">
+<arguments repr="host: str, port: int = 21, user: str | None = None, password: str | None = None, tls: bool = False, transfer: str = passive, keyfile: str | None = None, certfile: str | None = None, timeout: int | None = None, source_address: Tuple[str, int] | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="host: str">
+<name>host</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="port: int = 21">
+<name>port</name>
+<type name="int" typedoc="integer">int</type>
+<default>21</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="user: str | None = None">
+<name>user</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="tls: bool = False">
+<name>tls</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="transfer: str = passive">
+<name>transfer</name>
+<type name="str" typedoc="string">str</type>
+<default>passive</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="keyfile: str | None = None">
+<name>keyfile</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="certfile: str | None = None">
+<name>certfile</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int | None = None">
+<name>timeout</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_address: Tuple[str, int] | None = None">
+<name>source_address</name>
+<type name="Union" union="true">Tuple[str, int] | None<type name="Tuple" typedoc="tuple">Tuple[str, int]<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Connect to FTP server
+
+:param host: address of the server
+:param port: port of the server, defaults to 21
+:param user: login name, defaults to None
+:param password: login password, defaults to None
+:param tls: connect using TLS support, defaults to False
+:param transfer: mode of the transfer, defaults to "passive"
+:param keyfile: path to private key file
+:param certfile: path to certificate file
+:param timeout: a timeout in seconds for the connection attempt
+:param source_address: socket to bind to as its source address before connecting
+:raises AuthenticationException: on authentication error with the server
+:return: true if the connnection completes and an error code if it fails</doc>
+<shortdoc>Connect to FTP server</shortdoc>
+</kw>
+<kw name="Cwd" lineno="224">
+<arguments repr="dirname: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="dirname: str">
+<name>dirname</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Change working directory on the server
+
+:param dirname: name of the directory
+:return: true or false based on success or failure</doc>
+<shortdoc>Change working directory on the server</shortdoc>
+</kw>
+<kw name="Delete" lineno="271">
+<arguments repr="filepath: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filepath: str">
+<name>filepath</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Delete file on the server
+
+:param filepath: path to server file
+:return: true or false based on success or failure</doc>
+<shortdoc>Delete file on the server</shortdoc>
+</kw>
+<kw name="Download" lineno="195">
+<arguments repr="remotefile: str, localfile: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="remotefile: str">
+<name>remotefile</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="localfile: str | None = None">
+<name>localfile</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Download file from FTP server
+
+:param remotefile: path to remote file on the server
+:param localfile: name of the downloaded file on the local filesystem,
+    if `None` will have same name as remote file
+:return: true or false based on success or failure</doc>
+<shortdoc>Download file from FTP server</shortdoc>
+</kw>
+<kw name="File Size" lineno="302">
+<arguments repr="filepath: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filepath: str">
+<name>filepath</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Return byte size of the file on the server
+
+:param filepath: path to server file
+:return: byte size as an int</doc>
+<shortdoc>Return byte size of the file on the server</shortdoc>
+</kw>
+<kw name="Get Welcome Message" lineno="320">
+<arguments repr="">
+</arguments>
+<doc>Get server welcome message
+
+:return: welcome message as a string</doc>
+<shortdoc>Get server welcome message</shortdoc>
+</kw>
+<kw name="List Files" lineno="259">
+<arguments repr="dirname: str = ">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="dirname: str = ">
+<name>dirname</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+</arguments>
+<doc>List files on the server directory
+
+:param dirname: name of the directory
+:return: list of files present in the server directory</doc>
+<shortdoc>List files on the server directory</shortdoc>
+</kw>
+<kw name="Mkd" lineno="241">
+<arguments repr="dirname: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="dirname: str">
+<name>dirname</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Create a new directory on the server
+
+:param dirname: name of the directory
+:return: true or false based on success or failure</doc>
+<shortdoc>Create a new directory on the server</shortdoc>
+</kw>
+<kw name="Pwd" lineno="233">
+<arguments repr="">
+</arguments>
+<doc>Get current working directory on the server
+
+:return: current working directory name as a string</doc>
+<shortdoc>Get current working directory on the server</shortdoc>
+</kw>
+<kw name="Quit" lineno="167">
+<arguments repr="">
+</arguments>
+<doc>Send QUIT command to the server and close connection</doc>
+<shortdoc>Send QUIT command to the server and close connection</shortdoc>
+</kw>
+<kw name="Rename" lineno="280">
+<arguments repr="fromname: str, toname: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="fromname: str">
+<name>fromname</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="toname: str">
+<name>toname</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Rename file on the server
+
+:param fromname: current name of the file
+:param toname: new name for the file
+:return: true or false based on success or failure</doc>
+<shortdoc>Rename file on the server</shortdoc>
+</kw>
+<kw name="Rmd" lineno="250">
+<arguments repr="dirname: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="dirname: str">
+<name>dirname</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Remove directory on the server
+
+:param dirname: name of the directory
+:return: true or false based on success or failure</doc>
+<shortdoc>Remove directory on the server</shortdoc>
+</kw>
+<kw name="Send Command" lineno="290">
+<arguments repr="command: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="command: str">
+<name>command</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Execute command on the server
+
+List of FTP commands:
+https://en.wikipedia.org/wiki/List_of_FTP_commands
+
+:param command: name of the command to send
+:return: true or false based on success or failure</doc>
+<shortdoc>Execute command on the server</shortdoc>
+</kw>
+<kw name="Set Ascii Mode" lineno="343">
+<arguments repr="">
+</arguments>
+<doc>Set transfer mode to ASCII
+
+:return: true or false based on success or failure</doc>
+<shortdoc>Set transfer mode to ASCII</shortdoc>
+</kw>
+<kw name="Set Binary Mode" lineno="350">
+<arguments repr="">
+</arguments>
+<doc>Set transfer mode to BINARY
+
+:return: true or false based on success or failure</doc>
+<shortdoc>Set transfer mode to BINARY</shortdoc>
+</kw>
+<kw name="Set Debug Level" lineno="328">
+<arguments repr="level: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="level: int = 0">
+<name>level</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Set debug level for the library
+
+:param level: integer value of debug level, defaults to 0
+:return: true or false based on success or failure
+
+0 - no debugging output
+1 - moderate amount of debugging
+2+ - higher amount of debugging</doc>
+<shortdoc>Set debug level for the library</shortdoc>
+</kw>
+<kw name="Upload" lineno="184">
+<arguments repr="localfile: str, remotefile: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="localfile: str">
+<name>localfile</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="remotefile: str">
+<name>remotefile</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Upload file to FTP server
+
+:param localfile: path to file to upload
+:param remotefile: name of uploaded file in the server
+:return: true or false based on success or failure</doc>
+<shortdoc>Upload file to FTP server</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Connect</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Connect</usage>
+<usage>Set Debug Level</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Connect</usage>
+<usage>Download</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Connect</usage>
+<usage>Cwd</usage>
+<usage>Delete</usage>
+<usage>Download</usage>
+<usage>File Size</usage>
+<usage>List Files</usage>
+<usage>Mkd</usage>
+<usage>Rename</usage>
+<usage>Rmd</usage>
+<usage>Send Command</usage>
+<usage>Upload</usage>
+</usages>
+</type>
+<type name="tuple" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#tuple|tuple]
+literals. They are converted to actual tuples using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+tuples and other containers.
+
+If the type has nested types like ``tuple[str, int, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``('one', 'two')``, ``(('one', 1), ('two', 2))``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Connect</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

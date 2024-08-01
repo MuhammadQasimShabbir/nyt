@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Archive" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:04+00:00" specversion="5" source="./RPA/Archive.py" lineno="45">
+<version/>
+<doc>`Archive` is a library for operating with ZIP and TAR packages.
+
+**Examples**
+
+.. code-block:: robotframework
+
+   *** Settings ***
+   Library  RPA.Archive
+
+   *** Tasks ***
+   Creating a ZIP archive
+      Archive Folder With ZIP   ${CURDIR}${/}tasks  tasks.zip   recursive=True  include=*.robot  exclude=/.*
+      @{files}                  List Archive             tasks.zip
+      FOR  ${file}  IN  ${files}
+         Log  ${file}
+      END
+      Add To Archive            .${/}..${/}missing.robot  tasks.zip
+      &amp;{info}                   Get Archive Info
+
+
+.. code-block:: python
+
+    from RPA.Archive import Archive
+
+    lib = Archive()
+    lib.archive_folder_with_tar('./tasks', 'tasks.tar', recursive=True)
+    files = lib.list_archive('tasks.tar')
+    for file in files:
+       print(file)</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Add To Archive" lineno="205">
+<arguments repr="files: List | str, archive_name: str, folder: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="files: List | str">
+<name>files</name>
+<type name="Union" union="true">List | str<type name="List" typedoc="list">List</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="archive_name: str">
+<name>archive_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="folder: str | None = None">
+<name>folder</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Add file(s) to the archive
+
+:param files: name of the file, or list of files, to add
+:param archive_name: filename of the archive
+:param folder: name of the folder where the file will be added, relative path within the archive
+:return: None
+
+This keyword adds a file or list of files into an existing archive. Files
+can be added to archive structure with relative path using argument `folder`.
+
+Example:
+
+.. code-block:: robotframework
+
+    Add To Archive  extrafile.txt  myfiles.zip
+    Add To Archive  stat.png       archive.tar.gz  images
+    @{files}        Create List    filename1.txt   filename2.txt
+    Add To Archive  ${files}       files.tar</doc>
+<shortdoc>Add file(s) to the archive</shortdoc>
+</kw>
+<kw name="Archive Folder With Tar" lineno="164">
+<arguments repr="folder: str, archive_name: str, recursive: bool = False, include: str | None = None, exclude: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="folder: str">
+<name>folder</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="archive_name: str">
+<name>archive_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="recursive: bool = False">
+<name>recursive</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="include: str | None = None">
+<name>include</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="exclude: str | None = None">
+<name>exclude</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Create a tar/tar.gz archive of a folder
+
+:param folder: name of the folder to archive
+:param archive_name: filename of the archive
+:param recursive: should sub directories be included, default is False
+:param include: define file pattern to include in the package, default is None which means all files are included
+:param exclude: define file pattern to exclude from the package, default is None
+:return: None
+
+This keyword creates an TAR or TAR.GZ archive of a local folder. Type of archive
+is determined by the file extension. By default subdirectories are not
+included, but they can included using `recursive` argument.
+
+To include only certain files, like TXT files, the argument `include` can be used.
+Similarly to exclude certain file, like dotfiles, the argument `exclude` can be used.
+
+Example:
+
+.. code-block:: robotframework
+
+    Archive Folder With TAR  ${CURDIR}${/}documents  documents.tar
+    Archive Folder With TAR  ${CURDIR}${/}tasks      tasks.tar.gz   include=*.robot
+    Archive Folder With TAR  ${CURDIR}${/}tasks      tasks.tar      exclude=/.*
+    Archive Folder With TAR  ${CURDIR}${/}documents  documents.tar  recursive=True</doc>
+<shortdoc>Create a tar/tar.gz archive of a folder</shortdoc>
+</kw>
+<kw name="Archive Folder With Zip" lineno="83">
+<arguments repr="folder: str, archive_name: str, recursive: bool = False, include: str | None = None, exclude: str | None = None, compression: str = stored">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="folder: str">
+<name>folder</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="archive_name: str">
+<name>archive_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="recursive: bool = False">
+<name>recursive</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="include: str | None = None">
+<name>include</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="exclude: str | None = None">
+<name>exclude</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="compression: str = stored">
+<name>compression</name>
+<type name="str" typedoc="string">str</type>
+<default>stored</default>
+</arg>
+</arguments>
+<doc>Create a zip archive of a folder
+
+:param folder: name of the folder to archive
+:param archive_name: filename of the archive
+:param recursive: should sub directories be included, default is False
+:param include: define file pattern to include in the package, default is None which means all files are included
+:param exclude: define file pattern to exclude from the package, default is None
+:param compression: type of package compression method, default is "stored"
+:return: None
+
+This keyword creates an ZIP archive of a local folder. By default subdirectories are not
+included, but they can be included using the `recursive` argument.
+
+To include only certain files, like TXT files, the argument `include` can be used.
+Similarly to exclude certain files, like dotfiles, the argument `exclude` can be used.
+
+Compression methods:
+
+- stored, default
+- deflated
+- bzip2
+- lzma
+
+Example:
+
+.. code-block:: robotframework
+
+    Archive Folder With Zip  ${CURDIR}${/}documents  mydocs.zip
+    Archive Folder With Zip  ${CURDIR}${/}tasks      robottasks.zip   include=*.robot
+    Archive Folder With Zip  ${CURDIR}${/}tasks      no_dotfiles.zip  exclude=/.*
+    Archive Folder With Zip  ${CURDIR}${/}documents  documents.zip    recursive=True
+    Archive Folder With Zip  ${CURDIR}               packagelzma.zip  compression=lzma
+    Archive Folder With Zip  ${CURDIR}               bzipped.zip      compression=bzip2
+
+
+.. code-block:: python
+
+    from RPA.Archive import Archive
+
+    lib = Archive()
+    lib.archive_folder_with_zip('./documents', 'mydocs.zip')
+    lib.archive_folder_with_zip('./tasks', 'robottasks.zip', include='*.robot')
+    lib.archive_folder_with_zip('./tasks', 'no_dotfiles.zip', exclude='/.*')
+    lib.archive_folder_with_zip('./documents', 'documents.zip', recursive=True)
+    lib.archive_folder_with_zip('./', 'packagelzma.zip', compression='lzma')
+    lib.archive_folder_with_zip('./', 'bzipped.zip', compression='bzip2')</doc>
+<shortdoc>Create a zip archive of a folder</shortdoc>
+</kw>
+<kw name="Extract Archive" lineno="347">
+<arguments repr="archive_name: str, path: str | None = None, members: List | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="archive_name: str">
+<name>archive_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | None = None">
+<name>path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="members: List | str | None = None">
+<name>members</name>
+<type name="Union" union="true">List | str | None<type name="List" typedoc="list">List</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Extract files from archive into local directory
+
+:param archive_name: filename of the archive
+:param path: filepath to extract file into, default is current working directory
+:param members: list of files to extract from archive, by default
+    all files in archive are extracted
+:return: None
+
+This keyword supports extracting files from zip, tar and tar.gz archives.
+
+By default file is extracted into current working directory, but `path` argument
+can be set to define extraction path.
+
+Example:
+
+.. code-block:: robotframework
+
+    Extract Archive    myfiles.zip   ${CURDIR}${/}extracted
+    @{files}           Create List   filename1.txt    filename2.txt
+    Extract Archive    archive.tar   C:${/}myfiles${/}  ${files}</doc>
+<shortdoc>Extract files from archive into local directory</shortdoc>
+</kw>
+<kw name="Extract File From Archive" lineno="388">
+<arguments repr="filename: str, archive_name: str, path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="archive_name: str">
+<name>archive_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | None = None">
+<name>path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Extract a file from archive into local directory
+
+:param filename: name of the file to extract
+:param archive_name: filename of the archive
+:param path: filepath to extract file into,
+    default is current working directory
+:return: None
+
+This keyword supports extracting a file from zip, tar and tar.gz archives.
+
+By default file is extracted into current working directory,
+but `path` argument can be set to define extraction path.
+
+Example:
+
+.. code-block:: robotframework
+
+    Extract File From Archive    extrafile.txt   myfiles.zip
+    Extract File From Archive    background.png  images.tar.gz  ${CURDIR}${/}extracted</doc>
+<shortdoc>Extract a file from archive into local directory</shortdoc>
+</kw>
+<kw name="Get Archive Info" lineno="305">
+<arguments repr="archive_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="archive_name: str">
+<name>archive_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get information about the archive
+
+:param archive_name: filename of the archive
+:return: dictionary variable containing the keys filename, filemode, size, mtime, modified
+
+Returns following file attributes in a dictionary:
+
+- filename
+- filemode
+- size
+- mtime
+- last modification time in format `%d.%m.%Y %H:%M:%S`
+
+Example:
+
+.. code-block:: robotframework
+
+    &amp;{archiveinfo}   Get Archive Info    myfiles.zip</doc>
+<shortdoc>Get information about the archive</shortdoc>
+</kw>
+<kw name="List Archive" lineno="253">
+<arguments repr="archive_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="archive_name: str">
+<name>archive_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>List files in an archive
+
+:param archive_name: filename of the archive
+:return: dictionary variable containing the keys name, size, mtime, modified
+
+Returns list of files, where each file in a list is a dictionary
+with following attributes:
+
+- name
+- size
+- mtime
+- last modification time in format `%d.%m.%Y %H:%M:%S`
+
+Example:
+
+.. code-block:: robotframework
+
+    @{files}   List Archive    myfiles.zip
+    FOR  ${file}  IN   ${files}
+        Log  ${file}[filename]
+        Log  ${file}[size]
+        Log  ${file}[mtime]
+    END</doc>
+<shortdoc>List files in an archive</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Archive Folder With Tar</usage>
+<usage>Archive Folder With Zip</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Add To Archive</usage>
+<usage>Extract Archive</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Add To Archive</usage>
+<usage>Archive Folder With Tar</usage>
+<usage>Archive Folder With Zip</usage>
+<usage>Extract Archive</usage>
+<usage>Extract File From Archive</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Add To Archive</usage>
+<usage>Archive Folder With Tar</usage>
+<usage>Archive Folder With Zip</usage>
+<usage>Extract Archive</usage>
+<usage>Extract File From Archive</usage>
+<usage>Get Archive Info</usage>
+<usage>List Archive</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

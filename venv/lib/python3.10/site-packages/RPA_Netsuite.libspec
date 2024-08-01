@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Netsuite" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/Netsuite.py" lineno="34">
+<version/>
+<doc>`Netsuite` is a library for accessing Netsuite using NetSuite SOAP web service SuiteTalk.
+The library extends the `netsuitesdk library`_.
+
+More information available at `NetSuite SOAP webservice SuiteTalk`_.
+
+.. _netsuitesdk library:
+    https://github.com/fylein/netsuite-sdk-py
+
+.. _NetSuite SOAP webservice SuiteTalk:
+    http://www.netsuite.com/portal/platform/developer/suitetalk.shtml
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Netsuite
+    Library     RPA.Excel.Files
+    Library     RPA.Tables
+    Task Setup  Authorize Netsuite
+
+    *** Tasks ***
+    Get data from Netsuite and Store into Excel files
+        ${accounts}=        Get Accounts   account_type=_expense
+        ${accounts}=        Create table    ${accounts}
+        Create Workbook
+        Append Rows To Worksheet  ${accounts}
+        Save Workbook       netsuite_accounts.xlsx
+        Close Workbook
+        ${bills}=           Get Vendor Bills
+        ${bills}=           Create table    ${bills}
+        Create Workbook
+        Append Rows To Worksheet  ${bills}
+        Save Workbook       netsuite_bills.xlsx
+        Close Workbook
+
+
+    *** Keywords ***
+    Authorize Netsuite
+        ${secrets}=     Get Secret   netsuite
+        Connect
+        ...        account=${secrets}[ACCOUNT]
+        ...        consumer_key=${secrets}[CONSUMER_KEY]
+        ...        consumer_secret=${secrets}[CONSUMER_KEY]
+        ...        token_key=${secrets}[CONSUMER_SECRET]
+        ...        token_secret=${secrets}[TOKEN_KEY]
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Netsuite import Netsuite
+
+    ns = Netsuite()
+    ns.connect()
+    accounts = ns.get_accounts()
+    currencies = ns.get_currencies()</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Connect" lineno="108">
+<arguments repr="account: str | None = None, consumer_key: str | None = None, consumer_secret: str | None = None, token_key: str | None = None, token_secret: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account: str | None = None">
+<name>account</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="consumer_key: str | None = None">
+<name>consumer_key</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="consumer_secret: str | None = None">
+<name>consumer_secret</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="token_key: str | None = None">
+<name>token_key</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="token_secret: str | None = None">
+<name>token_secret</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Connect to Netsuite with credentials from environment
+variables.
+
+Parameters are not logged into Robot Framework log.
+
+:param account: parameter or environment variable `NS_ACCOUNT`
+:param consumer_key:  parameter or environment variable `NS_CONSUMER_KEY`
+:param consumer_secret: parameter or environment variable `NS_CONSUMER_SECRET`
+:param token_key: parameter or environment variable `NS_TOKEN_KEY`
+:param token_secret: parameter or environment variable `NS_TOKEN_SECRET`</doc>
+<shortdoc>Connect to Netsuite with credentials from environment variables.</shortdoc>
+</kw>
+<kw name="Get Accounts" lineno="268">
+<arguments repr="count: int = 100, account_type: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="count: int = 100">
+<name>count</name>
+<type name="int" typedoc="integer">int</type>
+<default>100</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account_type: str = None">
+<name>account_type</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get Accounts of any type or specified type.
+
+:param count: number of Accounts to return, defaults to 100
+:param account_type: if None returns all account types, example. "_expense",
+    defaults to None
+:return: accounts</doc>
+<shortdoc>Get Accounts of any type or specified type.</shortdoc>
+</kw>
+<kw name="Get Classifications" lineno="317">
+<arguments repr="">
+</arguments>
+<doc>Get all Netsuite Classifications
+
+:return: classifications</doc>
+<shortdoc>Get all Netsuite Classifications</shortdoc>
+</kw>
+<kw name="Get Currencies" lineno="293">
+<arguments repr="">
+</arguments>
+<doc>Get all Netsuite Currencies
+
+:return: currencies</doc>
+<shortdoc>Get all Netsuite Currencies</shortdoc>
+</kw>
+<kw name="Get Currency" lineno="284">
+<arguments repr="currency_id: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="currency_id: str">
+<name>currency_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get all a Netsuite Currency by its ID
+
+:param currency_id: ID of the currency to get
+:return: currency</doc>
+<shortdoc>Get all a Netsuite Currency by its ID</shortdoc>
+</kw>
+<kw name="Get Departments" lineno="309">
+<arguments repr="">
+</arguments>
+<doc>Get all Netsuite Departments
+
+:return: departments</doc>
+<shortdoc>Get all Netsuite Departments</shortdoc>
+</kw>
+<kw name="Get Locations" lineno="301">
+<arguments repr="">
+</arguments>
+<doc>Get all Netsuite Locations
+
+:return: locations</doc>
+<shortdoc>Get all Netsuite Locations</shortdoc>
+</kw>
+<kw name="Get Vendor Bills" lineno="334">
+<arguments repr="count: int = 10">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="count: int = 10">
+<name>count</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+</arguments>
+<doc>Get list of vendor bills
+
+:param count: number of vendor bills to return, defaults to 10
+:return: list of vendor bills</doc>
+<shortdoc>Get list of vendor bills</shortdoc>
+</kw>
+<kw name="Get Vendors" lineno="325">
+<arguments repr="count: int = 10">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="count: int = 10">
+<name>count</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+</arguments>
+<doc>Get list of vendors
+
+:param count: number of vendors to return, defaults to 10
+:return: list of vendors</doc>
+<shortdoc>Get list of vendors</shortdoc>
+</kw>
+<kw name="Login" lineno="145">
+<arguments repr="account: str | None = None, email: str | None = None, password: str | None = None, role: str | None = None, appid: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account: str | None = None">
+<name>account</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="email: str | None = None">
+<name>email</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="role: str | None = None">
+<name>role</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="appid: str | None = None">
+<name>appid</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Login to Netsuite with credentials from environment variables
+
+Parameters are not logged into Robot Framework log.
+
+:param account: parameter or environment variable `NS_ACCOUNT`
+:param email: parameter or environment variable `NS_EMAIL`
+:param password: parameter or environment variable `NS_PASSWORD`
+:param role: parameter or environment variable `NS_ROLE`
+:param appid: parameter or environment variable `NS_APPID`</doc>
+<shortdoc>Login to Netsuite with credentials from environment variables</shortdoc>
+</kw>
+<kw name="Netsuite Get" lineno="182">
+<arguments repr="record_type: str = None, internal_id: str = None, external_id: str = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="record_type: str = None">
+<name>record_type</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="internal_id: str = None">
+<name>internal_id</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="external_id: str = None">
+<name>external_id</name>
+<type name="str" typedoc="string">str</type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get all records of given type and internalId and/or externalId.
+
+:param record_type: type of Netsuite record to get
+:param internal_id: internalId of the type, default None
+:param external_id: external_id of the type, default None
+:raises ValueError: if record_type is not given
+:return: records as a list or None</doc>
+<shortdoc>Get all records of given type and internalId and/or externalId.</shortdoc>
+</kw>
+<kw name="Netsuite Get All" lineno="209">
+<arguments repr="record_type: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="record_type: str">
+<name>record_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get all records of given type.
+
+:param record_type: type of Netsuite record to get
+:raises ValueError: if record_type is not given
+:return: records as a list or None</doc>
+<shortdoc>Get all records of given type.</shortdoc>
+</kw>
+<kw name="Netsuite Search" lineno="222">
+<arguments repr="type_name: str, search_value: str, operator: str = contains, page_size: int = 5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="type_name: str">
+<name>type_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="search_value: str">
+<name>search_value</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="operator: str = contains">
+<name>operator</name>
+<type name="str" typedoc="string">str</type>
+<default>contains</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="page_size: int = 5">
+<name>page_size</name>
+<type name="int" typedoc="integer">int</type>
+<default>5</default>
+</arg>
+</arguments>
+<doc>Search Netsuite for value from a type. Default operator is
+`contains`.
+
+:param type_name: search target type name
+:param search_value: what to search for within type
+:param operator: name of the operation, defaults to "contains"
+:param page_size: result items within one page, defaults to 5
+:return: paginated search object</doc>
+<shortdoc>Search Netsuite for value from a type. Default operator is `contains`.</shortdoc>
+</kw>
+<kw name="Netsuite Search All" lineno="253">
+<arguments repr="type_name: str, page_size: int = 20">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="type_name: str">
+<name>type_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="page_size: int = 20">
+<name>page_size</name>
+<type name="int" typedoc="integer">int</type>
+<default>20</default>
+</arg>
+</arguments>
+<doc>Search Netsuite for a type results.
+
+:param type_name: search target type name
+:param page_size: result items within one page, defaults to 5
+:return: paginated search object</doc>
+<shortdoc>Search Netsuite for a type results.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Get Accounts</usage>
+<usage>Get Vendor Bills</usage>
+<usage>Get Vendors</usage>
+<usage>Netsuite Search</usage>
+<usage>Netsuite Search All</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Connect</usage>
+<usage>Login</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Connect</usage>
+<usage>Get Accounts</usage>
+<usage>Get Currency</usage>
+<usage>Login</usage>
+<usage>Netsuite Get</usage>
+<usage>Netsuite Get All</usage>
+<usage>Netsuite Search</usage>
+<usage>Netsuite Search All</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

@@ -1,0 +1,1922 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.PDF" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/PDF/__init__.py" lineno="11">
+<version/>
+<doc>`PDF` is a library for managing PDF documents.
+
+It can be used to extract text from PDFs, add watermarks to pages, and
+decrypt/encrypt documents.
+
+Merging and splitting PDFs is supported by ``Add Files To PDF`` keyword. Read
+the keyword documentation for examples.
+
+There is also limited support for updating form field values. (check
+``Set Field Value`` and ``Save Field Values`` for more info)
+
+The input PDF file can be passed as an argument to the keywords, or it can be
+omitted if you first call ``Open PDF``. A reference to the current active PDF will
+be stored in the library instance and can be changed by using the ``Switch To PDF``
+keyword with another PDF file path, therefore you can asynchronously work with
+multiple PDFs.
+
+.. Attention::
+    Keep in mind that this library works with text-based PDFs, and it **can't
+    extract information from an image-based (scan)** PDF file. For accurate
+    results, you have to use specialized external services wrapped by the
+    ``RPA.DocumentAI`` library.
+
+Portal example with video recording demo for parsing PDF invoices:
+https://github.com/robocorp/example-parse-pdf-invoice
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.PDF
+    Library    String
+
+    *** Tasks ***
+    Extract Data From First Page
+        ${text} =    Get Text From PDF    report.pdf
+        ${lines} =     Get Lines Matching Regexp    ${text}[${1}]    .+pain.+
+        Log    ${lines}
+
+    Get Invoice Number
+        Open Pdf    invoice.pdf
+        ${matches} =  Find Text    Invoice Number
+        Log List      ${matches}
+
+    Fill Form Fields
+        Switch To Pdf    form.pdf
+        ${fields} =     Get Input Fields   encoding=utf-16
+        Log Dictionary    ${fields}
+        Set Field Value    Given Name Text Box    Mark
+        Save Field Values    output_path=${OUTPUT_DIR}${/}completed-form.pdf
+        ...                  use_appearances_writer=${True}
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+    from robot.libraries.String import String
+
+    pdf = PDF()
+    string = String()
+
+    def extract_data_from_first_page():
+        text = pdf.get_text_from_pdf("report.pdf")
+        lines = string.get_lines_matching_regexp(text[1], ".+pain.+")
+        print(lines)
+
+    def get_invoice_number():
+        pdf.open_pdf("invoice.pdf")
+        matches = pdf.find_text("Invoice Number")
+        for match in matches:
+            print(match)
+
+    def fill_form_fields():
+        pdf.switch_to_pdf("form.pdf")
+        fields = pdf.get_input_fields(encoding="utf-16")
+        for key, value in fields.items():
+            print(f"{key}: {value}")
+        pdf.set_field_value("Given Name Text Box", "Mark")
+        pdf.save_field_values(
+            output_path="completed-form.pdf",
+            use_appearances_writer=True
+        )</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Add Files To Pdf" source="./RPA/PDF/keywords/document.py" lineno="1204">
+<arguments repr="files: list | None = None, target_document: str | None = None, append: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="files: list | None = None">
+<name>files</name>
+<type name="Union" union="true">list | None<type name="list" typedoc="list">list</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_document: str | None = None">
+<name>target_document</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="append: bool = False">
+<name>append</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Add images and/or pdfs to new PDF document.
+
+Supports merging and splitting PDFs.
+
+Image formats supported are JPEG, PNG and GIF.
+
+The file can be added with extra properties by
+denoting `:` at the end of the filename. Each
+property should be separated by comma.
+
+Supported extra properties for PDFs are:
+
+- page and/or page ranges
+- no extras means that all source PDF pages are added
+  into new PDF
+
+Supported extra properties for images are:
+
+- format, the PDF page format, for example. Letter or A4
+- rotate, how many degrees image is rotated counter-clockwise
+- align, only possible value at the moment is center
+- orientation, the PDF page orientation for the image, possible
+  values P (portrait) or L (landscape)
+- x/y, coordinates for adjusting image position on the page
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Add files to pdf
+        ${files}=    Create List
+        ...    ${TESTDATA_DIR}${/}invoice.pdf
+        ...    ${TESTDATA_DIR}${/}approved.png:align=center
+        ...    ${TESTDATA_DIR}${/}robot.pdf:1
+        ...    ${TESTDATA_DIR}${/}approved.png:x=0,y=0
+        ...    ${TESTDATA_DIR}${/}robot.pdf:2-10,15
+        ...    ${TESTDATA_DIR}${/}approved.png
+        ...    ${TESTDATA_DIR}${/}landscape_image.png:rotate=-90,orientation=L
+        ...    ${TESTDATA_DIR}${/}landscape_image.png:format=Letter
+        Add Files To PDF    ${files}    newdoc.pdf
+
+    Merge pdfs
+        ${files}=    Create List
+        ...    ${TESTDATA_DIR}${/}invoice.pdf
+        ...    ${TESTDATA_DIR}${/}robot.pdf:1
+        ...    ${TESTDATA_DIR}${/}robot.pdf:2-10,15
+        Add Files To Pdf    ${files}    merged-doc.pdf
+
+    Split pdf
+        ${files}=    Create List
+        ...    ${OUTPUT_DIR}${/}robot.pdf:2-10,15
+        Add Files To Pdf     ${files}    split-doc.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_addfiles():
+        list_of_files = [
+            'invoice.pdf',
+            'approved.png:align=center',
+            'robot.pdf:1',
+            'approved.png:x=0,y=0',
+        ]
+        pdf.add_files_to_pdf(
+            files=list_of_files,
+            target_document="output/output.pdf"
+        )
+
+    def example_merge():
+        list_of_files = [
+            'invoice.pdf',
+            'robot.pdf:1',
+            'robot.pdf:2-10,15',
+        ]
+        pdf.add_files_to_pdf(
+            files=list_of_files,
+            target_document="output/merged-doc.pdf"
+        )
+
+    def example_split():
+        list_of_files = [
+            'robot.pdf:2-10,15',
+        ]
+        pdf.add_files_to_pdf(
+            files=list_of_files,
+            target_document="output/split-doc.pdf"
+        )
+
+:param files: list of filepaths to add into PDF (can be either images or PDFs)
+:param target_document: filepath of target PDF
+:param append: appends files to existing document if `append` is `True`</doc>
+<shortdoc>Add images and/or pdfs to new PDF document.</shortdoc>
+</kw>
+<kw name="Add Watermark Image To Pdf" source="./RPA/PDF/keywords/document.py" lineno="889">
+<arguments repr="image_path: str | Path, output_path: str | Path, source_path: str | Path | None = None, coverage: float = 0.2">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="image_path: str | Path">
+<name>image_path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="output_path: str | Path">
+<name>output_path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | Path | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | Path | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="coverage: float = 0.2">
+<name>coverage</name>
+<type name="float" typedoc="float">float</type>
+<default>0.2</default>
+</arg>
+</arguments>
+<doc>Add an image into an existing or new PDF.
+
+If no source path is given, assume a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keyword ***
+    Indicate approved with watermark
+        Add Watermark Image To PDF
+        ...             image_path=approved.png
+        ...             source_path=/tmp/sample.pdf
+        ...             output_path=output/output.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def indicate_approved_with_watermark():
+        pdf.add_watermark_image_to_pdf(
+            image_path="approved.png"
+            source_path="/tmp/sample.pdf"
+            output_path="output/output.pdf"
+        )
+
+:param image_path: filepath to image file to add into PDF
+:param source: filepath to source, if not given add image to currently
+    active PDF
+:param output_path: filepath of target PDF
+:param coverage: how the watermark image should be scaled on page,
+ defaults to 0.2</doc>
+<shortdoc>Add an image into an existing or new PDF.</shortdoc>
+</kw>
+<kw name="Close All Pdfs" source="./RPA/PDF/keywords/document.py" lineno="103">
+<arguments repr="">
+</arguments>
+<doc>Close all opened PDF file descriptors.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Close Multiple PDFs
+        Close all pdfs</doc>
+<shortdoc>Close all opened PDF file descriptors.</shortdoc>
+</kw>
+<kw name="Close Pdf" source="./RPA/PDF/keywords/document.py" lineno="121">
+<arguments repr="source_pdf: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_pdf: str | None = None">
+<name>source_pdf</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Close PDF file descriptor for a certain file.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Close just one pdf
+        Close pdf   path/to/the/pdf/file.pdf
+
+:param source_pdf: filepath to the source pdf.
+:raises ValueError: if file descriptor for the file is not found.</doc>
+<shortdoc>Close PDF file descriptor for a certain file.</shortdoc>
+</kw>
+<kw name="Convert" source="./RPA/PDF/keywords/model.py" lineno="397">
+<arguments repr="source_path: str | None = None, trim: bool = True, pagenum: int | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="trim: bool = True">
+<name>trim</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pagenum: int | str | None = None">
+<name>pagenum</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Parse source PDF into entities.
+
+These entities can be used for text searches or XML dumping for example. The
+conversion will be done automatically when using the dependent keywords
+directly.
+
+:param source_path: source PDF filepath
+:param trim: trim whitespace from the text is set to True (default)
+:param pagenum: Page number where search is performed on, defaults to `None`.
+    (meaning all pages get converted -- numbers start from 1)
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    ***Settings***
+    Library    RPA.PDF
+
+    ***Tasks***
+    Example Keyword
+        Convert    /tmp/sample.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        pdf.convert("/tmp/sample.pdf")</doc>
+<shortdoc>Parse source PDF into entities.</shortdoc>
+</kw>
+<kw name="Decrypt Pdf" source="./RPA/PDF/keywords/document.py" lineno="790">
+<arguments repr="source_path: str, output_path: str, password: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source_path: str">
+<name>source_path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="output_path: str">
+<name>output_path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="password: str">
+<name>password</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Decrypt PDF with password.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Make PDF human readable
+        ${success}=  Decrypt PDF    /tmp/sample.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def make_pdf_human_readable():
+        success = pdf.decrypt_pdf("/tmp/sample.pdf")
+
+:param source_path: filepath to the source pdf.
+:param output_path: filepath to the decrypted pdf.
+:param password: password as a string.
+:return: True if decrypt was successful, else False or Exception.
+:raises ValueError: on decryption errors.</doc>
+<shortdoc>Decrypt PDF with password.</shortdoc>
+</kw>
+<kw name="Dump Pdf As Xml" source="./RPA/PDF/keywords/model.py" lineno="765">
+<arguments repr="source_path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get PDFMiner format XML dump of the PDF
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    ***Settings***
+    Library    RPA.PDF
+
+    ***Tasks***
+    Example Keyword
+        ${xml}=  Dump PDF as XML    /tmp/sample.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        xml = pdf.dump_pdf_as_xml("/tmp/sample.pdf")
+
+:param source_path: filepath to the source PDF
+:return: XML content as a string</doc>
+<shortdoc>Get PDFMiner format XML dump of the PDF</shortdoc>
+</kw>
+<kw name="Encrypt Pdf" source="./RPA/PDF/keywords/document.py" lineno="725">
+<arguments repr="source_path: str | None = None, output_path: str | None = None, user_pwd: str = , owner_pwd: str | None = None, use_128bit: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="output_path: str | None = None">
+<name>output_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="user_pwd: str = ">
+<name>user_pwd</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="owner_pwd: str | None = None">
+<name>owner_pwd</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_128bit: bool = True">
+<name>use_128bit</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Encrypt a PDF document.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Secure this PDF
+        Encrypt PDF    /tmp/sample.pdf
+
+    Secure this PDF and set passwords
+        Encrypt PDF
+        ...    source_path=/tmp/sample.pdf
+        ...    output_path=/tmp/new/sample_encrypted.pdf
+        ...    user_pwd=complex_password_here
+        ...    owner_pwd=different_complex_password_here
+        ...    use_128bit=${TRUE}
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def secure_this_pdf():
+        pdf.encrypt_pdf("/tmp/sample.pdf")
+
+:param source_path: filepath to the source pdf.
+:param output_path: filepath to the target pdf, stored by default
+    in the robot output directory as ``output.pdf``
+:param user_pwd: allows opening and reading PDF with restrictions.
+:param owner_pwd: allows opening PDF without any restrictions, by
+    default same `user_pwd`.
+:param use_128bit: whether to 128bit encryption, when false 40bit
+    encryption is used, default True.</doc>
+<shortdoc>Encrypt a PDF document.</shortdoc>
+</kw>
+<kw name="Extract Pages From Pdf" source="./RPA/PDF/keywords/document.py" lineno="597">
+<arguments repr="source_path: str | None = None, output_path: str | None = None, pages: int | str | List[int] | List[str] | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="output_path: str | None = None">
+<name>output_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pages: int | str | List[int] | List[str] | None = None">
+<name>pages</name>
+<type name="Union" union="true">int | str | List[int] | List[str] | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[int]<type name="int" typedoc="integer">int</type></type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Extract pages from source PDF and save to a new PDF document.
+
+Page numbers start from 1.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Save PDF pages to a new document
+        ${pages}=    Extract Pages From PDF
+        ...          source_path=/tmp/sample.pdf
+        ...          output_path=/tmp/output.pdf
+        ...          pages=5
+
+    Save PDF pages from open PDF to a new document
+        ${pages}=    Extract Pages From PDF
+        ...          output_path=/tmp/output.pdf
+        ...          pages=5
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def save_pdf_pages_to_a_new_document():
+        pages = pdf.extract_pages_from_pdf(
+            source_path="/tmp/sample.pdf",
+            output_path="/tmp/output.pdf",
+            pages=5
+        )
+
+:param source_path: filepath to the source pdf.
+:param output_path: filepath to the target pdf, stored by default
+    in the robot output directory as ``output.pdf``
+:param pages: page numbers to extract from PDF (numbers start from 1)
+    if None then extracts all pages.</doc>
+<shortdoc>Extract pages from source PDF and save to a new PDF document.</shortdoc>
+</kw>
+<kw name="Find Text" source="./RPA/PDF/keywords/finder.py" lineno="90">
+<arguments repr="locator: str, pagenum: int | str = 1, direction: str = right, closest_neighbours: str | int | None = 1, strict: bool = False, regexp: str | None = None, trim: bool = True, ignore_case: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pagenum: int | str = 1">
+<name>pagenum</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+<default>1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="direction: str = right">
+<name>direction</name>
+<type name="str" typedoc="string">str</type>
+<default>right</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="closest_neighbours: str | int | None = 1">
+<name>closest_neighbours</name>
+<type name="Union" union="true">str | int | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="strict: bool = False">
+<name>strict</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="regexp: str | None = None">
+<name>regexp</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="trim: bool = True">
+<name>trim</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ignore_case: bool = False">
+<name>ignore_case</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Find the closest text elements near the set anchor(s) through `locator`.
+
+The PDF will be parsed automatically before elements can be searched.
+
+:param locator: Element to set anchor to. This can be prefixed with either
+    "text:", "subtext:", "regex:" or "coords:" to find the anchor by text or
+    coordinates. The "text" strategy is assumed if no such prefix is specified.
+    (text search is case-sensitive; use `ignore_case` param for controlling it)
+:param pagenum: Page number where search is performed on, defaults to 1 (first
+    page).
+:param direction: In which direction to search for text elements. This can be
+    any of 'top'/'up', 'bottom'/'down', 'left' or 'right'. (defaults to
+    'right')
+:param closest_neighbours: How many neighbours to return at most, sorted by the
+    distance from the current anchor.
+:param strict: If element's margins should be used for matching those which are
+    aligned to the anchor. (turned off by default)
+:param regexp: Expected format of the searched text value. By default all the
+    candidates in range are considered valid neighbours.
+:param trim: Automatically trim leading/trailing whitespace from the text
+    elements. (switched on by default)
+:param ignore_case: Do a case-insensitive search when set to `True`. (affects
+    the passed `locator` and `regexp` filtering)
+:returns: A list of `Match` objects where every match has the following
+    attributes: `.anchor` - the matched text with the locator; `.neighbours` -
+    a list of adjacent texts found on the specified direction
+
+.. Attention::
+    Keep in mind that this keyword works with text-based PDFs, and it **can't
+    extract information from an image-based (scan)** PDF file. For accurate
+    results, you have to use specialized external services wrapped by the
+    ``RPA.DocumentAI`` library.
+
+Portal example with video recording demo for parsing PDF invoices:
+https://github.com/robocorp/example-parse-pdf-invoice
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    PDF Invoice Parsing
+        Open Pdf    invoice.pdf
+        ${matches} =  Find Text    Invoice Number
+        Log List      ${matches}
+
+.. code-block::
+
+    List has one item:
+    Match(anchor='Invoice Number', direction='right', neighbours=['INV-3337'])
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def pdf_invoice_parsing():
+        pdf.open_pdf("invoice.pdf")
+        matches = pdf.find_text("Invoice Number")
+        for match in matches:
+            print(match)
+
+    pdf_invoice_parsing()
+
+.. code-block::
+
+    Match(anchor='Invoice Number', direction='right', neighbours=['INV-3337'])</doc>
+<shortdoc>Find the closest text elements near the set anchor(s) through `locator`.</shortdoc>
+</kw>
+<kw name="Get All Figures" source="./RPA/PDF/keywords/document.py" lineno="849">
+<arguments repr="source_path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Return all figures in the PDF document.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Image fetch
+        &amp;{figures}=  Get All Figures    /tmp/sample.pdf
+
+    Image fetch from open PDF
+        &amp;{figures}=  Get All Figures
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def image_fetch():
+        figures = pdf.get_all_figures("/tmp/sample.pdf")
+
+:param source_path: filepath to the source pdf.
+:return: dictionary of figures divided into pages.</doc>
+<shortdoc>Return all figures in the PDF document.</shortdoc>
+</kw>
+<kw name="Get Input Fields" source="./RPA/PDF/keywords/model.py" lineno="501">
+<arguments repr="source_path: str | None = None, replace_none_value: bool = False, encoding: str | None = iso-8859-1">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="replace_none_value: bool = False">
+<name>replace_none_value</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str | None = iso-8859-1">
+<name>encoding</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>iso-8859-1</default>
+</arg>
+</arguments>
+<doc>Get input fields in the PDF.
+
+Stores input fields internally so that they can be used without parsing the PDF
+again.
+
+:param source_path: Filepath to source, if not given use the currently active
+    PDF.
+:param replace_none_value: Enable this to conveniently visualize the fields. (
+    replaces the null value with field's default or its name if absent)
+:param encoding: Use an explicit encoding for field name/value parsing. (
+    defaults to "iso-8859-1" but "utf-8/16" might be the one working for you)
+:returns: A dictionary with all the found fields. Use their key names when
+    setting values into them.
+:raises KeyError: If no input fields are enabled in the PDF.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    Example Keyword
+        ${fields} =     Get Input Fields    form.pdf
+        Log Dictionary    ${fields}
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        fields = pdf.get_input_fields("form.pdf")
+        print(fields)
+
+    example_keyword()</doc>
+<shortdoc>Get input fields in the PDF.</shortdoc>
+</kw>
+<kw name="Get Number Of Pages" source="./RPA/PDF/keywords/document.py" lineno="449">
+<arguments repr="source_path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get number of pages in the document.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Number of pages in PDF
+        ${page_count}=    Get Number Of Pages    /tmp/sample.pdf
+
+    Number of pages in opened PDF
+        ${page_count}=    Get Number Of Pages
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def number_of_pages_in_pdf():
+        page_count = pdf.get_number_of_pages("/tmp/sample.pdf")
+
+:param source_path: filepath to the source pdf
+:raises PdfReadError: if file is encrypted or other restrictions are in place</doc>
+<shortdoc>Get number of pages in the document.</shortdoc>
+</kw>
+<kw name="Get Pdf Info" source="./RPA/PDF/keywords/document.py" lineno="350">
+<arguments repr="source_path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get metadata from a PDF document.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Get PDF metadata
+        ${metadata}=    Get PDF Info    /tmp/sample.pdf
+
+    *** Keywords ***
+    Get metadata from an already opened PDF
+        ${metadata}=    Get PDF Info
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def get_pdf_metadata():
+        metadata = pdf.get_pdf_info("/tmp/sample.pdf")
+
+:param source_path: filepath to the source PDF.
+:return: dictionary of PDF information.</doc>
+<shortdoc>Get metadata from a PDF document.</shortdoc>
+</kw>
+<kw name="Get Text From Pdf" source="./RPA/PDF/keywords/document.py" lineno="536">
+<arguments repr="source_path: str | None = None, pages: int | str | List[int] | List[str] | None = None, details: bool = False, trim: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pages: int | str | List[int] | List[str] | None = None">
+<name>pages</name>
+<type name="Union" union="true">int | str | List[int] | List[str] | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[int]<type name="int" typedoc="integer">int</type></type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="details: bool = False">
+<name>details</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="trim: bool = True">
+<name>trim</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Get text from set of pages in source PDF document.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Text extraction from PDF
+        ${text}=    Get Text From PDF    /tmp/sample.pdf
+
+    Text extraction from open PDF
+        ${text}=    Get Text From PDF
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def text_extraction_from_pdf():
+        text = pdf.get_text_from_pdf("/tmp/sample.pdf")
+
+
+:param source_path: filepath to the source pdf.
+:param pages: page numbers to get text (numbers start from 1).
+:param details: set to `True` to return textboxes, default `False`.
+:param trim: set to `False` to return raw texts, default `True`
+    means whitespace is trimmed from the text
+:return: dictionary of pages and their texts.</doc>
+<shortdoc>Get text from set of pages in source PDF document.</shortdoc>
+</kw>
+<kw name="Html To Pdf" source="./RPA/PDF/keywords/document.py" lineno="273">
+<arguments repr="content: str | List[str], output_path: str, encoding: str = utf-8, margin: float = 0, working_directory: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="content: str | List[str]">
+<name>content</name>
+<type name="Union" union="true">str | List[str]<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="output_path: str">
+<name>output_path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="margin: float = 0">
+<name>margin</name>
+<type name="float" typedoc="float">float</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="working_directory: str | None = None">
+<name>working_directory</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Generate a PDF file from HTML content.
+
+Note that input must be well-formed and valid HTML.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Create PDF from HTML
+        HTML to PDF    ${html_content_as_string}  /tmp/output.pdf
+
+    Multi Page PDF
+        @{pages}=    Create List    ${page1_html}    ${page2_html}
+        HTML To PDF   ${pages}    output.pdf
+        ...  margin=10
+        ...  working_directory=subdir
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def create_pdf_from_html():
+        pdf.html_to_pdf(html_content_as_string, "/tmp/output.pdf")
+
+    def multi_page_pdf():
+        pages = [page1_html, page2_html, page3_html]
+        pdf.html_to_pdf(pages, "output.pdf", margin=10)
+        # if I have images in the HTML in the 'subdir'
+        pdf.html_to_pdf(pages, "output.pdf",
+            margin=10, working_directory="subdir"
+        )
+
+:param content: HTML content
+:param output_path: filepath where to save the PDF document
+:param encoding: codec used for text I/O
+:param margin: page margin, default is set to 0
+:param working_directory: directory where to look for HTML linked
+ resources, by default uses the current working directory</doc>
+<shortdoc>Generate a PDF file from HTML content.</shortdoc>
+</kw>
+<kw name="Is Pdf Encrypted" source="./RPA/PDF/keywords/document.py" lineno="411">
+<arguments repr="source_path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Check if PDF is encrypted.
+
+If no source path given, assumes a PDF is already opened.
+
+:param source_path: filepath to the source pdf.
+:return: True if file is encrypted.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Is PDF encrypted
+        ${is_encrypted}=    Is PDF Encrypted    /tmp/sample.pdf
+
+    *** Keywords ***
+    Is open PDF encrypted
+        ${is_encrypted}=    Is PDF Encrypted
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        is_encrypted = pdf.is_pdf_encrypted("/tmp/sample.pdf")</doc>
+<shortdoc>Check if PDF is encrypted.</shortdoc>
+</kw>
+<kw name="Open Pdf" source="./RPA/PDF/keywords/document.py" lineno="153">
+<arguments repr="source_path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source_path: str | Path">
+<name>source_path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Open a PDF document for reading.
+
+This is called automatically in the other PDF keywords
+when a path to the PDF file is given as an argument.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Open my pdf file
+        Open PDF    /tmp/sample.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        metadata = pdf.open_pdf("/tmp/sample.pdf")
+
+:param source_path: filepath to the source pdf.
+:raises ValueError: if PDF is already open.</doc>
+<shortdoc>Open a PDF document for reading.</shortdoc>
+</kw>
+<kw name="Rotate Page" source="./RPA/PDF/keywords/document.py" lineno="661">
+<arguments repr="pages: int | str | List[int] | List[str] | None, source_path: str | None = None, output_path: str | None = None, clockwise: bool = True, angle: int = 90">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pages: int | str | List[int] | List[str] | None">
+<name>pages</name>
+<type name="Union" union="true">int | str | List[int] | List[str] | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[int]<type name="int" typedoc="integer">int</type></type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="output_path: str | None = None">
+<name>output_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="clockwise: bool = True">
+<name>clockwise</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="angle: int = 90">
+<name>angle</name>
+<type name="int" typedoc="integer">int</type>
+<default>90</default>
+</arg>
+</arguments>
+<doc>Rotate pages in source PDF document and save to target PDF document.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    PDF page rotation
+        Rotate Page
+        ...          source_path=/tmp/sample.pdf
+        ...          output_path=/tmp/output.pdf
+        ...          pages=5
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def pdf_page_rotation():
+        pages = pdf.rotate_page(
+            source_path="/tmp/sample.pdf",
+            output_path="/tmp/output.pdf",
+            pages=5
+        )
+
+:param pages: page numbers to extract from PDF (numbers start from 1).
+:param source_path: filepath to the source pdf.
+:param output_path: filepath to the target pdf, stored by default
+    in the robot output directory as ``output.pdf``
+:param clockwise: directorion that page will be rotated to, default True.
+:param angle: number of degrees to rotate, default 90.</doc>
+<shortdoc>Rotate pages in source PDF document and save to target PDF document.</shortdoc>
+</kw>
+<kw name="Save Field Values" source="./RPA/PDF/keywords/model.py" lineno="659">
+<arguments repr="source_path: str | None = None, output_path: str | None = None, newvals: dict | None = None, use_appearances_writer: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="output_path: str | None = None">
+<name>output_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="newvals: dict | None = None">
+<name>newvals</name>
+<type name="Union" union="true">dict | None<type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_appearances_writer: bool = False">
+<name>use_appearances_writer</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Save field values in PDF if it has fields.
+
+:param source_path: Source PDF with fields to update.
+:param output_path: Updated target PDF.
+:param newvals: New values when updating many at once.
+:param use_appearances_writer: For some PDF documents the updated fields won't
+    be visible (or will look strange). When this happens, try to set this to
+    `True` so the previewer will re-render these based on the actual values.
+    (and viewing the output PDF in a browser might display the field values
+    correcly then)
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    Example Keyword
+        Open PDF    ./tmp/sample.pdf
+        Set Field Value    phone_nr    077123123
+        Save Field Values    output_path=./tmp/output.pdf
+
+    Multiple operations
+        &amp;{new_fields}=       Create Dictionary
+        ...                  phone_nr=077123123
+        ...                  title=dr
+        Save Field Values    source_path=./tmp/sample.pdf
+        ...                  output_path=./tmp/output.pdf
+        ...                  newvals=${new_fields}
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        pdf.open_pdf("./tmp/sample.pdf")
+        pdf.set_field_value("phone_nr", "077123123")
+        pdf.save_field_values(output_path="./tmp/output.pdf")
+
+    def multiple_operations():
+        new_fields = {"phone_nr": "077123123", "title": "dr"}
+        pdf.save_field_values(
+            source_path="./tmp/sample.pdf",
+            output_path="./tmp/output.pdf",
+            newvals=new_fields
+        )</doc>
+<shortdoc>Save field values in PDF if it has fields.</shortdoc>
+</kw>
+<kw name="Save Figure As Image" source="./RPA/PDF/keywords/document.py" lineno="1068">
+<arguments repr="figure: Figure, images_folder: str = ., file_prefix: str = ">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="figure: Figure">
+<name>figure</name>
+<type name="Figure">Figure</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="images_folder: str = .">
+<name>images_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>.</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="file_prefix: str = ">
+<name>file_prefix</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+</arguments>
+<doc>Try to save the image data from Figure object, and return
+the file name, if successful.
+
+Figure needs to have byte `stream` and that needs to be recognized
+as image format for successful save.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keyword ***
+    Figure to Image
+        ${image_file_path} =     Save figure as image
+        ...             figure=pdf_figure_object
+        ...             images_folder=/tmp/images
+        ...             file_prefix=file_name_here
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def figure_to_image():
+        image_file_path = pdf.save_figure_as_image(
+            figure="pdf_figure_object"
+            images_folder="/tmp/images"
+            file_prefix="file_name_here"
+        )
+
+:param figure: PDF Figure object which will be saved as an image.
+ The PDF Figure object can be determined from the `Get All Figures` keyword
+:param images_folder: directory where image files will be created
+:param file_prefix: image filename prefix
+:return: image filepath or None</doc>
+<shortdoc>Try to save the image data from Figure object, and return the file name, if successful.</shortdoc>
+</kw>
+<kw name="Save Figures As Images" source="./RPA/PDF/keywords/document.py" lineno="1141">
+<arguments repr="source_path: str | None = None, images_folder: str = ., pages: str | None = None, file_prefix: str = ">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="images_folder: str = .">
+<name>images_folder</name>
+<type name="str" typedoc="string">str</type>
+<default>.</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pages: str | None = None">
+<name>pages</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="file_prefix: str = ">
+<name>file_prefix</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+</arguments>
+<doc>Save figures from given PDF document as image files.
+
+If no source path given, assumes a PDF is already opened.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keyword ***
+    Figures to Images
+        ${image_filenames} =    Save figures as images
+        ...             source_path=/tmp/sample.pdf
+        ...             images_folder=/tmp/images
+        ...             pages=${4}
+        ...             file_prefix=file_name_here
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def figures_to_images():
+        image_filenames = pdf.save_figures_as_image(
+            source_path="/tmp/sample.pdf"
+            images_folder="/tmp/images"
+            pages=4
+            file_prefix="file_name_here"
+        )
+
+:param source_path: filepath to PDF document
+:param images_folder: directory where image files will be created
+:param pages: target figures in the pages, can be single page or range,
+    default `None` means that all pages are scanned for figures to save
+    (numbers start from 1)
+:param file_prefix: image filename prefix
+:return: list of image filenames created</doc>
+<shortdoc>Save figures from given PDF document as image files.</shortdoc>
+</kw>
+<kw name="Save Pdf" source="./RPA/PDF/keywords/document.py" lineno="1003">
+<arguments repr="output_path: str, reader: PdfReader | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="output_path: str">
+<name>output_path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="reader: PdfReader | None = None">
+<name>reader</name>
+<type name="Union" union="true">PdfReader | None<type name="PdfReader">PdfReader</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Save the contents of a pypdf reader to a new file.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keyword ***
+    Save changes to PDF
+        Save PDF    /tmp/output.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def save_changes_to_pdf():
+        pdf.save_pdf(output_path="output/output.pdf")
+
+:param output_path: filepath to target PDF
+:param reader: a pypdf reader (defaults to currently active document)</doc>
+<shortdoc>Save the contents of a pypdf reader to a new file.</shortdoc>
+</kw>
+<kw name="Set Anchor To Element" source="./RPA/PDF/keywords/finder.py" lineno="236">
+<arguments repr="locator: str, trim: bool = True, pagenum: int | str = 1, ignore_case: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="trim: bool = True">
+<name>trim</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pagenum: int | str = 1">
+<name>pagenum</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+<default>1</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ignore_case: bool = False">
+<name>ignore_case</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Sets main anchor point in the document for further searches.
+
+This is used internally in the library and can work with multiple anchors at
+the same time if such are found.
+
+:param locator: Element to set anchor to. This can be prefixed with either
+    "text:", "subtext:", "regex:" or "coords:" to find the anchor by text or
+    coordinates. The "text" strategy is assumed if no such prefix is specified.
+    (text search is case-sensitive; use `ignore_case` param for controlling it)
+:param trim: Automatically trim leading/trailing whitespace from the text
+    elements. (switched on by default)
+:param pagenum: Page number where search is performed on, defaults to 1 (first
+    page).
+:param ignore_case: Do a case-insensitive search when set to `True`.
+:returns: True if at least one anchor was found.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    Example Keyword
+         ${success} =  Set Anchor To Element    Invoice Number
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        success = pdf.set_anchor_to_element("Invoice Number")</doc>
+<shortdoc>Sets main anchor point in the document for further searches.</shortdoc>
+</kw>
+<kw name="Set Convert Settings" source="./RPA/PDF/keywords/model.py" lineno="799">
+<arguments repr="line_margin: float | None = None, word_margin: float | None = None, char_margin: float | None = None, boxes_flow: float | None = 0.5">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="line_margin: float | None = None">
+<name>line_margin</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="word_margin: float | None = None">
+<name>word_margin</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="char_margin: float | None = None">
+<name>char_margin</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="boxes_flow: float | None = 0.5">
+<name>boxes_flow</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>0.5</default>
+</arg>
+</arguments>
+<doc>Change settings for PDFMiner document conversion.
+
+`line_margin` controls how textboxes are grouped - if conversion results in
+texts grouped into one group then set this to lower value
+
+`word_margin` controls how spaces are inserted between words - if conversion
+results in text without spaces then set this to lower value
+
+`char_margin` controls how characters are grouped into words - if conversion
+results in individual characters instead of then set this to higher value
+
+`boxes_flow` controls how much horizontal and vertical position of the text
+matters when determining the order of text boxes. Value can be between range
+of -1.0 (only horizontal position matters) to +1.0 (only vertical position
+matters). This feature (advanced layout analysis) can be disabled by setting
+value to `None` thus bottom left corner of the text box is used to determine
+order of the text boxes.
+
+:param line_margin: relative margin between bounding lines, default 0.5
+:param word_margin: relative margin between words, default 0.1
+:param char_margin: relative margin between characters, default 2.0
+:param boxes_flow: positioning of the text boxes based on text, default 0.5
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    ***Settings***
+    Library    RPA.PDF
+
+    ***Tasks***
+    Example Keyword
+        Set Convert Settings  line_margin=0.00000001
+        ${texts}=  Get Text From PDF  /tmp/sample.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        pdf.set_convert_settings(boxes_flow=None)
+        texts = pdf.get_text_from_pdf("/tmp/sample.pdf")</doc>
+<shortdoc>Change settings for PDFMiner document conversion.</shortdoc>
+</kw>
+<kw name="Set Field Value" source="./RPA/PDF/keywords/model.py" lineno="592">
+<arguments repr="field_name: str, value: Any, source_path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="field_name: str">
+<name>field_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: Any">
+<name>value</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set value for field with given name on the active document.
+
+Tries to match with field's identifier directly or its label. When ticking
+checkboxes, try with the `/Yes` string value as simply `Yes` might not work
+with most previewing apps.
+
+:param field_name: Field to update.
+:param value: New value for the field.
+:param source_path: Source PDF file path.
+:raises ValueError: When field can't be found or more than one field matches
+    the given `field_name`.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    Example Keyword
+        Open PDF    ./tmp/sample.pdf
+        Set Field Value    phone_nr    077123123
+        Save Field Values    output_path=./tmp/output.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def example_keyword():
+        pdf.open_pdf("./tmp/sample.pdf")
+        pdf.set_field_value("phone_nr", "077123123")
+        pdf.save_field_values(output_path="./tmp/output.pdf")</doc>
+<shortdoc>Set value for field with given name on the active document.</shortdoc>
+</kw>
+<kw name="Switch To Pdf" source="./RPA/PDF/keywords/document.py" lineno="486">
+<arguments repr="source_path: str | Path | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="source_path: str | Path | None = None">
+<name>source_path</name>
+<type name="Union" union="true">str | Path | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Switch library's current fileobject to already opened file
+or open a new file if not opened.
+
+This is done automatically in the PDF library keywords.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Jump to another PDF
+        Switch to PDF    /tmp/another.pdf
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    pdf = PDF()
+
+    def jump_to_another_pdf():
+        pdf.switch_to_pdf("/tmp/sample.pdf")
+
+
+:param source_path: filepath to the source pdf.
+:raises ValueError: if PDF filepath is not given and there are no active
+    file to activate.</doc>
+<shortdoc>Switch library's current fileobject to already opened file or open a new file if not opened.</shortdoc>
+</kw>
+<kw name="Template Html To Pdf" source="./RPA/PDF/keywords/document.py" lineno="199">
+<arguments repr="template: str, output_path: str, variables: dict | None = None, encoding: str = utf-8, margin: float = 0, working_directory: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="template: str">
+<name>template</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="output_path: str">
+<name>output_path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="variables: dict | None = None">
+<name>variables</name>
+<type name="Union" union="true">dict | None<type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="margin: float = 0">
+<name>margin</name>
+<type name="float" typedoc="float">float</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="working_directory: str | None = None">
+<name>working_directory</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Use HTML template file to generate PDF file.
+
+It provides an easy method of generating a PDF document from an HTML formatted
+template file.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Create PDF from HTML template
+        ${TEMPLATE}=    Set Variable    order.template
+        ${PDF}=         Set Variable    result.pdf
+        &amp;{DATA}=        Create Dictionary
+        ...             name=Robot Generated
+        ...             email=robot@domain.com
+        ...             zip=00100
+        ...             items=Item 1, Item 2
+        Template HTML to PDF
+        ...    template=${TEMPLATE}
+        ...    output_path=${PDF}
+        ...    variables=${DATA}
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.PDF import PDF
+
+    p = PDF()
+    orders = ["item 1", "item 2", "item 3"]
+    data = {
+        "name": "Robot Process",
+        "email": "robot@domain.com",
+        "zip": "00100",
+        "items": "&lt;br/&gt;".join(orders),
+    }
+    p.template_html_to_pdf("order.template", "order.pdf", data)
+
+:param template: filepath to the HTML template
+:param output_path: filepath where to save PDF document
+:param variables: dictionary of variables to fill into template, defaults to {}
+:param encoding: codec used for text I/O
+:param margin: page margin, default is set to 0
+:param working_directory: directory where to look for HTML linked
+ resources, by default uses the current working directory</doc>
+<shortdoc>Use HTML template file to generate PDF file.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Set Field Value</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Add Files To Pdf</usage>
+<usage>Convert</usage>
+<usage>Encrypt Pdf</usage>
+<usage>Find Text</usage>
+<usage>Get Input Fields</usage>
+<usage>Get Text From Pdf</usage>
+<usage>Rotate Page</usage>
+<usage>Save Field Values</usage>
+<usage>Set Anchor To Element</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Save Field Values</usage>
+<usage>Template Html To Pdf</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Add Watermark Image To Pdf</usage>
+<usage>Html To Pdf</usage>
+<usage>Set Convert Settings</usage>
+<usage>Template Html To Pdf</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Convert</usage>
+<usage>Extract Pages From Pdf</usage>
+<usage>Find Text</usage>
+<usage>Get Text From Pdf</usage>
+<usage>Rotate Page</usage>
+<usage>Set Anchor To Element</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Add Files To Pdf</usage>
+<usage>Extract Pages From Pdf</usage>
+<usage>Get Text From Pdf</usage>
+<usage>Html To Pdf</usage>
+<usage>Rotate Page</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Add Files To Pdf</usage>
+<usage>Add Watermark Image To Pdf</usage>
+<usage>Close Pdf</usage>
+<usage>Convert</usage>
+<usage>Dump Pdf As Xml</usage>
+<usage>Encrypt Pdf</usage>
+<usage>Extract Pages From Pdf</usage>
+<usage>Find Text</usage>
+<usage>Get All Figures</usage>
+<usage>Get Input Fields</usage>
+<usage>Get Number Of Pages</usage>
+<usage>Get Pdf Info</usage>
+<usage>Get Text From Pdf</usage>
+<usage>Html To Pdf</usage>
+<usage>Is Pdf Encrypted</usage>
+<usage>Rotate Page</usage>
+<usage>Save Field Values</usage>
+<usage>Save Figures As Images</usage>
+<usage>Save Pdf</usage>
+<usage>Set Convert Settings</usage>
+<usage>Set Field Value</usage>
+<usage>Switch To Pdf</usage>
+<usage>Template Html To Pdf</usage>
+</usages>
+</type>
+<type name="Path" type="Standard">
+<doc>Strings are converted [https://docs.python.org/library/pathlib.html|Path] objects.
+On Windows ``/`` is converted to ``\`` automatically.
+
+Examples: ``/tmp/absolute/path``, ``relative/path/to/file.ext``, ``name.txt``
+</doc>
+<accepts>
+<type>string</type>
+<type>PurePath</type>
+</accepts>
+<usages>
+<usage>Add Watermark Image To Pdf</usage>
+<usage>Open Pdf</usage>
+<usage>Switch To Pdf</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Add Files To Pdf</usage>
+<usage>Add Watermark Image To Pdf</usage>
+<usage>Close Pdf</usage>
+<usage>Convert</usage>
+<usage>Decrypt Pdf</usage>
+<usage>Dump Pdf As Xml</usage>
+<usage>Encrypt Pdf</usage>
+<usage>Extract Pages From Pdf</usage>
+<usage>Find Text</usage>
+<usage>Get All Figures</usage>
+<usage>Get Input Fields</usage>
+<usage>Get Number Of Pages</usage>
+<usage>Get Pdf Info</usage>
+<usage>Get Text From Pdf</usage>
+<usage>Html To Pdf</usage>
+<usage>Is Pdf Encrypted</usage>
+<usage>Open Pdf</usage>
+<usage>Rotate Page</usage>
+<usage>Save Field Values</usage>
+<usage>Save Figure As Image</usage>
+<usage>Save Figures As Images</usage>
+<usage>Save Pdf</usage>
+<usage>Set Anchor To Element</usage>
+<usage>Set Field Value</usage>
+<usage>Switch To Pdf</usage>
+<usage>Template Html To Pdf</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

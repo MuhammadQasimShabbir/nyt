@@ -1,0 +1,44 @@
+Metadata-Version: 2.1
+Name: rpaframework-core
+Version: 11.3.2
+Summary: Core utilities used by RPA Framework
+Home-page: https://rpaframework.org/
+License: Apache-2.0
+Keywords: robotframework,rpa,automation
+Author: RPA Framework
+Author-email: rpafw@robocorp.com
+Requires-Python: >=3.8,<4.0
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Framework :: Robot Framework
+Classifier: Framework :: Robot Framework :: Library
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Dist: packaging (>=24.0,<25.0)
+Requires-Dist: pillow (>=10.2.0,<11.0.0)
+Requires-Dist: psutil (>=5.9.0,<6.0.0) ; sys_platform == "win32"
+Requires-Dist: pywin32 (>=300,<307) ; python_full_version != "3.8.1" and sys_platform == "win32"
+Requires-Dist: selenium (>=4.6.1,<5.0.0)
+Requires-Dist: uiautomation (>=2.0.15,<3.0.0) ; sys_platform == "win32"
+Requires-Dist: webdriver-manager (==4.0.1)
+Project-URL: Documentation, https://rpaframework.org/
+Project-URL: Repository, https://github.com/robocorp/rpaframework
+Description-Content-Type: text/x-rst
+
+rpaframework-core
+=================
+
+This package is a set of core functionality and utilities used
+by `RPA Framework`_. It is not intended to be installed directly, but
+as a dependency to other projects.
+
+.. _RPA Framework: https://rpaframework.org
+

@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Notifier" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/Notifier.py" lineno="5">
+<version/>
+<doc>`Notifier` is a library interfacting with different notification providers.
+
+**Supported providers**
+
+- email
+- gmail
+- pushover
+- slack
+- telegram
+- twilio
+
+**Providers not supported yet via specific keywords**
+
+- gitter
+- join
+- mailgun
+- pagerduty
+- popcornnotify
+- pushbullet
+- simplepush
+- statuspage
+- zulip
+
+There is a keyword ``Generic Notify`` which can be used
+to call above services, for example.
+
+.. code-block:: robotframework
+
+    Generic Notify
+        provider_name=gitter
+        message=Hello from Robot
+        token=TOKEN
+        room_id=ID_OF_THE_GITTER_ROOM
+
+Parameters for different providers can be read from the
+**Notifiers** documents (link below).
+
+Read more at https://notifiers.readthedocs.io/en/latest/
+
+
+**About kwargs**
+
+The `**kwargs` is a term for any extra named parameters, which
+can be included in the same way as already named arguments,
+e.g. ``Notify Email`` could be called with `subject=my email subject`
+which will be passed through `**kwargs`.
+
+Notifier documentation contains information about all possible
+arguments that different providers support.
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    &amp;{account}=    Create Dictionary
+    ...    host=smtp.office365.com
+    ...    username=ACCOUNT_USERNAME
+    ...    password=ACCOUNT_PASSWORD
+    Notify Email
+    ...    to=RECIPIENT_EMAIL
+    ...    from_=SENDER_ADDRESS            # passed via kwargs
+    ...    subject=Hello from the Robot    # passed via kwargs
+    ...    message=Hello from the Robot
+    ...    &amp;{account}                      # passed via kwargs
+
+.. code-block:: python
+
+    notifier = Notifier()
+    account = {
+        "host": "smtp.office365.com",
+        "username": "EMAIL_USERNAME",
+        "password": "EMAIL_PASSWORD"
+    }
+    notifier.email_notify(
+        to="RECIPIENT_EMAIL",
+        from_="SENDER_EMAIL",
+        subject="Hello from the Python Robot",
+        message="Hello from the Python RObot",
+        **account
+    )
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+   *** Settings ***
+   Library  RPA.Notifier
+
+   *** Variables ***
+   ${SLACK_WEBHOOK}   https://hooks.slack.com/services/WEBHOOKDETAILS
+   ${CHANNEL}         notification-channel
+
+   *** Tasks ***
+   Lets notify
+      Notify Slack   message from robot  channel=${CHANNEL}  webhook_url=${SLACK_WEBHOOK}
+
+**Python**
+
+.. code-block:: python
+
+   from RPA.Notifier import Notifier
+
+   library = Notifier()
+
+   slack_attachments = [
+      {
+         "title": "attachment 1",
+         "fallback": "liverpool logo",
+         "image_url": "https://upload.wikimedia.org/wikipedia/fi/thumb/c/cd/Liverpool_FC-n_logo.svg/1200px-Liverpool_FC-n_logo.svg.png",
+      }
+   ]
+
+   library.notify_slack(
+      message='message for the Slack',
+      channel="notification-channel",
+      webhook_url=slack_webhook_url,
+      attachments=slack_attachments,
+   )</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Generic Notify" lineno="314">
+<arguments repr="provider_name: str, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="provider_name: str">
+<name>provider_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Generic keyword to use with any notifier provider.
+
+:param provider_name: name of the notifier service
+:param kwargs: see library documentation
+:return: True if notification was successful, False if not</doc>
+<shortdoc>Generic keyword to use with any notifier provider.</shortdoc>
+</kw>
+<kw name="Notify Email" lineno="233">
+<arguments repr="message: str | None = None, to: str | None = None, username: str | None = None, password: str | None = None, host: str | None = None, port: int = 587, tls: bool = True, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="message: str | None = None">
+<name>message</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="to: str | None = None">
+<name>to</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="username: str | None = None">
+<name>username</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="host: str | None = None">
+<name>host</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="port: int = 587">
+<name>port</name>
+<type name="int" typedoc="integer">int</type>
+<default>587</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="tls: bool = True">
+<name>tls</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Notify using email provider
+
+:param message: notification message
+:param to: target of email message
+:param username: email account username
+:param password: email account password
+:param host: email SMTP host name
+:param port: email SMTP host port number
+:param tls: should TLS be used (default True)
+:param kwargs: see library documentation
+:return: True if notification was successful, False if not
+
+Example.
+
+.. code:: robotframework
+
+    # Notify with Outlook account
+    Notify Email
+    ...   message=Message from the Robot
+    ...   to=RECIPIENT_EMAIL_ADDRESS
+    ...   username=OUTLOOK_USERNAME
+    ...   password=OUTLOOK_PASSWORD
+    ...   host=smtp.office365.com
+    ...   subject=Subject of the Message</doc>
+<shortdoc>Notify using email provider</shortdoc>
+</kw>
+<kw name="Notify Gmail" lineno="205">
+<arguments repr="message: str | None = None, to: str | None = None, username: str | None = None, password: str | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="message: str | None = None">
+<name>message</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="to: str | None = None">
+<name>to</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="username: str | None = None">
+<name>username</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="password: str | None = None">
+<name>password</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Notify using Gmail provider
+
+:param message: notification message
+:param to: target of email message
+:param username: GMail account username
+:param password: GMail account password
+:param kwargs: see library documentation
+:return: True if notification was successful, False if not</doc>
+<shortdoc>Notify using Gmail provider</shortdoc>
+</kw>
+<kw name="Notify Pushover" lineno="134">
+<arguments repr="message: str | None = None, user: str | None = None, token: str | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="message: str | None = None">
+<name>message</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="user: str | None = None">
+<name>user</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="token: str | None = None">
+<name>token</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Notify using Pushover provider
+
+:param message: notification message
+:param user: target user for the notification
+:param token: service token
+:param kwargs: see library documentation
+:return: True if notification was successful, False if not</doc>
+<shortdoc>Notify using Pushover provider</shortdoc>
+</kw>
+<kw name="Notify Slack" lineno="155">
+<arguments repr="message: str | None = None, channel: str | None = None, webhook_url: str | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="message: str | None = None">
+<name>message</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="channel: str | None = None">
+<name>channel</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="webhook_url: str | None = None">
+<name>webhook_url</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Notify using Slack provider
+
+:param message: notification message
+:param channel: target channel for the notification
+:param webhook_url: Slack webhook url
+:param kwargs: see library documentation
+:return: True if notification was successful, False if not</doc>
+<shortdoc>Notify using Slack provider</shortdoc>
+</kw>
+<kw name="Notify Telegram" lineno="180">
+<arguments repr="message: str | None = None, chat_id: str | None = None, token: str | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="message: str | None = None">
+<name>message</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="chat_id: str | None = None">
+<name>chat_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="token: str | None = None">
+<name>token</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Notify using Telegram provider
+
+:param message: notification message
+:param chat_id: target chat id for the notification
+:param token: service token
+:param kwargs: see library documentation
+:return: True if notification was successful, False if not</doc>
+<shortdoc>Notify using Telegram provider</shortdoc>
+</kw>
+<kw name="Notify Twilio" lineno="283">
+<arguments repr="message: str | None = None, number_from: str | None = None, number_to: str | None = None, account_sid: str | None = None, token: str | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="message: str | None = None">
+<name>message</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="number_from: str | None = None">
+<name>number_from</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="number_to: str | None = None">
+<name>number_to</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account_sid: str | None = None">
+<name>account_sid</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="token: str | None = None">
+<name>token</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Notify using Twilio provider
+
+:param message: notification message
+:param number_from: number where the message comes from
+:param number_to: number where the messages goes to
+:param account_sid: Twilio account SID
+:param token: Twilio account token
+:param kwargs: see library documentation
+:return: True if notification was successful, False if not</doc>
+<shortdoc>Notify using Twilio provider</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Notify Email</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Notify Email</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Notify Email</usage>
+<usage>Notify Gmail</usage>
+<usage>Notify Pushover</usage>
+<usage>Notify Slack</usage>
+<usage>Notify Telegram</usage>
+<usage>Notify Twilio</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Generic Notify</usage>
+<usage>Notify Email</usage>
+<usage>Notify Gmail</usage>
+<usage>Notify Pushover</usage>
+<usage>Notify Slack</usage>
+<usage>Notify Telegram</usage>
+<usage>Notify Twilio</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

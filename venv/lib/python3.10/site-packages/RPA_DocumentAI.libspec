@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.DocumentAI" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/DocumentAI/DocumentAI.py" lineno="47">
+<version/>
+<doc>Wrapper library offering generic keywords for initializing, scanning and
+retrieving results as fields from documents (PDF, PNG etc.).
+
+Library requires at the minimum `rpaframework` version **19.0.0**.
+
+This is a helper facade for the following libraries:
+
+- RPA.Cloud.Google (requires `rpaframework-google`)
+- RPA.DocumentAI.Base64AI
+- RPA.DocumentAI.Nanonets
+
+Where the following steps are required:
+
+1. Engine initialization: ``Init Engine``
+2. Document scan: ``Predict``
+3. Result retrieval: ``Get Result``
+
+So no matter the engine you're using, the very same keywords can be used, as only
+the passed parameters will differ (please check the docs on each library for
+particularities). Once initialized, you can jump between the engines with
+``Switch Engine``. Before scanning documents, you must configure the service first,
+with a model to scan the files with and an API key for authorizing the access.
+
+See Portal example: https://robocorp.com/portal/robot/robocorp/example-document-ai
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.DocumentAI
+
+    *** Tasks ***
+    Scan Documents
+        Init Engine    base64ai    vault=document_ai:base64ai
+        Init Engine    nanonets    vault=document_ai:nanonets
+
+        Switch Engine   base64ai
+        Predict    invoice.png
+        ${data} =    Get Result
+        Log List    ${data}
+
+        Switch Engine   nanonets
+        Predict    invoice.png      model=858e4b37-6679-4552-9481-d5497dfc0b4a
+        ${data} =    Get Result
+        Log List    ${data}
+
+**Example: Python**
+
+.. code-block:: python
+
+    from RPA.DocumentAI import DocumentAI, EngineName
+
+    lib_docai = DocumentAI()
+    lib_docai.init_engine(
+        EngineName.GOOGLE, vault="document_ai:serviceaccount", region="eu"
+    )
+    lib_docai.predict(
+        "invoice.pdf", model="df1d166771005ff4",
+        project_id="complete-agency-347912", region="eu"
+    )
+    print(lib_docai.get_result())</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Get Result" lineno="464">
+<arguments repr="extended: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="extended: bool = False">
+<name>extended</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Retrieve the result data previously obtained with ``Predict``.
+
+The stored raw result is usually pre-processed with a library specific keyword
+prior the return.
+
+:param extended: Get all the details inside the result data. (main fields only
+    by default)
+:returns: Usually a list of fields detected in the document.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Scan With Base64
+        Document AI Base64
+        ${data} =    Get Result
+        Log List    ${data}
+
+**Example: Python**
+
+.. code-block:: python
+
+    result = lib_docai.get_result()
+    for field in result:
+        print(field)</doc>
+<shortdoc>Retrieve the result data previously obtained with ``Predict``.</shortdoc>
+</kw>
+<kw name="Init Engine" lineno="308">
+<arguments repr="name: EngineName | str, secret: str | Path | Tuple | List | Dict | None = None, vault: Dict | str | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: EngineName | str">
+<name>name</name>
+<type name="Union" union="true">EngineName | str<type name="EngineName" typedoc="EngineName">EngineName</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="secret: str | Path | Tuple | List | Dict | None = None">
+<name>secret</name>
+<type name="Union" union="true">str | Path | Tuple | List | Dict | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="Tuple" typedoc="tuple">Tuple</type><type name="List" typedoc="list">List</type><type name="Dict" typedoc="dictionary">Dict</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="vault: Dict | str | None = None">
+<name>vault</name>
+<type name="Union" union="true">Dict | str | None<type name="Dict" typedoc="dictionary">Dict</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Initialize the engine you want to scan documents with.
+
+This is required before being able to run ``Predict``. Once initialized, you
+don't need to run this again, simply use ``Switch Engine`` to jump between
+the engines. The final secret value (passed directly with `secret` or picked up
+automatically from the Vault with `vault`) will be split into authorization
+args and kwargs or just passed as it is to the wrapped library. Keep in mind
+that some engines are expecting API keys where others tokens or private keys.
+Any optional keyword argument will be passed further in the wrapped library.
+
+:param name: Name of the engine.
+:param secret: Authenticate with a string/file/object secret directly.
+:param vault: Specify the Vault storage `name` and secret `key` in order to
+    authenticate. ('name:key' or {name: key} formats are supported)
+
+**How secret resolution works**
+
+When `vault` is passed in, the corresponding Vault is retrieved and the value
+belonging to specified field is returned as a secret. If a `secret` is used,
+then this value is returned as it is if this isn't a path pointing to the file
+holding the value to be returned. We'll be relying on environment variables in
+the absence of both the `secret` and `vault`.
+
+Expected secret value formats:
+
+- google: `&lt;json-service/token&gt;` (``RPA.Cloud.Google.Init Document AI``)
+- base64ai: `&lt;e-mail&gt;,&lt;api-key&gt;`
+  (``RPA.DocumentAI.Base64AI.Set Authorization``)
+- nanonets: `&lt;api-key&gt;` (``RPA.DocumentAI.Nanonets.Set Authorization``)
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Init Base64
+        Init Engine    base64ai    vault=document_ai:base64ai
+
+**Example: Python**
+
+.. code-block:: python
+
+    from RPA.DocumentAI import DocumentAI
+    from RPA.Robocorp.Vault import Vault
+
+    lib_docai = DocumentAI()
+    mail_apikey = Vault().get_secret("document_ai")["base64ai"]
+    lib_docai.init_engine("base64ai", secret=mail_apikey)</doc>
+<shortdoc>Initialize the engine you want to scan documents with.</shortdoc>
+</kw>
+<kw name="Predict" lineno="392">
+<arguments repr="location: Path | str, model: str | List[str] | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="location: Path | str">
+<name>location</name>
+<type name="Union" union="true">Path | str<type name="Path" typedoc="Path">Path</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="model: str | List[str] | None = None">
+<name>model</name>
+<type name="Union" union="true">str | List[str] | None<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Scan a document with the currently active engine and store the result
+internally for a later retrieval.
+
+Based on the selected engine, this wraps a chain of libraries until calling a
+service API in the end, where the passed file is analyzed. Any optional keyword
+argument will be passed further in the wrapped library. (some engines require
+mandatory parameters like project ID or region)
+
+:param location: Path to a local file or URL address of a remote one. (not all
+    engines work with URLs)
+:param model: Model name(s) to scan with. (some engines guess the model if
+    not specified)
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Document AI Base64
+        [Setup]    Init Base64
+        Predict    https://site.com/path/to/invoice.png
+
+**Example: Python**
+
+.. code-block:: python
+
+    lib_docai.predict("local/path/to/invoice.png", model="finance/invoice")</doc>
+<shortdoc>Scan a document with the currently active engine and store the result internally for a later retrieval.</shortdoc>
+</kw>
+<kw name="Switch Engine" lineno="265">
+<arguments repr="name: EngineName | str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: EngineName | str">
+<name>name</name>
+<type name="Union" union="true">EngineName | str<type name="EngineName" typedoc="EngineName">EngineName</type><type name="str" typedoc="string">str</type></type>
+</arg>
+</arguments>
+<doc>Switch between already initialized engines.
+
+Use this to jump between engines when scanning with multiple of them.
+
+:param name: Name of the engine to be set as active. (choose between: google, base64ai, nanonets)
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Document AI All
+        @{engines} =    Create List     base64ai    nanonets
+        FOR    ${engine}    IN    @{engines}
+            Switch Engine    ${engine}
+            Log    Scanning with engine: ${engine}...
+            Predict    invoice.png
+            ${data} =    Get Result
+            Log List    ${data}
+        END
+
+**Example: Python**
+
+.. code-block:: python
+
+    lib_docai.switch_engine("base64ai")
+    lib_docai.predict("invoice.png")</doc>
+<shortdoc>Switch between already initialized engines.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="EngineName">
+<doc>Supported engines to process documents with.</doc>
+<members>
+<member name="GOOGLE" value="google"/>
+<member name="BASE64" value="base64ai"/>
+<member name="NANONETS" value="nanonets"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Get Result</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Init Engine</usage>
+</usages>
+</type>
+<type name="EngineName" type="Enum">
+<doc>Supported engines to process documents with.</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Init Engine</usage>
+<usage>Switch Engine</usage>
+</usages>
+<members>
+<member name="GOOGLE" value="google"/>
+<member name="BASE64" value="base64ai"/>
+<member name="NANONETS" value="nanonets"/>
+</members>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Init Engine</usage>
+<usage>Predict</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Init Engine</usage>
+<usage>Predict</usage>
+</usages>
+</type>
+<type name="Path" type="Standard">
+<doc>Strings are converted [https://docs.python.org/library/pathlib.html|Path] objects.
+On Windows ``/`` is converted to ``\`` automatically.
+
+Examples: ``/tmp/absolute/path``, ``relative/path/to/file.ext``, ``name.txt``
+</doc>
+<accepts>
+<type>string</type>
+<type>PurePath</type>
+</accepts>
+<usages>
+<usage>Init Engine</usage>
+<usage>Predict</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Init Engine</usage>
+<usage>Predict</usage>
+<usage>Switch Engine</usage>
+</usages>
+</type>
+<type name="tuple" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#tuple|tuple]
+literals. They are converted to actual tuples using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+tuples and other containers.
+
+If the type has nested types like ``tuple[str, int, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``('one', 'two')``, ``(('one', 1), ('two', 2))``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Init Engine</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

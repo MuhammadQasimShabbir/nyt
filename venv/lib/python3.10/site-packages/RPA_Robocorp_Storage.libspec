@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Robocorp.Storage" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:07+00:00" specversion="5" source="./RPA/Robocorp/Storage.py" lineno="8">
+<version/>
+<doc>Control Room `Asset Storage` library operating with the cloud built-in key-value
+store.
+
+Library requires at the minimum `rpaframework` version **24.0.0**.
+
+**Usage**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Manage Assets
+        @{assets} =    List Assets
+        Log List    ${assets}
+
+        Set Text Asset    my-asset    My string asset value
+        ${value} =      Get Text Asset       my-asset
+        Log     Asset value: ${value}
+
+        Delete Asset    my-asset
+
+.. code-block:: python
+
+    import logging
+    from RPA.Robocorp.Storage import Storage
+
+    storage = Storage()
+
+    def manage_assets():
+        assets = storage.list_assets()
+        logging.info(assets)
+
+        storage.set_text_asset("my-asset", "My string asset value")
+        value = storage.get_text_asset("my-asset")
+        logging.info("Asset value: %s", value)
+
+        storage.delete_asset("my-asset")
+
+**Caveats**
+
+Currently, there's no local file adapter support, therefore you need to be linked
+to Control Room and connected to a Workspace in VSCode before being able to develop
+locally robots using this functionality.
+
+While the content type can be controlled (during bytes and file setting), it is
+currently disabled in this version of the library for simplicity reasons.</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Delete Asset" lineno="302">
+<arguments repr="name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Delete an asset by providing its `name`.
+
+This operation cannot be undone.
+
+:param name: Name of the asset to delete
+:raises AssetNotFound: Asset with the given name does not exist
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Remove An Asset
+        Delete Asset    my-asset
+
+**Example: Python**
+
+.. code-block:: python
+
+    def remove_an_asset():
+        storage.delete_asset("my-asset")</doc>
+<shortdoc>Delete an asset by providing its `name`.</shortdoc>
+</kw>
+<kw name="Get Bytes Asset" lineno="113">
+<arguments repr="name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get the asset's bytes value by providing its `name`.
+
+:param name: Name of the asset
+:raises AssetNotFound: Asset with the given name does not exist
+:returns: The current value of this asset as bytes
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Retrieve An Asset
+        ${value} =      Get Bytes Asset       my-bytes-asset
+        Log     Asset bytes value: ${value}
+
+**Example: Python**
+
+.. code-block:: python
+
+    def retrieve_an_asset():
+        value = storage.get_bytes_asset("my-bytes-asset")
+        print(b"Asset bytes value:", value)</doc>
+<shortdoc>Get the asset's bytes value by providing its `name`.</shortdoc>
+</kw>
+<kw name="Get File Asset" lineno="273">
+<arguments repr="name: str, path: str, overwrite: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Get the asset's content saved to disk by providing its `name`.
+
+:param name: Name of the asset
+:param path: Destination path to the downloaded file
+:param overwrite: Replace destination file if it already exists (default False)
+:raises AssetNotFound: Asset with the given name does not exist
+:returns: A local path pointing to the retrieved file
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Retrieve An Asset
+        ${path} =      Get File Asset       my-file-asset    report.pdf
+        Log     Asset file path: ${path}
+
+**Example: Python**
+
+.. code-block:: python
+
+    def retrieve_an_asset():
+        path = storage.get_file_asset("my-file-asset", "report.pdf")
+        print("Asset file path:", path)</doc>
+<shortdoc>Get the asset's content saved to disk by providing its `name`.</shortdoc>
+</kw>
+<kw name="Get JSON Asset" lineno="220">
+<arguments repr="name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get the asset's dictionary value by providing its `name`.
+
+:param name: Name of the asset
+:raises AssetNotFound: Asset with the given name does not exist
+:returns: The current value of this asset as a dictionary
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Retrieve An Asset
+        &amp;{value} =      Get JSON Asset       my-json-asset
+        Log     Asset dictionary value: ${value}
+
+**Example: Python**
+
+.. code-block:: python
+
+    def retrieve_an_asset():
+        value = storage.get_json_asset("my-json-asset")
+        print("Asset dictionary value:", value)</doc>
+<shortdoc>Get the asset's dictionary value by providing its `name`.</shortdoc>
+</kw>
+<kw name="Get Text Asset" lineno="165">
+<arguments repr="name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get the asset's text value by providing its `name`.
+
+:param name: Name of the asset
+:raises AssetNotFound: Asset with the given name does not exist
+:returns: The current value of this asset as text
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Retrieve An Asset
+        ${value} =      Get Text Asset       my-text-asset
+        Log     Asset text value: ${value}
+
+**Example: Python**
+
+.. code-block:: python
+
+    def retrieve_an_asset():
+        value = storage.get_text_asset("my-text-asset")
+        print("Asset text value:", value)</doc>
+<shortdoc>Get the asset's text value by providing its `name`.</shortdoc>
+</kw>
+<kw name="List Assets" lineno="60">
+<arguments repr="">
+</arguments>
+<doc>List all the existing assets.
+
+:returns: A list of available assets' names
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Print All Assets
+        @{assets} =    List Assets
+        Log List    ${assets}
+
+**Example: Python**
+
+.. code-block:: python
+
+    def print_all_assets():
+        print(storage.list_assets())</doc>
+<shortdoc>List all the existing assets.</shortdoc>
+</kw>
+<kw name="Set Bytes Asset" lineno="84">
+<arguments repr="name: str, value: bytes, wait: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: bytes">
+<name>value</name>
+<type name="bytes" typedoc="bytes">bytes</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wait: bool = True">
+<name>wait</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Creates or updates an asset named `name` with the provided bytes `value`.
+
+:param name: Name of the existing or new asset to create (if missing)
+:param value: The new bytes value to set within the asset
+:param wait: Wait for the value to be set successfully
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Set An Asset
+        ${random_bytes} =      Evaluate    os.urandom(10)      modules=os
+        Set Bytes Asset    my-bytes-asset    ${random_bytes}
+
+**Example: Python**
+
+.. code-block:: python
+
+    import os
+
+    def set_an_asset():
+        random_bytes = os.urandom(10)
+        storage.set_bytes_asset("my-bytes-asset", random_bytes)</doc>
+<shortdoc>Creates or updates an asset named `name` with the provided bytes `value`.</shortdoc>
+</kw>
+<kw name="Set File Asset" lineno="247">
+<arguments repr="name: str, path: str, wait: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wait: bool = True">
+<name>wait</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Creates or updates an asset named `name` with the content of the given
+`path` file.
+
+:param name: Name of the existing or new asset to create (if missing)
+:param path: The file path whose content to be set within the asset
+:param wait: Wait for the value to be set successfully
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Set An Asset
+        Set File Asset    my-file-asset      report.pdf
+
+**Example: Python**
+
+.. code-block:: python
+
+    def set_an_asset():
+        storage.set_file_asset("my-file-asset", "report.pdf")</doc>
+<shortdoc>Creates or updates an asset named `name` with the content of the given `path` file.</shortdoc>
+</kw>
+<kw name="Set JSON Asset" lineno="192">
+<arguments repr="name: str, value: Dict, wait: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: Dict">
+<name>value</name>
+<type name="Dict" typedoc="dictionary">Dict</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wait: bool = True">
+<name>wait</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Creates or updates an asset named `name` with the provided dictionary
+`value`.
+
+:param name: Name of the existing or new asset to create (if missing)
+:param value: The new dictionary value to set within the asset
+:param wait: Wait for the value to be set successfully
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Set An Asset
+        &amp;{entries} =    Create Dictionary   dogs    ${10}
+        Set JSON Asset    my-json-asset    ${entries}
+
+**Example: Python**
+
+.. code-block:: python
+
+    def set_an_asset():
+        entries = {"dogs": 10}
+        storage.set_json_asset("my-json-asset", entries)</doc>
+<shortdoc>Creates or updates an asset named `name` with the provided dictionary `value`.</shortdoc>
+</kw>
+<kw name="Set Text Asset" lineno="140">
+<arguments repr="name: str, value: str, wait: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: str">
+<name>value</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wait: bool = True">
+<name>wait</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Creates or updates an asset named `name` with the provided text `value`.
+
+:param name: Name of the existing or new asset to create (if missing)
+:param value: The new text value to set within the asset
+:param wait: Wait for the value to be set successfully
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Set An Asset
+        Set Text Asset    my-text-asset    My asset value as text
+
+**Example: Python**
+
+.. code-block:: python
+
+    def set_an_asset():
+        storage.set_text_asset("my-text-asset", "My asset value as text")</doc>
+<shortdoc>Creates or updates an asset named `name` with the provided text `value`.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Get File Asset</usage>
+<usage>Set Bytes Asset</usage>
+<usage>Set File Asset</usage>
+<usage>Set JSON Asset</usage>
+<usage>Set Text Asset</usage>
+</usages>
+</type>
+<type name="bytes" type="Standard">
+<doc>Strings are converted to bytes so that each Unicode code point
+below 256 is directly mapped to a matching byte. Higher code
+points are not allowed. Robot Framework's ``\xHH`` escape syntax is
+convenient with bytes having non-printable values.
+
+Examples: ``good``, ``hyvä`` (same as ``hyv\xE4``), ``\x00`` (the null byte)
+</doc>
+<accepts>
+<type>string</type>
+<type>bytearray</type>
+</accepts>
+<usages>
+<usage>Set Bytes Asset</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Set JSON Asset</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Delete Asset</usage>
+<usage>Get Bytes Asset</usage>
+<usage>Get File Asset</usage>
+<usage>Get JSON Asset</usage>
+<usage>Get Text Asset</usage>
+<usage>Set Bytes Asset</usage>
+<usage>Set File Asset</usage>
+<usage>Set JSON Asset</usage>
+<usage>Set Text Asset</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

@@ -1,0 +1,4 @@
+[console_scripts]
+rpa-crypto=RPA.scripts.crypto:main
+use-robocorp-vault=RPA.scripts.robocorp_cloud:main
+

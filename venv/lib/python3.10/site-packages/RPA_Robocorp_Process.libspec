@@ -1,0 +1,900 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Robocorp.Process" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:07+00:00" specversion="5" source="./RPA/Robocorp/Process.py" lineno="42">
+<version/>
+<doc>A library for interacting with Control Room (CR) Process API endpoints.
+
+See `Unattended processes`_ for information about process run, step run and work
+item states.
+
+See `APIs and webhooks`_ for information about Control Room APIs.
+
+The Process API endpoint is defined by `RC_API_PROCESS_HOST` environment variable,
+which is available during Robocorp Workforce Agent runs.
+
+.. _Unattended processes: https://robocorp.com/docs/control-room/unattended
+.. _APIs and webhooks: https://robocorp.com/docs/control-room/apis-and-webhooks
+
+**Examples**
+
+**Robot Framework**
+
+In the following example a task creates two input work items,
+and starts a process with those items. This results in 2 different
+process runs in the Control Room.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Robocorp.Process
+    Library    RPA.Robocorp.Vault
+
+    *** Keywords ***
+    Initialize Process Library
+        ${secrets}=  Get Secret  ProcessAPI
+        Set Credentials
+        ...   ${secrets}[workspace_id]
+        ...   ${secrets}[process_id]
+        ...   ${secrets}[apikey]
+
+    *** Tasks ***
+    Start process with work items
+        [Setup]   Initialize Process Library
+        &amp;{item1}=  Create Dictionary  fname=Mark  lname=Monkey
+        &amp;{item2}=  Create Dictionary  fname=John  lname=Doe
+        @{items}=  Create List  ${item1}   ${item2}
+        Start Process  work_items=${items}  batch=True
+
+**Robot Framework**
+
+In the following example a task creates work item with files.
+To include files in a work item, the item needs to be created
+before starting the process (note. different start keyword than above).
+
+In this example I am using same keywords and settings from above example.
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Start process with work items
+        [Setup]   Initialize Process Library
+        &amp;{data}=  Create Dictionary  fname=Mark  lname=Monkey
+        @{files}=  Create List
+        ...   ${CURDIR}${/}workdata.xlsx
+        ...   ${CURDIR}${/}other.csv
+        ${item_id}=    Create Input Work Item
+        ...   payload=${data}
+        ...   files=${files}
+        Start Configured Process
+        ...  config_type=work_items
+        ...  extra_info=${item_id}
+
+Download from process runs artifacts all matching files
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library      RPA.Robocorp.Process
+    Library      RPA.Robocorp.Vault
+    Library      RPA.HTTP
+    Task Setup   Set Control Room Variables
+
+    *** Keywords ***
+    Download Artifacts Matching
+        [Arguments]   ${filematch}
+        @{workitems}=   List Process Work Items
+        FOR  ${item}  IN  @{workitems}
+            @{artifacts}=   List Run Artifacts
+            ...  process_run_id=${item}[processRunId]
+            ...  step_run_id=${item}[activityRunId]
+            FOR  ${artifact}  IN  @{artifacts}
+                IF  "${filematch}"  IN   "${artifact}[fileName]"
+                    ${download_link}=   Get Robot Run Artifact
+                    ...  process_run_id=${item}[processRunId]
+                    ...  step_run_id=${item}[activityRunId]
+                    ...  artifact_id=${artifact}[id]
+                    ...  filename=${artifact}[fileName]
+                    Download
+                    ...  url=${download_link}
+                    ...  target=%{ROBOT_ARTIFACTS}${/}${artifact}[fileName]
+                    ...  overwrite=${TRUE}
+                    ...  stream=${TRUE}
+                END
+            END
+        END
+
+**Python**
+
+List work items in Control Room and retry failed items.
+
+.. code-block:: python
+
+    from RPA.Robocorp.Process import Process
+    from RPA.Robocorp.Vault import Vault
+
+    secrets = Vault().get_secret("ProcessAPI")
+    process = Process(
+        secrets["workspace_id"],
+        secrets["process_id"],
+        secrets["apikey"]
+    )
+
+
+    def retry_failed_items():
+        items = process.list_process_work_items()
+        for item in items:
+            if item["state"] == "FAILED":
+                print("FAILED work item: %s" % item["id"])
+                result = process.retry_work_item(item["id"])
+                print(result)
+
+    if __name__ == "__main__":
+        retry_failed_items()
+
+Download from process runs artifacts all ".xlsx" files
+
+.. code-block:: python
+
+    from RPA.Robocorp.Process import Process
+    from RPA.HTTP import HTTP
+
+    def download_artifacts_matching(filematch=".xlsx"):
+        work_items = process.list_process_work_items()
+        for item in work_items:
+            artifacts = process.list_run_artifacts(
+                process_run_id=item["processRunId"],
+                step_run_id=item["activityRunId"]
+            )
+            for artifact in artifacts:
+                if filematch in artifact["fileName"]:
+                    download_link = process.get_robot_run_artifact(
+                        process_run_id=item["processRunId"],
+                        step_run_id=item["activityRunId"],
+                        artifact_id=artifact["id"],
+                        filename=artifact["fileName"]
+                    )
+                    target_filepath = os.path.join(
+                        os.getenv("ROBOT_ARTIFACTS"),
+                        f"{artifact['fileName']}"
+                    )
+                    HTTP().download(
+                        url=download_link,
+                        target_file=target_filepath,
+                        overwrite=True,
+                        stream=True
+                    )</doc>
+<tags>
+<tag>artifacts</tag>
+<tag>get</tag>
+<tag>post</tag>
+<tag>process</tag>
+<tag>retry</tag>
+<tag>runs</tag>
+<tag>set</tag>
+<tag>start</tag>
+<tag>work item</tag>
+</tags>
+<inits>
+<init name="__init__" lineno="211">
+<arguments repr="workspace_id: str | None = None, process_id: str | None = None, workspace_api_key: str | None = None, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="workspace_id: str | None = None">
+<name>workspace_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="workspace_api_key: str | None = None">
+<name>workspace_api_key</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Create Input Work Item" lineno="370">
+<arguments repr="payload: Any | None = None, files: str | List | None = None, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="payload: Any | None = None">
+<name>payload</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="files: str | List | None = None">
+<name>files</name>
+<type name="Union" union="true">str | List | None<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Create an input work item for a process
+
+:param payload: work item data
+:param files: absolute filepaths as single string or list
+:param process_id: specific process to which item belongs to
+:return: The integer that represents the work item id</doc>
+<shortdoc>Create an input work item for a process</shortdoc>
+<tags>
+<tag>post</tag>
+<tag>process</tag>
+<tag>work item</tag>
+</tags>
+</kw>
+<kw name="Get Process Id By Name" lineno="612">
+<arguments repr="process_name: str, workspace_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_name: str">
+<name>process_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="workspace_id: str | None = None">
+<name>workspace_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get a process id of the process by name
+
+:param process_name: name of the process in the Control Room
+:param workspace_id: specific Control Room workspace to which process belongs to
+:return: the next iteration id or None</doc>
+<shortdoc>Get a process id of the process by name</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+</tags>
+</kw>
+<kw name="Get Process Run Status" lineno="588">
+<arguments repr="process_run_id: str, step_run_id: str | None = None, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_run_id: str">
+<name>process_run_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="step_run_id: str | None = None">
+<name>step_run_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get a process run status by run id
+
+:param process_run_id: id of the process run
+:param step_run_id: id of the process step run
+:param process_id: specific process to which runs belongs to
+:return: the response JSON</doc>
+<shortdoc>Get a process run status by run id</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+<tag>runs</tag>
+</tags>
+</kw>
+<kw name="Get Robot Run Artifact" lineno="668">
+<arguments repr="process_run_id: str, step_run_id: str, artifact_id: str, filename: str, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_run_id: str">
+<name>process_run_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="step_run_id: str">
+<name>step_run_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="artifact_id: str">
+<name>artifact_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get a download URL for a process run artifact
+
+:param process_run_id: id of the process run
+:param step_run_id: id of the process step run
+:param artifact_id: id of the run artifact
+:param filename: filename of the run artifact
+:param process_id: specific process to which runs belongs to
+:return: url for file download</doc>
+<shortdoc>Get a download URL for a process run artifact</shortdoc>
+<tags>
+<tag>artifacts</tag>
+<tag>get</tag>
+<tag>process</tag>
+<tag>runs</tag>
+</tags>
+</kw>
+<kw name="Get Work Item" lineno="511">
+<arguments repr="workitem_id: str, include_data: bool = False, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="workitem_id: str">
+<name>workitem_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="include_data: bool = False">
+<name>include_data</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get work item from Control Room
+
+:param workitem_id: id of the work item
+:param include_data: include work item payload and files in
+ the response (default False)
+:param process_id: specific process to which runs belongs to
+:return: the JSON of the work items associated with a given process</doc>
+<shortdoc>Get work item from Control Room</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+<tag>work item</tag>
+</tags>
+</kw>
+<kw name="List Process Run Work Items" lineno="477">
+<arguments repr="process_run_id: str | None = None, process_id: str | None = None, include_data: bool = False, item_state: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_run_id: str | None = None">
+<name>process_run_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="include_data: bool = False">
+<name>include_data</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="item_state: str | None = None">
+<name>item_state</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>List work items belonging to a specific process run
+
+:param process_run_id: specific process step run to which items
+ belongs to
+:param process_id: specific process to which items belongs to
+:param include_data: include work item payload and files in
+ the response (default False)
+:param item_state: state of work items to return (default all)</doc>
+<shortdoc>List work items belonging to a specific process run</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+<tag>work item</tag>
+</tags>
+</kw>
+<kw name="List Process Runs" lineno="534">
+<arguments repr="run_state: str | None = None, limit: int | None = 10, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="run_state: str | None = None">
+<name>run_state</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="limit: int | None = 10">
+<name>limit</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>10</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>List of runs related to a process
+
+:param run_state: state of runs to return (default all)
+:param limit: number of runs to return (default 10)
+:param process_id: specific process to which runs belongs to
+:return: the JSON data of the process runs based on the provided parameters</doc>
+<shortdoc>List of runs related to a process</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+<tag>runs</tag>
+</tags>
+</kw>
+<kw name="List Process Runs In Workspace" lineno="561">
+<arguments repr="run_state: str | None = None, limit: int | None = 10, workspace_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="run_state: str | None = None">
+<name>run_state</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="limit: int | None = 10">
+<name>limit</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>10</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="workspace_id: str | None = None">
+<name>workspace_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>List all process runs in a workspace
+
+:param run_state: state of runs to return (default all)
+:param limit: number of runs to return (default 10)
+:param workspace_id: specific Control Room workspace to which process belongs to
+:return: the JSON data of the process runs based on the provided parameters</doc>
+<shortdoc>List all process runs in a workspace</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+<tag>runs</tag>
+</tags>
+</kw>
+<kw name="List Process Work Items" lineno="449">
+<arguments repr="process_id: str | None = None, include_data: bool = False, item_state: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="include_data: bool = False">
+<name>include_data</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="item_state: str | None = None">
+<name>item_state</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>List work items belonging to a process
+
+:param include_data: include work item payload and files in
+ the response (default False)
+:param item_state: state of work items to return (default all)
+:param process_id: specific process to which items belongs to
+:return: the JSON data of the process runs based on the provided parameters</doc>
+<shortdoc>List work items belonging to a process</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+<tag>work item</tag>
+</tags>
+</kw>
+<kw name="List Processes" lineno="435">
+<arguments repr="workspace_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="workspace_id: str | None = None">
+<name>workspace_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>List all processes in a workspace
+
+:param workspace_id: specific Control Room workspace to which process belongs to
+:return: the JSON data of the process runs based on the provided parameters</doc>
+<shortdoc>List all processes in a workspace</shortdoc>
+<tags>
+<tag>get</tag>
+<tag>process</tag>
+</tags>
+</kw>
+<kw name="List Run Artifacts" lineno="644">
+<arguments repr="process_run_id: str, step_run_id: str, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_run_id: str">
+<name>process_run_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="step_run_id: str">
+<name>step_run_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>List Robot run artifacts
+
+:param process_run_id: id of the process run
+:param step_run_id: id of the process step run
+:param process_id: specific process to which runs belongs to
+:return: the response JSON</doc>
+<shortdoc>List Robot run artifacts</shortdoc>
+<tags>
+<tag>artifacts</tag>
+<tag>get</tag>
+<tag>process</tag>
+<tag>runs</tag>
+</tags>
+</kw>
+<kw name="Retry Work Item" lineno="625">
+<arguments repr="work_item_id: str, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="work_item_id: str">
+<name>work_item_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Retry processing of work item in FAILED state
+
+:param work_item_id: ID of the work item to retry
+:param process_id: specific process to start
+:return: the response JSON</doc>
+<shortdoc>Retry processing of work item in FAILED state</shortdoc>
+<tags>
+<tag>post</tag>
+<tag>process</tag>
+<tag>retry</tag>
+<tag>work item</tag>
+</tags>
+</kw>
+<kw name="Set Apikey" lineno="260">
+<arguments repr="apikey: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="apikey: str | None = None">
+<name>apikey</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set Workspace API access key
+
+:param apikey: workspace API access key</doc>
+<shortdoc>Set Workspace API access key</shortdoc>
+<tags>
+<tag>set</tag>
+</tags>
+</kw>
+<kw name="Set Credentials" lineno="269">
+<arguments repr="workspace_id: str | None = None, process_id: str | None = None, apikey: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="workspace_id: str | None = None">
+<name>workspace_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="apikey: str | None = None">
+<name>apikey</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set credentials needed by the Process API
+
+:param workspace_id: ID of the Control Room workspace
+:param process_id: ID of the Control Room process
+:param apikey: workspace API access key</doc>
+<shortdoc>Set credentials needed by the Process API</shortdoc>
+<tags>
+<tag>set</tag>
+</tags>
+</kw>
+<kw name="Set Process Id" lineno="251">
+<arguments repr="process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set Control Room process ID
+
+:param process_id: ID of the Control Room process</doc>
+<shortdoc>Set Control Room process ID</shortdoc>
+<tags>
+<tag>set</tag>
+</tags>
+</kw>
+<kw name="Set Workspace Id" lineno="242">
+<arguments repr="workspace_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="workspace_id: str | None = None">
+<name>workspace_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set Control Room workspace ID
+
+:param workspace_id: ID of the Control Room workspace</doc>
+<shortdoc>Set Control Room workspace ID</shortdoc>
+<tags>
+<tag>set</tag>
+</tags>
+</kw>
+<kw name="Start Configured Process" lineno="340">
+<arguments repr="config_type: ConfigurationType = default, extra_info: str | List | None = None, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="config_type: ConfigurationType = default">
+<name>config_type</name>
+<type name="ConfigurationType" typedoc="ConfigurationType">ConfigurationType</type>
+<default>default</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="extra_info: str | List | None = None">
+<name>extra_info</name>
+<type name="Union" union="true">str | List | None<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Start a Control Room process with the provided configuration
+
+:param config_type: type of the start, (ConfigurationType.default)
+:param extra_info: data to be sent with the start, for example. work item IDs
+:param process_id: specific process to start
+:return: string of the request response</doc>
+<shortdoc>Start a Control Room process with the provided configuration</shortdoc>
+<tags>
+<tag>post</tag>
+<tag>process</tag>
+<tag>start</tag>
+<tag>work item</tag>
+</tags>
+</kw>
+<kw name="Start Process" lineno="302">
+<arguments repr="work_items: Dict | List[Dict] | None = None, batch: bool = False, process_id: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="work_items: Dict | List[Dict] | None = None">
+<name>work_items</name>
+<type name="Union" union="true">Dict | List[Dict] | None<type name="Dict" typedoc="dictionary">Dict</type><type name="List" typedoc="list">List[Dict]<type name="Dict" typedoc="dictionary">Dict</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="batch: bool = False">
+<name>batch</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="process_id: str | None = None">
+<name>process_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Start a Control Room process
+
+:param work_items: input work items for the process (default empty)
+:param batch: set to True if sending list of workitems to start each
+ as a separate run
+:param process_id: specific process to start
+:return: JSON of the request response
+
+Table showing different results depending on parameter
+values.
+
+========== ====== =======
+work_items batch  result
+========== ====== =======
+None       False  Trigger a process with empty a work item
+None       True   Error. work_items needs to be a list
+dict       False  Trigger a process with a work item containing payload of a dict
+dict       True   Error. work_items needs to be a list
+list       False  Trigger a process with a work item containing payload of a list
+list       True   Trigger multiple process runs with work items each containing payload of a dict
+========== ====== =======</doc>
+<shortdoc>Start a Control Room process</shortdoc>
+<tags>
+<tag>post</tag>
+<tag>process</tag>
+<tag>start</tag>
+<tag>work item</tag>
+</tags>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="ConfigurationType">
+<doc>Possible configuration types</doc>
+<members>
+<member name="default" value="default"/>
+<member name="work_items" value="workItemIds"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Create Input Work Item</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Get Work Item</usage>
+<usage>List Process Run Work Items</usage>
+<usage>List Process Work Items</usage>
+<usage>Start Process</usage>
+</usages>
+</type>
+<type name="ConfigurationType" type="Enum">
+<doc>Possible configuration types</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Start Configured Process</usage>
+</usages>
+<members>
+<member name="default" value="default"/>
+<member name="work_items" value="workItemIds"/>
+</members>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Start Process</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>List Process Runs</usage>
+<usage>List Process Runs In Workspace</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Create Input Work Item</usage>
+<usage>Start Configured Process</usage>
+<usage>Start Process</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Create Input Work Item</usage>
+<usage>Get Process Id By Name</usage>
+<usage>Get Process Run Status</usage>
+<usage>Get Robot Run Artifact</usage>
+<usage>Get Work Item</usage>
+<usage>List Process Run Work Items</usage>
+<usage>List Process Runs</usage>
+<usage>List Process Runs In Workspace</usage>
+<usage>List Process Work Items</usage>
+<usage>List Processes</usage>
+<usage>List Run Artifacts</usage>
+<usage>Retry Work Item</usage>
+<usage>Set Apikey</usage>
+<usage>Set Credentials</usage>
+<usage>Set Process Id</usage>
+<usage>Set Workspace Id</usage>
+<usage>Start Configured Process</usage>
+<usage>Start Process</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Create Input Work Item</usage>
+<usage>Get Process Id By Name</usage>
+<usage>Get Process Run Status</usage>
+<usage>Get Robot Run Artifact</usage>
+<usage>Get Work Item</usage>
+<usage>List Process Run Work Items</usage>
+<usage>List Process Runs</usage>
+<usage>List Process Runs In Workspace</usage>
+<usage>List Process Work Items</usage>
+<usage>List Processes</usage>
+<usage>List Run Artifacts</usage>
+<usage>Retry Work Item</usage>
+<usage>Set Apikey</usage>
+<usage>Set Credentials</usage>
+<usage>Set Process Id</usage>
+<usage>Set Workspace Id</usage>
+<usage>Start Configured Process</usage>
+<usage>Start Process</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.DocumentAI.Base64AI" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/DocumentAI/Base64AI.py" lineno="16">
+<version/>
+<doc>Library to support `Base64.ai &lt;https://base64.ai/&gt;`_ service for intelligent
+document processing (IDP).
+
+Library requires at the minimum `rpaframework` version **19.0.0**.
+
+Service supports identifying fields in the documents, which can be given to the
+service in multiple different file formats and via URL.
+
+**Robot Framework example usage**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library   RPA.DocumentAI.Base64AI
+    Library   RPA.Robocorp.Vault
+
+    *** Tasks ***
+    Identify document
+        ${secrets}=   Get Secret  base64ai-auth
+        Set Authorization  ${secrets}[email-address]   ${secrets}[apikey]
+        ${results}=  Scan Document File
+        ...   ${CURDIR}${/}invoice.pdf
+        ...   model_types=finance/check/usa,finance/invoice/usa
+        # Scan response contains list of detected models in the document
+        FOR  ${result}  IN  @{results}
+            Log To Console  Model: ${result}[model]
+            Log To Console  Field keys: ${{','.join($result['fields'].keys())}}
+            Log To Console  Fields: ${result}[fields]
+            Log To Console  Text (OCR): ${result}[ocr]
+        END
+
+
+**Python example usage**
+
+.. code-block:: python
+
+    from RPA.DocumentAI.Base64AI import Base64AI
+    from RPA.Robocorp.Vault import Vault
+
+    secrets = Vault().get_secret("base64ai-auth")
+    baselib = Base64AI()
+    baselib.set_authorization(secrets["email-address"], secrets["apikey"])
+    result = baselib.scan_document_file(
+        "invoice.pdf",
+        model_types="finance/invoice,finance/check/usa",
+    )
+    for r in result:
+        print(f"Model: {r['model']}")
+        for key, props in r["fields"].items():
+            print(f"FIELD {key}: {props['value']}")
+        print(f"Text (OCR): {r['ocr']}")
+
+Portal example: https://github.com/robocorp/example-idp-base64</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Filter Matching Signatures" lineno="379">
+<arguments repr="match_response: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None, confidence_threshold: float = 0.8, similarity_threshold: float = 0.8">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="match_response: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<name>match_response</name>
+<type name="Union" union="true">Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None<type name="Dict" typedoc="dictionary">Dict[Hashable, str | int | float | bool | list | dict | None]<type name="Hashable">Hashable</type><type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="List" typedoc="list">List[str | int | float | bool | list | dict | None]<type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="confidence_threshold: float = 0.8">
+<name>confidence_threshold</name>
+<type name="float" typedoc="float">float</type>
+<default>0.8</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="similarity_threshold: float = 0.8">
+<name>similarity_threshold</name>
+<type name="float" typedoc="float">float</type>
+<default>0.8</default>
+</arg>
+</arguments>
+<doc>Gets through all the recognized signatures in the queried image and returns
+only the ones passing the confidence &amp; similarity thresholds.
+
+Additionally, this keyword simplifies the original input `match_response`
+structure and returns a dictionary with all the detected and accepted reference
+signatures as keys, and lists of similar enough query signatures as values.
+
+- Each reference signature (key) is a tuple of `(index, coordinates)`.
+- Each query signature (sub-value) is a dictionary of `{index, coords,
+  similarity}`.
+- The coordinates describe the bounding-box enclosing the detected signature
+  portion from the original image, as follows: `(left, top, right, bottom)`
+  corners.
+
+Use the original `match_response` object and the indexes from here if you need
+to retrieve extra details not found here (e.g. confidence score). Use the
+``Get Signature Image`` to save and preview the image crop belonging to the
+signature of choice.
+
+:param match_response: The raw JSON-like response retrieved with the
+    ``Get Matching Signatures`` keyword.
+:param confidence_threshold: The minimum accepted confidence score (0.0-1.0)
+    for a candidate to be considered a signature. (to avoid false-positives)
+:param similarity_threshold: The minimum accepted similarity score (0.0-1.0)
+    for a query signature to be considered an alike signature. (to discard
+    different or fraudulent signatures)
+:returns: A dictionary of accepted reference signatures and their similar ones
+    found in the queried image.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Match Signatures
+        &amp;{matches} =   Filter Matching Signatures      ${sigs}
+        Log Dictionary    ${matches}
+
+**Example: Python**
+
+.. code-block:: python
+
+    matches = lib.filter_matching_signatures(sigs)
+    print(matches)</doc>
+<shortdoc>Gets through all the recognized signatures in the queried image and returns only the ones passing the confidence &amp; similarity thresholds.</shortdoc>
+</kw>
+<kw name="Get Fields From Prediction Result" lineno="241">
+<arguments repr="prediction: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="prediction: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<name>prediction</name>
+<type name="Union" union="true">Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None<type name="Dict" typedoc="dictionary">Dict[Hashable, str | int | float | bool | list | dict | None]<type name="Hashable">Hashable</type><type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="List" typedoc="list">List[str | int | float | bool | list | dict | None]<type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+</arg>
+</arguments>
+<doc>Helper keyword to get found fields from a prediction result.
+For example see ``Scan Document File`` or ``Scan Document URL`` keyword.
+
+:param prediction: prediction result dictionary
+:return: list of found fields</doc>
+<shortdoc>Helper keyword to get found fields from a prediction result. For example see ``Scan Document File`` or ``Scan Document URL`` keyword.</shortdoc>
+</kw>
+<kw name="Get Matching Signatures" lineno="315">
+<arguments repr="reference_image: Path | str, query_image: Path | str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="reference_image: Path | str">
+<name>reference_image</name>
+<type name="Union" union="true">Path | str<type name="Path" typedoc="Path">Path</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="query_image: Path | str">
+<name>query_image</name>
+<type name="Union" union="true">Path | str<type name="Path" typedoc="Path">Path</type><type name="str" typedoc="string">str</type></type>
+</arg>
+</arguments>
+<doc>Returns a list of matching signatures found from the reference into the
+queried image.
+
+The input images can be paths to the files or URLs.
+
+The output JSON-like dictionary contains all the details from the API, like the
+detected signatures in both the reference and query image and for every such
+signature, its bounding-box geometry, confidence and similarity score.
+Use the ``Filter Matching Signatures`` over this value to get a simpler
+structure.
+
+:param reference_image: The reference image (jpg/png) to check query signatures
+    against. (e.g. driving license, ID card)
+:param query_image: The query image containing signatures similar to the ones
+    from the reference image. (e.g. signed contract, bank check)
+:returns: A JSON-like dictionary revealing recognized signatures and how much
+    they resemble with each other.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Match Signatures
+        ${ref_image} =  Set Variable    driving-license.jpg
+        ${query_image} =  Set Variable    signed-check.png
+        ${sigs} =   Get Matching Signatures     ${ref_image}    ${query_image}
+
+**Example: Python**
+
+.. code-block:: python
+
+    from RPA.DocumentAI.Base64AI import Base64AI
+
+    lib = Base64AI()
+    sigs = lib.get_matching_signatures(
+        "driving-license.jpg", "signed-check.png"
+    )
+
+Portal example: https://github.com/robocorp/example-signature-match-assistant</doc>
+<shortdoc>Returns a list of matching signatures found from the reference into the queried image.</shortdoc>
+</kw>
+<kw name="Get Signature Image" lineno="475">
+<arguments repr="match_response: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None, *, index: int, reference: bool = False, path: Path | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="match_response: Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None">
+<name>match_response</name>
+<type name="Union" union="true">Dict[Hashable, str | int | float | bool | list | dict | None] | List[str | int | float | bool | list | dict | None] | str | int | float | bool | list | dict | None<type name="Dict" typedoc="dictionary">Dict[Hashable, str | int | float | bool | list | dict | None]<type name="Hashable">Hashable</type><type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="List" typedoc="list">List[str | int | float | bool | list | dict | None]<type name="Union" union="true">str | int | float | bool | list | dict | None<type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type></type><type name="str" typedoc="string">str</type><type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type><type name="bool" typedoc="boolean">bool</type><type name="list" typedoc="list">list</type><type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+</arg>
+<arg kind="NAMED_ONLY_MARKER" required="false" repr="*">
+</arg>
+<arg kind="NAMED_ONLY" required="true" repr="index: int">
+<name>index</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="NAMED_ONLY" required="false" repr="reference: bool = False">
+<name>reference</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="NAMED_ONLY" required="false" repr="path: Path | str | None = None">
+<name>path</name>
+<type name="Union" union="true">Path | str | None<type name="Path" typedoc="Path">Path</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Retrieves and saves locally the image cut belonging to the provided `index`.
+
+The image data itself is provided with the original `match_response` object as
+base64 encoded content. This utility keyword retrieves, decodes and saves it
+on the local disk customized with the `path` parameter. By default, the
+searched `index` is considered a query image, switch to the reference type by
+enabling it with the `reference` parameter.
+
+:param match_response: The raw JSON-like response retrieved with the
+    ``Get Matching Signatures`` keyword.
+:param index: The image ID (numeric) found along the coordinates in the output
+    of the ``Filter Matching Signatures`` keyword. (the list order is stable)
+:param reference: Set this to `True` if you're looking for a reference (not
+    query) image instead. (off by default)
+:param path: Set an explicit output path (including file name) for the locally
+    saved image. (uses the output directory as default)
+:returns: The image path of the locally saved file.
+
+**Example: Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Match Signatures
+        @{ref_sigs} =   Get Dictionary Keys    ${matches}
+        @{qry_sigs} =    Get From Dictionary    ${matches}    ${ref_sigs}[${0}]
+        &amp;{qry_sig} =    Set Variable    ${qry_sigs}[${0}]
+        ${path} =   Get Signature Image     ${sigs}     index=${qry_sig}[index]
+        Log To Console    Preview query signature image crop: ${path}
+
+**Example: Python**
+
+.. code-block:: python
+
+    qry_sig = list(matches.values())[0][0]
+    path = lib.get_signature_image(sigs, index=qry_sig["index"])
+    print("Preview query signature image crop: ", path)</doc>
+<shortdoc>Retrieves and saves locally the image cut belonging to the provided `index`.</shortdoc>
+</kw>
+<kw name="Get User Data" lineno="252">
+<arguments repr="">
+</arguments>
+<doc>Get user data including details on credits used and credits remaining
+for the Base64 service.
+
+Returned user data contains following keys:
+
+    - givenName
+    - familyName
+    - email
+    - hasWorkEmail
+    - companyName
+    - numberOfCredits
+    - numberOfPages
+    - numberOfUploads
+    - numberOfCreditsSpentOnDocuments (visible if used)
+    - numberOfCreditsSpentOnFaceDetection (visible if used)
+    - numberOfCreditsSpentOnFaceRecognition (visible if used)
+    - hasActiveAwsContract
+    - subscriptionType
+    - subscriptionPeriod
+    - tags
+    - ccEmails
+    - status
+    - remainingCredits (calculated by the keyword)
+
+:return: object containing details on the API user
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${userdata}=   Get User Data
+    Log To Console  I have still ${userdata}[remainingCredits] credits left
+
+Python example:
+
+.. code-block:: python
+
+    userdata = baselib.get_user_data()
+    print(f"I have still {userdata['remainingCredits']} credits left")</doc>
+<shortdoc>Get user data including details on credits used and credits remaining for the Base64 service.</shortdoc>
+</kw>
+<kw name="Scan Document File" lineno="154">
+<arguments repr="file_path: str, model_types: str | List[str] | None = None, mock: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="file_path: str">
+<name>file_path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="model_types: str | List[str] | None = None">
+<name>model_types</name>
+<type name="Union" union="true">str | List[str] | None<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="mock: bool = False">
+<name>mock</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Scan a document file. Can be given a ``model_types`` to
+specifically target certain models.
+
+:param file_path: filepath to the file
+:param model_types: single model type or list of model types
+:param mock: set to True to use /mock/scan endpoint instead of /scan
+:return: result of the document scan
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${results}=    Scan Document File
+    ...    ${CURDIR}${/}files${/}IMG_8277.jpeg
+    ...    model_types=finance/check/usa,finance/invoice
+    FOR    ${result}    IN    @{results}
+        Log To Console    Model: ${result}[model]
+        Log To Console    Fields: ${result}[fields]
+        Log To Console    Text (OCR): ${result}[ocr]
+    END
+
+Python example:
+
+.. code-block:: python
+
+    result = baselib.scan_document_file(
+        "./files/Invoice-1120.pdf",
+        model_types="finance/invoice,finance/check/usa",
+    )
+    for r in result:
+        print(f"Model: {r['model']}")
+        for key, val in r["fields"].items():
+            print(f"{key}: {val['value']}")
+        print(f"Text (OCR): {r['ocr']}")</doc>
+<shortdoc>Scan a document file. Can be given a ``model_types`` to specifically target certain models.</shortdoc>
+</kw>
+<kw name="Scan Document Url" lineno="199">
+<arguments repr="url: str, model_types: str | List[str] | None = None, mock: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="url: str">
+<name>url</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="model_types: str | List[str] | None = None">
+<name>model_types</name>
+<type name="Union" union="true">str | List[str] | None<type name="str" typedoc="string">str</type><type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="mock: bool = False">
+<name>mock</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Scan a document URL. Can be given a ``model_types`` to
+specifically target certain models.
+
+:param url: valid url to a file
+:param model_types: single model type or list of model types
+:param mock: set to True to use /mock/scan endpoint instead of /scan
+:return: result of the document scan
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${results}=    Scan Document URL
+    ...    https://base64.ai/static/content/features/data-extraction/models//2.png
+    FOR    ${result}    IN    @{results}
+        Log To Console    Model: ${result}[model]
+        Log To Console    Fields: ${result}[fields]
+        Log To Console    Text (OCR): ${result}[ocr]
+    END
+
+Python example:
+
+.. code-block:: python
+
+    result = baselib.scan_document_url(
+        "https://base64.ai/static/content/features/data-extraction/models//2.png"
+    )
+    for r in result:
+        print(f"Model: {r['model']}")
+        for key, props in r["fields"].items():
+            print(f"FIELD {key}: {props['value']}")
+        print(f"Text (OCR): {r['ocr']}")</doc>
+<shortdoc>Scan a document URL. Can be given a ``model_types`` to specifically target certain models.</shortdoc>
+</kw>
+<kw name="Set Authorization" lineno="85">
+<arguments repr="api_email: str, api_key: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="api_email: str">
+<name>api_email</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="api_key: str">
+<name>api_key</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Set Base64 AI request headers with email and key related to API.
+
+:param api_email: email address related to the API
+:param api_key: key related to the API
+
+Robot Framework example:
+
+.. code-block:: robotframework
+
+    ${secrets}=   Get Secret  base64ai-auth
+    Set Authorization    ${secrets}[email-address]    ${secrets}[apikey]
+
+Python example:
+
+.. code-block:: python
+
+    secrets = Vault().get_secret("base64ai-auth")
+    baselib = Base64AI()
+    baselib.set_authorization(secrets["email-address"], secrets["apikey"])</doc>
+<shortdoc>Set Base64 AI request headers with email and key related to API.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Filter Matching Signatures</usage>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Signature Image</usage>
+<usage>Scan Document File</usage>
+<usage>Scan Document Url</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Filter Matching Signatures</usage>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Signature Image</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Filter Matching Signatures</usage>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Signature Image</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Filter Matching Signatures</usage>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Signature Image</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Filter Matching Signatures</usage>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Signature Image</usage>
+<usage>Scan Document File</usage>
+<usage>Scan Document Url</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Filter Matching Signatures</usage>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Signature Image</usage>
+<usage>Scan Document File</usage>
+<usage>Scan Document Url</usage>
+</usages>
+</type>
+<type name="Path" type="Standard">
+<doc>Strings are converted [https://docs.python.org/library/pathlib.html|Path] objects.
+On Windows ``/`` is converted to ``\`` automatically.
+
+Examples: ``/tmp/absolute/path``, ``relative/path/to/file.ext``, ``name.txt``
+</doc>
+<accepts>
+<type>string</type>
+<type>PurePath</type>
+</accepts>
+<usages>
+<usage>Get Matching Signatures</usage>
+<usage>Get Signature Image</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Filter Matching Signatures</usage>
+<usage>Get Fields From Prediction Result</usage>
+<usage>Get Matching Signatures</usage>
+<usage>Get Signature Image</usage>
+<usage>Scan Document File</usage>
+<usage>Scan Document Url</usage>
+<usage>Set Authorization</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

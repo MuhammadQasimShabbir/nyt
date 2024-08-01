@@ -1,0 +1,1515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Tables" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:07+00:00" specversion="5" source="./RPA/Tables.py" lineno="882">
+<version/>
+<doc>`Tables` is a library for manipulating tabular data inside Robot Framework.
+
+It can import data from various sources and apply different operations to it.
+Common use-cases are reading and writing CSV files, inspecting files in
+directories, or running tasks using existing Excel data.
+
+**Import types**
+
+The data a table can be created from can be of two main types:
+
+1. An iterable of individual rows, like a list of lists, or list of dictionaries
+2. A dictionary of columns, where each dictionary value is a list of values
+
+For instance, these two input values:
+
+.. code-block:: python
+
+    data1 = [
+        {"name": "Mark", "age": 58},
+        {"name": "John", "age": 22},
+        {"name": "Adam", "age": 67},
+    ]
+
+    data2 = {
+        "name": ["Mark", "John", "Adam"],
+        "age":  [    58,     22,     67],
+    }
+
+Would both result in the following table:
+
++-------+------+-----+
+| Index | Name | Age |
++=======+======+=====+
+| 0     | Mark | 58  |
++-------+------+-----+
+| 1     | John | 22  |
++-------+------+-----+
+| 2     | Adam | 67  |
++-------+------+-----+
+
+**Indexing columns and rows**
+
+Columns can be referred to in two ways: either with a unique string
+name or their position as an integer. Columns can be named either when
+the table is created, or they can be (re)named dynamically with keywords.
+The integer position can always be used, and it starts from zero.
+
+For instance, a table with columns "Name", "Age", and "Address" would
+allow referring to the "Age" column with either the name "Age" or the
+number 1.
+
+Rows do not have a name, but instead only have an integer index. This
+index also starts from zero. Keywords where rows are indexed also support
+negative values, which start counting backwards from the end.
+
+For instance, in a table with five rows, the first row could be referred
+to with the number 0. The last row could be accessed with either 4 or
+-1.
+
+**Examples**
+
+**Robot Framework**
+
+The `Tables` library can load tabular data from various other libraries
+and manipulate it inside Robot Framework.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Tables
+
+    *** Keywords ***
+    Files to Table
+        ${files}=    List files in directory    ${CURDIR}
+        ${files}=    Create table    ${files}
+        Filter table by column    ${files}    size  &gt;=  ${1024}
+        FOR    ${file}    IN    @{files}
+            Log    ${file}[name]
+        END
+        Write table to CSV    ${files}    ${OUTPUT_DIR}${/}files.csv
+
+**Python**
+
+The library is also available directly through Python, where it
+is easier to handle multiple different tables or do more bespoke
+manipulation operations.
+
+.. code-block:: python
+
+    from RPA.Tables import Tables
+
+    library = Tables()
+    orders = library.read_table_from_csv(
+        "orders.csv", columns=["name", "mail", "product"]
+    )
+
+    customers = library.group_table_by_column(rows, "mail")
+    for customer in customers:
+        for order in customer:
+            add_cart(order)
+        make_order()</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Add Table Column" lineno="1238">
+<arguments repr="table: Table, name: str | None = None, values: Any | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str | None = None">
+<name>name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="values: Any | None = None">
+<name>values</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Append a column to a table.
+
+:param table:   Table to modify
+:param name:    Name of new column
+:param values:  Value(s) for new column
+
+The ``values`` can either be a list of values, one for each row, or
+one single value that is set for all rows.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Add empty column
+    Add table column    ${table}
+
+    # Add empty column with name
+    Add table column    ${table}    name=Home Address
+
+    # Add new column where every every row has the same value
+    Add table column    ${table}    name=TOS    values=${FALSE}
+
+    # Add new column where every row has a unique value
+    ${is_first}=    Create list    ${TRUE}    ${FALSE}    ${FALSE}
+    Add table column    ${table}    name=IsFirst    values=${is_first}</doc>
+<shortdoc>Append a column to a table.</shortdoc>
+</kw>
+<kw name="Add Table Row" lineno="1270">
+<arguments repr="table: Table, values: Any | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="values: Any | None = None">
+<name>values</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Append rows to a table.
+
+:param table:   Table to modify
+:param values:  Value(s) for new row
+
+The ``values`` can either be a list of values, or a dictionary
+where the keys match current column names. Values for unknown
+keys are discarded.
+
+It can also be a single value that is set for all columns,
+which is ``None`` by default.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Add empty row
+    Add table row    ${table}
+
+    # Add row where every column has the same value
+    Add table row    ${table}    Unknown
+
+    # Add values per column
+    ${values}=    Create dictionary    Username=Mark    Mail=mark@robocorp.com
+    Add table row    ${table}    ${values}</doc>
+<shortdoc>Append rows to a table.</shortdoc>
+</kw>
+<kw name="Clear Table" lineno="1075">
+<arguments repr="table: Table">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+</arguments>
+<doc>Clear table in-place, but keep columns.
+
+:param table:   Table to clear
+
+Example:
+
+.. code-block:: robotframework
+
+    Clear table    ${table}</doc>
+<shortdoc>Clear table in-place, but keep columns.</shortdoc>
+</kw>
+<kw name="Copy Table" lineno="1064">
+<arguments repr="table: Table">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+</arguments>
+<doc>Make a copy of a table object.
+
+:param table:   Table to copy
+:return:        Table object
+
+${table_copy}=    Copy table    ${table}</doc>
+<shortdoc>Make a copy of a table object.</shortdoc>
+</kw>
+<kw name="Create Table" lineno="997">
+<arguments repr="data: Dict[int | str, Dict | List | Tuple | NamedTuple | set] | List[Dict | List | Tuple | NamedTuple | set] | Table | None = None, trim: bool = False, columns: List[str] | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="data: Dict[int | str, Dict | List | Tuple | NamedTuple | set] | List[Dict | List | Tuple | NamedTuple | set] | Table | None = None">
+<name>data</name>
+<type name="Union" union="true">Dict[int | str, Dict | List | Tuple | NamedTuple | set] | List[Dict | List | Tuple | NamedTuple | set] | Table | None<type name="Dict" typedoc="dictionary">Dict[int | str, Dict | List | Tuple | NamedTuple | set]<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type><type name="Union" union="true">Dict | List | Tuple | NamedTuple | set<type name="Dict" typedoc="dictionary">Dict</type><type name="List" typedoc="list">List</type><type name="Tuple" typedoc="tuple">Tuple</type><type name="NamedTuple">NamedTuple</type><type name="set" typedoc="set">set</type></type></type><type name="List" typedoc="list">List[Dict | List | Tuple | NamedTuple | set]<type name="Union" union="true">Dict | List | Tuple | NamedTuple | set<type name="Dict" typedoc="dictionary">Dict</type><type name="List" typedoc="list">List</type><type name="Tuple" typedoc="tuple">Tuple</type><type name="NamedTuple">NamedTuple</type><type name="set" typedoc="set">set</type></type></type><type name="Table">Table</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="trim: bool = False">
+<name>trim</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="columns: List[str] | None = None">
+<name>columns</name>
+<type name="Union" union="true">List[str] | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Create Table object from data.
+
+Data can be a combination of various iterable containers, e.g.
+list of lists, list of dicts, dict of lists.
+
+:param data:    Source data for table
+:param trim:    Remove all empty rows from the end of the worksheet,
+                default `False`
+:param columns: Names of columns (optional)
+:return:        Table object
+
+See the main library documentation for more information about
+supported data types.
+
+Example:
+
+.. code-block:: robotframework
+
+    # Create a new table using a Dictionary of Lists
+    # Because of the dictionary keys the column names will be automatically set
+    @{Table_Data_name}=    Create List    Mark    John    Amy
+    @{Table_Data_age}=    Create List    ${58}    ${22}    ${67}
+    &amp;{Table_Data}=    Create Dictionary
+    ...    name=${Table_Data_name}
+    ...    age=${Table_Data_age}
+    ${table}=    Create Table    ${Table_Data}</doc>
+<shortdoc>Create Table object from data.</shortdoc>
+</kw>
+<kw name="Export Table" lineno="1038">
+<arguments repr="table: Table, with_index: bool = False, as_list: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="with_index: bool = False">
+<name>with_index</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_list: bool = True">
+<name>as_list</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Convert a table object into standard Python containers.
+
+:param table:       Table to convert to dict
+:param with_index:  Include index in values
+:param as_list:     Export data as list instead of dict
+:return:            A List or Dictionary that represents the table
+
+Example:
+
+.. code-block:: robotframework
+
+    ${orders}=       Read worksheet as table    orders.xlsx
+    Sort table by column    ${orders}    CustomerId
+    ${export}=       Export table    ${orders}
+    # The following keyword expects a dictionary:
+    Write as JSON    ${export}</doc>
+<shortdoc>Convert a table object into standard Python containers.</shortdoc>
+</kw>
+<kw name="Filter Empty Rows" lineno="1785">
+<arguments repr="table: Table">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+</arguments>
+<doc>Remove all rows from a table which have only ``None`` values.
+
+:param table:   Table to filter
+
+The filtering will be done in-place.
+
+Example:
+
+.. code-block:: robotframework
+
+    Filter empty rows    ${table}</doc>
+<shortdoc>Remove all rows from a table which have only ``None`` values.</shortdoc>
+</kw>
+<kw name="Filter Table By Column" lineno="1692">
+<arguments repr="table: Table, column: int | str, operator: str, value: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="operator: str">
+<name>operator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: Any">
+<name>value</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Remove all rows where column values don't match the
+given condition.
+
+:param table:     Table to filter
+:param column:    Column to filter with
+:param operator:  Filtering operator, e.g. &gt;, &lt;, ==, contains
+:param value:     Value to compare column to (using operator)
+
+See the keyword ``Find table rows`` for all supported operators
+and their descriptions.
+
+The filtering will be done in-place.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Only accept prices that are non-zero
+    Filter table by column    ${table}   price  !=  ${0}
+
+    # Remove uwnanted product types
+    @{types}=    Create list    Unknown    Removed
+    Filter table by column    ${table}   product_type  not in  ${types}</doc>
+<shortdoc>Remove all rows where column values don't match the given condition.</shortdoc>
+</kw>
+<kw name="Filter Table With Keyword" lineno="1729">
+<arguments repr="table: Table, name: str, *args">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+</arguments>
+<doc>Run a keyword for each row of a table, then remove all rows where the called
+keyword returns a falsy value.
+
+Can be used to create custom RF keyword based filters.
+
+:param table: Table to modify.
+:param name: Keyword name used as filter.
+:param args: Additional keyword arguments to be passed. (optional)
+
+The row object will be given as the first argument to the filtering keyword.</doc>
+<shortdoc>Run a keyword for each row of a table, then remove all rows where the called keyword returns a falsy value.</shortdoc>
+</kw>
+<kw name="Find Table Rows" lineno="1592">
+<arguments repr="table: Table, column: int | str, operator: str, value: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="operator: str">
+<name>operator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: Any">
+<name>value</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Find all the rows in a table which match a condition for a given column.
+
+:param table: Table to search into.
+:param column: Name or position of the column to compare with.
+:param operator: Comparison operator used with every cell value on the
+    specified column.
+:param value: Value to compare against.
+:return: New `Table` object containing all the rows matching the condition.
+
+Supported operators:
+
+============ ========================================
+Operator     Description
+============ ========================================
+&gt;            Cell value is larger than
+&lt;            Cell value is smaller than
+&gt;=           Cell value is larger or equal than
+&lt;=           Cell value is smaller or equal than
+==           Cell value is equal to
+!=           Cell value is not equal to
+is           Cell value is the same object
+not is       Cell value is not the same object
+contains     Cell value contains given value
+not contains Cell value does not contain given value
+in           Cell value is in given value
+not in       Cell value is not in given value
+============ ========================================
+
+Returns the matches as a new `Table` instance.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Find all rows where price is over 200
+    @{rows} =    Find table rows    ${table}    Price  &gt;  ${200}
+
+    # Find all rows where the status does not contain "removed"
+    @{rows} =    Find table rows    ${table}    Status  not contains  removed</doc>
+<shortdoc>Find all the rows in a table which match a condition for a given column.</shortdoc>
+</kw>
+<kw name="Get Table Cell" lineno="1538">
+<arguments repr="table: Table, row: int | str, column: int | str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int | str">
+<name>row</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+</arguments>
+<doc>Get a cell value from a table.
+
+:param table:   Table to read from
+:param row:     Row of cell
+:param column:  Column of cell
+:return:        Cell value
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Get the value in the first row and first column
+    Get table cell    ${table}    0    0
+
+    # Get the value in the last row and first column
+    Get table cell    ${table}   -1    0
+
+    # Get the value in the last row and last column
+    Get table cell    ${table}   -1    -1
+
+    # Get the value in the third row and column "Name"
+    Get table cell    ${table}    2    Name</doc>
+<shortdoc>Get a cell value from a table.</shortdoc>
+</kw>
+<kw name="Get Table Column" lineno="1325">
+<arguments repr="table: Table, column: int | str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+</arguments>
+<doc>Get all values for a single column in a table.
+
+:param table:   Table to read
+:param column:  Column to read
+:return:        List of the rows in the selected column
+
+Example:
+
+.. code-block:: robotframework
+
+    ${emails}=    Get table column    ${users}    E-Mail Address</doc>
+<shortdoc>Get all values for a single column in a table.</shortdoc>
+</kw>
+<kw name="Get Table Dimensions" lineno="1176">
+<arguments repr="table: Table">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+</arguments>
+<doc>Return table dimensions, as (rows, columns).
+
+:param table:    Table to inspect
+:return:         Two integer values that represent the number
+                 of rows and columns
+
+Example:
+
+.. code-block:: robotframework
+
+    ${rows}  ${columns}=    Get table dimensions    ${table}
+    Log    Table has ${rows} rows and ${columns} columns.</doc>
+<shortdoc>Return table dimensions, as (rows, columns).</shortdoc>
+</kw>
+<kw name="Get Table Row" lineno="1300">
+<arguments repr="table: Table, row: int | str, as_list: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int | str">
+<name>row</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_list: bool = False">
+<name>as_list</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Get a single row from a table.
+
+:param table:   Table to read
+:param row:     Row to read
+:param as_list: Return list instead of dictionary
+:return:        Dictionary or List of table row
+
+Examples:
+
+.. code-block:: robotframework
+
+    # returns the first row in the table
+    ${first}=    Get table row    ${orders}
+
+    # returns the last row in the table
+    ${last}=      Get table row    ${orders}    -1    as_list=${TRUE}</doc>
+<shortdoc>Get a single row from a table.</shortdoc>
+</kw>
+<kw name="Get Table Slice" lineno="1453">
+<arguments repr="table: Table, start: int | str | None = None, end: int | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="start: int | str | None = None">
+<name>start</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end: int | str | None = None">
+<name>end</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Return a new Table from a range of given Table rows.
+
+:param table:   Table to read from
+:param start:   Start index (inclusive)
+:param start:   End index (exclusive)
+:return:        Table object of the selected rows
+
+If ``start`` is not defined, starts from the first row.
+If ``end`` is not defined, stops at the last row.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Get all rows except first five
+    ${slice}=    Get table slice    ${table}    start=5
+
+    # Get rows at indexes 5, 6, 7, 8, and 9
+    ${slice}=    Get table slice    ${table}    start=5    end=10
+
+    # Get all rows except last five
+    ${slice}=    Get table slice    ${table}    end=-5</doc>
+<shortdoc>Return a new Table from a range of given Table rows.</shortdoc>
+</kw>
+<kw name="Group Table By Column" lineno="1667">
+<arguments repr="table: Table, column: int | str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+</arguments>
+<doc>Group a table by ``column`` and return a list of grouped Tables.
+
+:param table:   Table to use for grouping
+:param column:  Column which is used as grouping criteria
+:return:        List of Table objects
+
+Example:
+
+.. code-block:: robotframework
+
+    # Groups rows of matching customers from the `customer` column
+    # and returns the groups or rows as Tables
+    @{groups}=    Group table by column    ${orders}    customer
+    # An example of how to use the List of Tables once returned
+    FOR    ${group}    IN    @{groups}
+        # Process all orders for the customer at once
+        Process order    ${group}
+    END</doc>
+<shortdoc>Group a table by ``column`` and return a list of grouped Tables.</shortdoc>
+</kw>
+<kw name="Map Column Values" lineno="1752">
+<arguments repr="table: Table, column: int | str, name: str, *args">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name: str">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+</arguments>
+<doc>Run a keyword for each cell in a given column, and replace its content with
+the return value.
+
+Can be used to easily convert column types or values in-place.
+
+:param table: Table to modify.
+:param column: Column to modify.
+:param name: Mapping keyword name.
+:param args: Additional keyword arguments. (optional)
+
+The cell value will be given as the first argument to the mapping keyword.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Convert all columns values to a different type
+    Map column values    ${table}    Price    Convert to integer
+
+    # Look up values with a custom keyword
+    Map column values    ${table}    User     Map user ID to name</doc>
+<shortdoc>Run a keyword for each cell in a given column, and replace its content with the return value.</shortdoc>
+</kw>
+<kw name="Merge Tables" lineno="1089">
+<arguments repr="*tables: Table, index: str | None = None">
+<arg kind="VAR_POSITIONAL" required="false" repr="*tables: Table">
+<name>tables</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="NAMED_ONLY" required="false" repr="index: str | None = None">
+<name>index</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Create a union of two tables and their contents.
+
+:param tables: Tables to merge
+:param index:  Column name to use as index for merge
+:return:       Table object
+
+By default rows from all tables are appended one after the other.
+Optionally a column name can be given with ``index``, which is
+used to merge rows together.
+
+Example:
+
+For instance, a ``name`` column could be used to identify
+unique rows and the merge operation should overwrite values
+instead of appending multiple copies of the same name.
+
+====== =====
+Name   Price
+====== =====
+Egg    10.0
+Cheese 15.0
+Ham    20.0
+====== =====
+
+====== =====
+Name   Stock
+====== =====
+Egg    12.0
+Cheese 99.0
+Ham    0.0
+====== =====
+
+.. code-block:: robotframework
+
+    ${products}=    Merge tables    ${prices}    ${stock}    index=Name
+    FOR    ${product}    IN    @{products}
+        Log many
+        ...    Product: ${product}[Name]
+        ...    Price: ${product}[Price]
+        ...    Stock: ${product}[Stock]
+    END</doc>
+<shortdoc>Create a union of two tables and their contents.</shortdoc>
+</kw>
+<kw name="Pop Table Column" lineno="1424">
+<arguments repr="table: Table, column: int | str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="column: int | str | None = None">
+<name>column</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Remove column from table and return it.
+
+:param table:   Table to modify
+:param column:  Column to remove
+:return:        Dictionary or List of the removed, popped, column
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Remove column from table and discard it
+    Pop table column    ${users}   userId
+
+    # Remove column from table and iterate over it
+    ${ids}=    Pop table column    ${users}    userId
+    FOR    ${id}    IN    @{ids}
+        Log    User id: ${id}
+    END</doc>
+<shortdoc>Remove column from table and return it.</shortdoc>
+</kw>
+<kw name="Pop Table Row" lineno="1397">
+<arguments repr="table: Table, row: int | str | None = None, as_list: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="row: int | str | None = None">
+<name>row</name>
+<type name="Union" union="true">int | str | None<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_list: bool = False">
+<name>as_list</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Remove row from table and return it.
+
+:param table:   Table to modify
+:param row:     Row index, pops first row if none given
+:param as_list: Return list instead of dictionary
+:return:        Dictionary or List of the removed, popped, row
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Pop the firt row in the table and discard it
+    Pop table row    ${orders}
+
+    # Pop the last row in the table and store it
+    ${row}=      Pop table row    ${data}    -1    as_list=${TRUE}</doc>
+<shortdoc>Remove row from table and return it.</shortdoc>
+</kw>
+<kw name="Read table from CSV" lineno="1856">
+<arguments repr="path: str, header: bool | None = None, columns: List[str] | None = None, dialect: str | Dialect | None = None, delimiters: str | None = None, column_unknown: str = Unknown, encoding: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="header: bool | None = None">
+<name>header</name>
+<type name="Union" union="true">bool | None<type name="bool" typedoc="boolean">bool</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="columns: List[str] | None = None">
+<name>columns</name>
+<type name="Union" union="true">List[str] | None<type name="List" typedoc="list">List[str]<type name="str" typedoc="string">str</type></type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="dialect: str | Dialect | None = None">
+<name>dialect</name>
+<type name="Union" union="true">str | Dialect | None<type name="str" typedoc="string">str</type><type name="Dialect" typedoc="Dialect">Dialect</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="delimiters: str | None = None">
+<name>delimiters</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="column_unknown: str = Unknown">
+<name>column_unknown</name>
+<type name="str" typedoc="string">str</type>
+<default>Unknown</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str | None = None">
+<name>encoding</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Read a CSV file as a table.
+
+:param path:            Path to CSV file
+:param header:          CSV file includes header
+:param columns:         Names of columns in resulting table
+:param dialect:         Format of CSV file
+:param delimiters:      String of possible delimiters
+:param column_unknown:  Column name for unknown fields
+:param encoding:        Text encoding for input file,
+                        uses system encoding by default
+:return:                Table object
+
+By default attempts to deduce the CSV format and headers
+from a sample of the input file. If it's unable to determine
+the format automatically, the dialect and header will
+have to be defined manually.
+
+Builtin ``dialect`` values are ``excel``, ``excel-tab``, and ``unix``,
+and ``header`` is boolean argument (``True``/``False``). Optionally a
+set of valid ``delimiters`` can be given as a string.
+
+The ``columns`` argument can be used to override the names of columns
+in the resulting table. The amount of columns must match the input
+data.
+
+If the source data has a header and rows have more fields than
+the header defines, the remaining values are put into the column
+given by ``column_unknown``. By default it has the value "Unknown".
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Source dialect is deduced automatically
+    ${table}=    Read table from CSV    export.csv
+    Log   Found columns: ${table.columns}
+
+    # Source dialect is known and given explicitly
+    ${table}=    Read table from CSV    export-excel.csv    dialect=excel
+    Log   Found columns: ${table.columns}</doc>
+<shortdoc>Read a CSV file as a table.</shortdoc>
+</kw>
+<kw name="Rename Table Columns" lineno="1194">
+<arguments repr="table: Table, names: List[str | None], strict: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="names: List[str | None]">
+<name>names</name>
+<type name="List" typedoc="list">List[str | None]<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="strict: bool = False">
+<name>strict</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Renames columns in the Table with given values. Columns with
+name as ``None`` will use the previous value.
+
+:param table:   Table to modify
+:param names:   List of new column names
+:param strict:  If True, raises ValueError if column lengths
+                do not match
+
+The renaming will be done in-place.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Initially set the column names
+    ${columns}=    Create list   First  Second  Third
+    Rename table columns    ${table}    ${columns}
+    # First, Second, Third
+
+    # Update the first and second column names to Uno and Dos
+    ${columns}=    Create list   Uno  Dos
+    Rename table columns    ${table}    ${columns}
+    # Uno, Dos, Third</doc>
+<shortdoc>Renames columns in the Table with given values. Columns with name as ``None`` will use the previous value.</shortdoc>
+</kw>
+<kw name="Set Row As Column Names" lineno="1482">
+<arguments repr="table: Table, row: int | str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int | str">
+<name>row</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+</arguments>
+<doc>Set existing row as names for columns.
+
+:param table: Table to modify
+:param row:   Row to use as column names
+
+Example:
+
+.. code-block:: robotframework
+
+    # Set the column names based on the first row
+    Set row as column names    ${table}    0</doc>
+<shortdoc>Set existing row as names for columns.</shortdoc>
+</kw>
+<kw name="Set Table Cell" lineno="1565">
+<arguments repr="table: Table, row: int | str, column: int | str, value: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int | str">
+<name>row</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="value: Any">
+<name>value</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Set a cell value in a table.
+
+:param table:   Table to modify to
+:param row:     Row of cell
+:param column:  Column of cell
+:param value:   Value to set
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Set the value in the first row and first column to "First"
+    Set table cell    ${table}    0    0       First
+
+    # Set the value in the last row and first column to "Last"
+    Set table cell    ${table}   -1    0       Last
+
+    # Set the value in the last row and last column to "Corner"
+    Set table cell    ${table}   -1    -1       Corner
+
+    # Set the value in the third row and column "Name" to "Unknown"
+    Set table cell    ${table}    2    Name    Unknown</doc>
+<shortdoc>Set a cell value in a table.</shortdoc>
+</kw>
+<kw name="Set Table Column" lineno="1373">
+<arguments repr="table: Table, column: int | str, values: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="values: Any">
+<name>values</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Assign values to a column in the table.
+
+:param table:   Table to modify
+:param column:  Column to modify
+:param values:  Value(s) to set
+
+The ``values`` can either be a list of values, one for each row, or
+one single value that is set for all rows.
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Set different value for each row (sizes must match)
+    ${ids}=    Create list    1  2  3  4  5
+    Set table column    ${users}    userId    ${ids}
+
+    # Set the same value for all rows
+    Set table column    ${users}    email     ${NONE}</doc>
+<shortdoc>Assign values to a column in the table.</shortdoc>
+</kw>
+<kw name="Set Table Row" lineno="1342">
+<arguments repr="table: Table, row: int | str, values: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="row: int | str">
+<name>row</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="values: Any">
+<name>values</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Assign values to a row in the table.
+
+:param table:   Table to modify
+:param row:     Row to modify
+:param values:  Value(s) to set
+
+The ``values`` can either be a list of values, or a dictionary
+where the keys match current column names. Values for unknown
+keys are discarded.
+
+It can also be a single value that is set for all columns.
+
+Examples:
+
+.. code-block:: robotframework
+
+    ${columns}=  Create list     One  Two  Three
+    ${table}=    Create table    columns=${columns}
+
+    ${values}=   Create list     1  2  3
+    Set table row    ${table}    0    ${values}
+
+    ${values}=   Create dictionary    One=1  Two=2  Three=3
+    Set table row    ${table}    1    ${values}
+
+    Set table row    ${table}    2    ${NONE}</doc>
+<shortdoc>Assign values to a row in the table.</shortdoc>
+</kw>
+<kw name="Sort Table By Column" lineno="1645">
+<arguments repr="table: Table, column: int | str, ascending: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="column: int | str">
+<name>column</name>
+<type name="Union" union="true">int | str<type name="int" typedoc="integer">int</type><type name="str" typedoc="string">str</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ascending: bool = True">
+<name>ascending</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Sort a table in-place according to ``column``.
+
+:param table:       Table to sort
+:param column:      Column to sort with
+:param ascending:   Table sort order
+
+Examples:
+
+.. code-block:: robotframework
+
+    # Sorts the `order_date` column ascending
+    Sort table by column    ${orders}    order_date
+
+    # Sorts the `order_date` column descending
+    Sort table by column    ${orders}    order_date    ascending=${FALSE}</doc>
+<shortdoc>Sort a table in-place according to ``column``.</shortdoc>
+</kw>
+<kw name="Table Head" lineno="1498">
+<arguments repr="table: Table, count: int = 5, as_list: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="count: int = 5">
+<name>count</name>
+<type name="int" typedoc="integer">int</type>
+<default>5</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_list: bool = False">
+<name>as_list</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Return first ``count`` rows from a table.
+
+:param table:   Table to read from
+:param count:   Number of lines to read
+:param as_list: Return list instead of Table
+:return:        Return Table object or List of the selected rows
+
+Example:
+
+.. code-block:: robotframework
+
+    # Get the first 10 employees
+    ${first}=    Table head    ${employees}    10</doc>
+<shortdoc>Return first ``count`` rows from a table.</shortdoc>
+</kw>
+<kw name="Table Tail" lineno="1518">
+<arguments repr="table: Table, count: int = 5, as_list: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="count: int = 5">
+<name>count</name>
+<type name="int" typedoc="integer">int</type>
+<default>5</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_list: bool = False">
+<name>as_list</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Return last ``count`` rows from a table.
+
+:param table:   Table to read from
+:param count:   Number of lines to read
+:param as_list: Return list instead of Table
+:return:        Return Table object or List of the selected rows
+
+Example:
+
+.. code-block:: robotframework
+
+    # Get the last 10 orders
+    ${latest}=    Table tail    ${orders}    10</doc>
+<shortdoc>Return last ``count`` rows from a table.</shortdoc>
+</kw>
+<kw name="Trim Column Names" lineno="1832">
+<arguments repr="table: Table">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+</arguments>
+<doc>Remove all extraneous whitespace from column names.
+
+:param table:    Table to filter
+
+The filtering will be done in-place.
+
+Example:
+
+.. code-block:: robotframework
+
+    # This example will take colums such as:
+    # "One", "Two ", "  Three "
+    # and trim them to become the below:
+    # "One", "Two", "Three"
+    Trim column names     ${table}</doc>
+<shortdoc>Remove all extraneous whitespace from column names.</shortdoc>
+</kw>
+<kw name="Trim Empty Rows" lineno="1807">
+<arguments repr="table: Table">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+</arguments>
+<doc>Remove all rows from the *end* of a table
+which have only ``None`` as values.
+
+:param table:    Table to filter
+
+The filtering will be done in-place.
+
+Example:
+
+.. code-block:: robotframework
+
+    Trim empty rows    ${table}</doc>
+<shortdoc>Remove all rows from the *end* of a table which have only ``None`` as values.</shortdoc>
+</kw>
+<kw name="Write table to CSV" lineno="1943">
+<arguments repr="table: Table, path: str, header: bool = True, dialect: str | Dialect = Excel, encoding: str | None = None, delimiter: str | None = ,">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="table: Table">
+<name>table</name>
+<type name="Table">Table</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="header: bool = True">
+<name>header</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="dialect: str | Dialect = Excel">
+<name>dialect</name>
+<type name="Union" union="true">str | Dialect<type name="str" typedoc="string">str</type><type name="Dialect" typedoc="Dialect">Dialect</type></type>
+<default>Excel</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str | None = None">
+<name>encoding</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="delimiter: str | None = ,">
+<name>delimiter</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>,</default>
+</arg>
+</arguments>
+<doc>Write a table as a CSV file.
+
+:param table:    Table to write
+:param path:     Path to write to
+:param header:   Write columns as header to CSV file
+:param dialect:  The format of output CSV
+:param encoding: Text encoding for output file,
+                 uses system encoding by default
+:param delimiter: Delimiter character between columns
+
+Builtin ``dialect`` values are ``excel``, ``excel-tab``, and ``unix``.
+
+Example:
+
+.. code-block:: robotframework
+
+    ${sheet}=    Read worksheet as table    orders.xlsx    header=${TRUE}
+    Write table to CSV    ${sheet}    output.csv</doc>
+<shortdoc>Write a table as a CSV file.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="Dialect">
+<doc>CSV dialect</doc>
+<members>
+<member name="Excel" value="excel"/>
+<member name="ExcelTab" value="excel-tab"/>
+<member name="Unix" value="unix"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Add Table Column</usage>
+<usage>Add Table Row</usage>
+<usage>Filter Table By Column</usage>
+<usage>Find Table Rows</usage>
+<usage>Set Table Cell</usage>
+<usage>Set Table Column</usage>
+<usage>Set Table Row</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Create Table</usage>
+<usage>Export Table</usage>
+<usage>Get Table Row</usage>
+<usage>Pop Table Row</usage>
+<usage>Read table from CSV</usage>
+<usage>Rename Table Columns</usage>
+<usage>Sort Table By Column</usage>
+<usage>Table Head</usage>
+<usage>Table Tail</usage>
+<usage>Write table to CSV</usage>
+</usages>
+</type>
+<type name="Dialect" type="Enum">
+<doc>CSV dialect</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Read table from CSV</usage>
+<usage>Write table to CSV</usage>
+</usages>
+<members>
+<member name="Excel" value="excel"/>
+<member name="ExcelTab" value="excel-tab"/>
+<member name="Unix" value="unix"/>
+</members>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Create Table</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Create Table</usage>
+<usage>Filter Table By Column</usage>
+<usage>Find Table Rows</usage>
+<usage>Get Table Cell</usage>
+<usage>Get Table Column</usage>
+<usage>Get Table Row</usage>
+<usage>Get Table Slice</usage>
+<usage>Group Table By Column</usage>
+<usage>Map Column Values</usage>
+<usage>Pop Table Column</usage>
+<usage>Pop Table Row</usage>
+<usage>Set Row As Column Names</usage>
+<usage>Set Table Cell</usage>
+<usage>Set Table Column</usage>
+<usage>Set Table Row</usage>
+<usage>Sort Table By Column</usage>
+<usage>Table Head</usage>
+<usage>Table Tail</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Create Table</usage>
+<usage>Read table from CSV</usage>
+<usage>Rename Table Columns</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Add Table Column</usage>
+<usage>Add Table Row</usage>
+<usage>Create Table</usage>
+<usage>Get Table Slice</usage>
+<usage>Merge Tables</usage>
+<usage>Pop Table Column</usage>
+<usage>Pop Table Row</usage>
+<usage>Read table from CSV</usage>
+<usage>Rename Table Columns</usage>
+<usage>Write table to CSV</usage>
+</usages>
+</type>
+<type name="set" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#set|set]
+literals. They are converted to actual sets using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports.
+
+If the type has nested types like ``set[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{1, 2, 3, 42}``, ``set()`` (an empty set)
+</doc>
+<accepts>
+<type>string</type>
+<type>Container</type>
+</accepts>
+<usages>
+<usage>Create Table</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Add Table Column</usage>
+<usage>Create Table</usage>
+<usage>Filter Table By Column</usage>
+<usage>Filter Table With Keyword</usage>
+<usage>Find Table Rows</usage>
+<usage>Get Table Cell</usage>
+<usage>Get Table Column</usage>
+<usage>Get Table Row</usage>
+<usage>Get Table Slice</usage>
+<usage>Group Table By Column</usage>
+<usage>Map Column Values</usage>
+<usage>Merge Tables</usage>
+<usage>Pop Table Column</usage>
+<usage>Pop Table Row</usage>
+<usage>Read table from CSV</usage>
+<usage>Rename Table Columns</usage>
+<usage>Set Row As Column Names</usage>
+<usage>Set Table Cell</usage>
+<usage>Set Table Column</usage>
+<usage>Set Table Row</usage>
+<usage>Sort Table By Column</usage>
+<usage>Write table to CSV</usage>
+</usages>
+</type>
+<type name="tuple" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#tuple|tuple]
+literals. They are converted to actual tuples using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+tuples and other containers.
+
+If the type has nested types like ``tuple[str, int, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``('one', 'two')``, ``(('one', 1), ('two', 2))``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Create Table</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

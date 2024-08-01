@@ -1,0 +1,903 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Salesforce" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:07+00:00" specversion="5" source="./RPA/Salesforce.py" lineno="26">
+<version/>
+<doc>`Salesforce` is a library for accessing Salesforce using REST API.
+The library extends `simple-salesforce library`_.
+
+More information available at `Salesforce REST API Developer Guide`_.
+
+.. _Salesforce REST API Developer Guide:
+    https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/intro_what_is_rest_api.htm
+
+.. _simple-salesforce library:
+    https://github.com/simple-salesforce/simple-salesforce
+
+**Dataloader**
+
+The keyword `execute_dataloader_import` can be used to mimic
+`Salesforce Dataloader`_ import behaviour.
+
+`input_object` can be given in different formats. Below is an example where
+input is in `RPA.Table` format in **method a** and list format in **method b**.
+
+.. _Salesforce Dataloader:
+    https://developer.salesforce.com/docs/atlas.en-us.dataLoader.meta/dataLoader/data_loader.htm
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Salesforce
+    Library     RPA.Database
+    Task Setup  Authorize Salesforce
+
+    *** Tasks ***
+    # Method a
+    ${orders}=        Database Query Result As Table
+    ...               SELECT * FROM incoming_orders
+    ${status}=        Execute Dataloader Insert
+    ...               ${orders}  ${mapping_dict}  Tilaus__c
+    # Method b
+    ${status}=        Execute Dataloader Insert
+    ...               ${WORKDIR}${/}orders.json  ${mapping_dict}  Tilaus__c
+
+
+Example file **orders.json**
+
+.. code-block:: json
+
+    [
+        {
+            "asiakas": "0015I000002jBLIQA2"
+        },
+        {
+            "asiakas": "0015I000002jBLDQA2"
+        },
+    ]
+
+`mapping_object` describes how the input data fields are mapped into Salesforce
+object attributes. In the example, the mapping defines that `asiakas` attribute in the
+input object is mapped into `Tilaaja__c` attribute of `Tilaus__c` custom Salesforce object.
+
+.. code-block:: json
+
+    {
+        "Tilaus__c": {
+            "asiakas": "Tilaaja__c"
+        },
+    }
+
+Object type could be, for example, `Tilaus__c`.
+
+**Salesforce object operations**
+
+Following operations can be used to manage Salesforce objects:
+
+* Get Salesforce Object By Id
+* Create Salesforce Object
+* Update Salesforce Object
+* Upsert Salesforce Object
+* Delete Salesforce Object
+* Get Salesforce Object Metadata
+* Describe Salesforce Object
+
+There are two ways to set the Salesforce domain. You can set the domain at time of
+library import or using the `Set Domain` keyword.
+
+There are several ways to declare a domain at time of library import:
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Salesforce    sandbox=${TRUE}
+
+Or using the domain to your Salesforce My domain:
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Salesforce    domain="robocorp"
+
+The domain can also be set using the keyword `Set Domain`:
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Salesforce
+
+    *** Tasks ***
+    # Sets the domain for a sandbox environment
+    Set Domain    sandbox
+
+    # Sets the domain to a Salseforce My domain
+    Set Domain    robocorp
+
+    # Sets to domain to the default of 'login'
+    Set Domain
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library     RPA.Salesforce
+    Task Setup  Authorize Salesforce
+
+    *** Variables ***
+    ${ACCOUNT_NOKIA}    0015I000002jBLDQA2
+
+    *** Tasks ***
+    Change account details in Salesforce
+        &amp;{account}=      Get Salesforce Object By Id   Account  ${ACCOUNT_NOKIA}
+        &amp;{update_obj}=   Create Dictionary   Name=Nokia Ltd  BillingStreet=Nokia bulevard 1
+        ${result}=       Update Salesforce Object  Account  ${ACCOUNT_NOKIA}  ${update_obj}
+
+    *** Keywords ***
+    Authorize Salesforce
+        ${secrets}=     Get Secret   salesforce
+        Auth With Token
+        ...        username=${secrets}[USERNAME]
+        ...        password=${secrets}[PASSWORD]
+        ...        api_token=${secrets}[API_TOKEN]
+
+**Python**
+
+.. code-block:: python
+
+    import pprint
+    from RPA.Salesforce import Salesforce
+    from RPA.Robocorp.Vault import FileSecrets
+
+    pp = pprint.PrettyPrinter(indent=4)
+    filesecrets = FileSecrets("secrets.json")
+    secrets = filesecrets.get_secret("salesforce")
+
+    sf = Salesforce()
+    sf.auth_with_token(
+        username=secrets["USERNAME"],
+        password=secrets["PASSWORD"],
+        api_token=secrets["API_TOKEN"],
+    )
+    nokia_account_id = "0015I000002jBLDQA2"
+    account = sf.get_salesforce_object_by_id("Account", nokia_account_id)
+    pp.pprint(account)
+    billing_information = {
+        "BillingStreet": "Nokia Bulevard 1",
+        "BillingCity": "Espoo",
+        "BillingPostalCode": "01210",
+        "BillingCountry": "Finland",
+    }
+    result = sf.update_salesforce_object("Account", nokia_account_id, billing_information)
+    print(f"Update result: {result}")</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="204">
+<arguments repr="sandbox: bool = False, domain: str = login">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="sandbox: bool = False">
+<name>sandbox</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="domain: str = login">
+<name>domain</name>
+<type name="str" typedoc="string">str</type>
+<default>login</default>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Add Product Into Opportunity" lineno="566">
+<arguments repr="product_name: str, quantity: int, opportunity_id: str | None = None, pricebook_name: str | None = None, custom_total_price: float | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="product_name: str">
+<name>product_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="quantity: int">
+<name>quantity</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="opportunity_id: str | None = None">
+<name>opportunity_id</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="pricebook_name: str | None = None">
+<name>pricebook_name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="custom_total_price: float | None = None">
+<name>custom_total_price</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Add Salesforce Product into Opportunity.
+
+:param product_name: type of the product in the Pricelist
+:param quantity: number of products to add
+:param opportunity_id: identifier of Opportunity, default None
+:param pricebook_name: name of the pricelist, default None
+:param custom_total_price: price that overrides quantity and product price,
+    default None
+:return: True is operation is successful or False</doc>
+<shortdoc>Add Salesforce Product into Opportunity.</shortdoc>
+</kw>
+<kw name="Auth With Connected App" lineno="268">
+<arguments repr="username: str, password: str, api_token: str, consumer_key: str, consumer_secret: str, embed_api_token: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="username: str">
+<name>username</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="password: str">
+<name>password</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="api_token: str">
+<name>api_token</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="consumer_key: str">
+<name>consumer_key</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="consumer_secret: str">
+<name>consumer_secret</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="embed_api_token: bool = False">
+<name>embed_api_token</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Authorize to Salesforce with security token, username,
+password, connected app key, and connected app secret
+creating instance.
+
+:param username: Salesforce API username
+:param password: Salesforce API password
+:param api_token: Salesforce API security token
+:param consumer_key: Salesforce connected app client ID
+:param consumer_secret: Salesforce connected app client secret
+:param embed_api_token: Embed API token to password (default: False)
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Salesforce import Salesforce
+    from RPA.Robocorp.Vault import Vault
+
+    SF = Salesforce(domain="robocorp-testing-stuff.develop.my")
+    VAULT = Vault()
+
+    secrets = VAULT.get_secret("salesforce")
+    SF.auth_with_connected_app(
+        username=secrets["USERNAME"],
+        password=secrets["PASSWORD"],
+        api_token=secrets["API_TOKEN"],
+        consumer_key=secrets["CONSUMER_KEY"],
+        consumer_secret=secrets["CONSUMER_SECRET"],
+    )
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library  RPA.Salesforce   domain=robocop-testing-stuff.develop.my
+    Library  RPA.Robocorp.Vault
+
+    *** Tasks ***
+    Authenticate to Salesforce using connected app
+        ${secrets}=  Get Secret  salesforce
+
+        Auth with connected app
+        ...  username=${secrets}[USERNAME]
+        ...  password=${secrets}[PASSWORD]
+        ...  api_token=${secrets}[API_TOKEN]
+        ...  consumer_key=${secrets}[CONSUMER_KEY]
+        ...  consumer_secret=${secrets}[CONSUMER_SECRET]</doc>
+<shortdoc>Authorize to Salesforce with security token, username, password, connected app key, and connected app secret creating instance.</shortdoc>
+</kw>
+<kw name="Auth With Token" lineno="250">
+<arguments repr="username: str, password: str, api_token: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="username: str">
+<name>username</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="password: str">
+<name>password</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="api_token: str">
+<name>api_token</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Authorize to Salesforce with security token, username
+and password creating instance.
+
+:param username: Salesforce API username
+:param password: Salesforce API password
+:param api_token: Salesforce API security token</doc>
+<shortdoc>Authorize to Salesforce with security token, username and password creating instance.</shortdoc>
+</kw>
+<kw name="Create New Opportunity" lineno="606">
+<arguments repr="close_date: str, opportunity_name: str, stage_name: str = Closed Won, account_name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="close_date: str">
+<name>close_date</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="opportunity_name: str">
+<name>opportunity_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="stage_name: str = Closed Won">
+<name>stage_name</name>
+<type name="str" typedoc="string">str</type>
+<default>Closed Won</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account_name: str | None = None">
+<name>account_name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Create Salesforce Opportunity object.
+
+:param close_date: closing date for the Opportunity, format 'YYYY-MM-DD'
+:param opportunity_name: as string
+:param stage_name: needs to be one of the defined stages,
+    defaults to "Closed Won"
+:param account_name: by default uses previously set account, defaults to None
+:return: created opportunity or False</doc>
+<shortdoc>Create Salesforce Opportunity object.</shortdoc>
+</kw>
+<kw name="Create Salesforce Object" lineno="734">
+<arguments repr="object_type: str, object_data: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_data: Any">
+<name>object_data</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Create Salesforce object by type and data.
+
+:param object_type: Salesforce object type
+:param object_data: Salesforce object data
+:raises SalesforceDataNotAnDictionary: when `object_data` is not dictionary
+:return: resulting object as dictionary</doc>
+<shortdoc>Create Salesforce object by type and data.</shortdoc>
+</kw>
+<kw name="Delete Salesforce Object" lineno="785">
+<arguments repr="object_type: str, object_id: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_id: str">
+<name>object_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Delete Salesfoce object by type and id.
+
+:param object_type: Salesforce object type
+:param object_id: Salesforce object id
+:return: True if successful</doc>
+<shortdoc>Delete Salesfoce object by type and id.</shortdoc>
+</kw>
+<kw name="Describe Salesforce Object" lineno="807">
+<arguments repr="object_type: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get Salesfoce object description by type.
+
+:param object_type: Salesforce object type
+:return: object description as dictionary</doc>
+<shortdoc>Get Salesfoce object description by type.</shortdoc>
+</kw>
+<kw name="Execute Apex" lineno="363">
+<arguments repr="apex: str, apex_data: Dict | None = None, apex_method: str = POST, **kwargs">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="apex: str">
+<name>apex</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="apex_data: Dict | None = None">
+<name>apex_data</name>
+<type name="Union" union="true">Dict | None<type name="Dict" typedoc="dictionary">Dict</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="apex_method: str = POST">
+<name>apex_method</name>
+<type name="str" typedoc="string">str</type>
+<default>POST</default>
+</arg>
+<arg kind="VAR_NAMED" required="false" repr="**kwargs">
+<name>kwargs</name>
+</arg>
+</arguments>
+<doc>Execute APEX operation.
+
+The APEX classes can be added via Salesforce Developer console
+(from menu: File &gt; New &gt; Apex Class).
+
+Permissions for the APEX classes can be set via Salesforce Setup
+(Apex Classes -&gt; Security).
+
+:param apex: endpoint of the APEX operation
+:param apex_data: data to be sent to the APEX operation
+:param apex_method: operation method
+:param kwargs: additional arguments to be passed to the APEX request
+:return: result of the APEX operation
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Salesforce import Salesforce
+
+    SF = Salesforce(domain="robocorp-testing-stuff.develop.my")
+    # authenticate to Salesforce
+    SF.execute_apex(apex="MyClass", apex_data={"data": "value"})
+    result = SF.execute_apex(
+        apex="getAccount/?id=0017R00002xmXB1QAM",
+        apex_method="GET")
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library  RPA.Salesforce   domain=robocop-testing-stuff.develop.my
+
+    *** Tasks ***
+    Executing APEX operations
+        # Authenticate to Salesforce
+
+        &amp;{apex_data}=  Create Dictionary  data=value
+        ${result}=     Execute APEX  MyClass  apex_data=${apex_data}
+        ${result}=     Execute APEX
+        ...  apex=getAccount/?id=0017R00002xmXB1QAM
+        ...  apex_method=GET</doc>
+<shortdoc>Execute APEX operation.</shortdoc>
+</kw>
+<kw name="Execute Dataloader Insert" lineno="671">
+<arguments repr="input_object: Any, mapping_object: Any, object_type: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="input_object: Any">
+<name>input_object</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="mapping_object: Any">
+<name>mapping_object</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Keyword mimics Salesforce Dataloader 'insert' behaviour by taking
+in a `input_object`representing dictionary of data to input into Salesforce,
+a `mapping_object` representing dictionary mapping the input keys into
+Salesforce keys, an `object_type` representing Salesforce object which
+Datahandler will handle with `operation` type.
+
+Stores operation successes into `Salesforce.dataloader_success` array.
+Stores operation errors into `Salesforce.dataloader_errors`.
+
+These can be retrieved with keywords `get_dataloader_success_table` and
+`get_dataloader_error_table` which return corresponding data as
+`RPA.Table`.
+
+:param input_object: filepath or list of dictionaries
+:param mapping_object: filepath or dictionary
+:param object_type: Salesforce object type
+:return: True if operation is successful</doc>
+<shortdoc>Keyword mimics Salesforce Dataloader 'insert' behaviour by taking in a `input_object`representing dictionary of data to input into Salesforce, a `mapping_object` representing dictionary mapping the input keys into Salesforce keys, an `object_type` representing Salesforce object which Datahandler will handle with `operation` type.</shortdoc>
+</kw>
+<kw name="Get Dataloader Error Table" lineno="719">
+<arguments repr="">
+</arguments>
+<doc>Return Dataloader error entries as `RPA.Table`</doc>
+<shortdoc>Return Dataloader error entries as `RPA.Table`</shortdoc>
+</kw>
+<kw name="Get Dataloader Success Table" lineno="715">
+<arguments repr="">
+</arguments>
+<doc>Return Dataloader success entries as `RPA.Table`</doc>
+<shortdoc>Return Dataloader success entries as `RPA.Table`</shortdoc>
+</kw>
+<kw name="Get Domain" lineno="243">
+<arguments repr="">
+</arguments>
+<doc>Used to determine the current domain that has been set
+
+:returns: string of the currently set domain</doc>
+<shortdoc>Used to determine the current domain that has been set</shortdoc>
+</kw>
+<kw name="Get Opportunity Id" lineno="505">
+<arguments repr="opportunity_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="opportunity_name: str">
+<name>opportunity_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get ID of an Opportunity linked to set account.
+
+:param opportunity_name: opportunity to query
+:return: Id of the opportunity or False</doc>
+<shortdoc>Get ID of an Opportunity linked to set account.</shortdoc>
+</kw>
+<kw name="Get Pricebook Entries" lineno="498">
+<arguments repr="">
+</arguments>
+<doc>Get all pricebook entries.
+
+:return: query result</doc>
+<shortdoc>Get all pricebook entries.</shortdoc>
+</kw>
+<kw name="Get Pricebook Id" lineno="523">
+<arguments repr="pricebook_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pricebook_name: str">
+<name>pricebook_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get ID of a pricelist.
+
+Returns False if unique Id is not found.
+
+:param pricebook_name: pricelist to query
+:return: Id of the pricelist or False</doc>
+<shortdoc>Get ID of a pricelist.</shortdoc>
+</kw>
+<kw name="Get Products In Pricelist" lineno="538">
+<arguments repr="pricebook_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pricebook_name: str">
+<name>pricebook_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get all products in a pricelist.
+
+:param pricebook_name: pricelist to query
+:return: products in dictionary</doc>
+<shortdoc>Get all products in a pricelist.</shortdoc>
+</kw>
+<kw name="Get Salesforce Object By Id" lineno="723">
+<arguments repr="object_type: str, object_id: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_id: str">
+<name>object_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get Salesforce object by id and type.
+
+:param object_type: Salesforce object type
+:param object_id: Salesforce object id
+:return: dictionary of object attributes</doc>
+<shortdoc>Get Salesforce object by id and type.</shortdoc>
+</kw>
+<kw name="Get Salesforce Object Metadata" lineno="797">
+<arguments repr="object_type: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get Salesfoce object metadata by type.
+
+:param object_type: Salesforce object type
+:return: object metadata as dictionary</doc>
+<shortdoc>Get Salesfoce object metadata by type.</shortdoc>
+</kw>
+<kw name="Read Dictionary From File" lineno="642">
+<arguments repr="mapping_file: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="mapping_file: str">
+<name>mapping_file</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Read dictionary from file.
+
+:param mapping_file: path to the file
+:return: file content as dictionary</doc>
+<shortdoc>Read dictionary from file.</shortdoc>
+</kw>
+<kw name="Salesforce Query" lineno="449">
+<arguments repr="sql_string: str, as_table: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="sql_string: str">
+<name>sql_string</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_table: bool = False">
+<name>as_table</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Perform SQL query and return result as `dict` or `Table`.
+
+:param sql_string: SQL clause to perform.
+:param as_table: Set to `True` if the result should be of `RPA.Tables.Table`
+    type. (dictionary is returned by default)
+:returns: Result of the SQL query.</doc>
+<shortdoc>Perform SQL query and return result as `dict` or `Table`.</shortdoc>
+</kw>
+<kw name="Salesforce Query Result As Table" lineno="466">
+<arguments repr="sql_string: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="sql_string: str">
+<name>sql_string</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Shorthand for ``Salesforce Query    ${sql_string}    as_table=${True}``.
+
+:param sql_string: SQL clause to perform.
+:returns: Result of the SQL query as `RPA.Tables.Table`.</doc>
+<shortdoc>Shorthand for ``Salesforce Query    ${sql_string}    as_table=${True}``.</shortdoc>
+</kw>
+<kw name="Set Account" lineno="474">
+<arguments repr="account_name: str = , account_id: str = ">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account_name: str = ">
+<name>account_name</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="account_id: str = ">
+<name>account_id</name>
+<type name="str" typedoc="string">str</type>
+<default/>
+</arg>
+</arguments>
+<doc>Set account name and id by giving either parameter.
+
+Can be used together with keywords:
+    - get_opportunity_id
+    - create_new_opportunity
+
+:param account_name: string, defaults to ""
+:param account_id: string, defaults to ""
+:return: True if account was found from Salesforce, else False</doc>
+<shortdoc>Set account name and id by giving either parameter.</shortdoc>
+</kw>
+<kw name="Set Domain" lineno="231">
+<arguments repr="domain: str = login">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="domain: str = login">
+<name>domain</name>
+<type name="str" typedoc="string">str</type>
+<default>login</default>
+</arg>
+</arguments>
+<doc>Used to set the domain the `Auth With Token` keyword will use. To set
+the domain to 'test' or if using a sandbox environment use "sandbox" as the
+domain. If you have a Salsesforce My domain you may also input that name. If
+the `domain` argument is not used the default domain is "login".
+
+:param domain: "sandbox" or the name of the Salesforce My domain;
+ if no argument provided defaults to "login"</doc>
+<shortdoc>Used to set the domain the `Auth With Token` keyword will use. To set the domain to 'test' or if using a sandbox environment use "sandbox" as the domain. If you have a Salsesforce My domain you may also input that name. If the `domain` argument is not used the default domain is "login".</shortdoc>
+</kw>
+<kw name="Set Pricebook" lineno="559">
+<arguments repr="pricebook_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pricebook_name: str">
+<name>pricebook_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Sets Pricebook to be used in Salesforce operations.
+
+:param pricebook_name: pricelist to use</doc>
+<shortdoc>Sets Pricebook to be used in Salesforce operations.</shortdoc>
+</kw>
+<kw name="Update Salesforce Object" lineno="749">
+<arguments repr="object_type: str, object_id: str, object_data: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_id: str">
+<name>object_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_data: Any">
+<name>object_data</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Update Salesfoce object by type, id and data.
+
+:param object_type: Salesforce object type
+:param object_id: Salesforce object id
+:param object_data: Salesforce object data
+:raises SalesforceDataNotAnDictionary: when `object_data` is not dictionary
+:return: True if successful</doc>
+<shortdoc>Update Salesfoce object by type, id and data.</shortdoc>
+</kw>
+<kw name="Upsert Salesforce Object" lineno="767">
+<arguments repr="object_type: str, object_id: str, object_data: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_type: str">
+<name>object_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_id: str">
+<name>object_id</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="object_data: Any">
+<name>object_data</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Upsert Salesfoce object by type, id and data.
+
+:param object_type: Salesforce object type
+:param object_id: Salesforce object id
+:param object_data: Salesforce object data
+:raises SalesforceDataNotAnDictionary: when `object_data` is not dictionary
+:return: True if successful</doc>
+<shortdoc>Upsert Salesfoce object by type, id and data.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Create Salesforce Object</usage>
+<usage>Execute Dataloader Insert</usage>
+<usage>Update Salesforce Object</usage>
+<usage>Upsert Salesforce Object</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Auth With Connected App</usage>
+<usage>Salesforce Query</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Execute Apex</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Add Product Into Opportunity</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Add Product Into Opportunity</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Add Product Into Opportunity</usage>
+<usage>Create New Opportunity</usage>
+<usage>Execute Apex</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Add Product Into Opportunity</usage>
+<usage>Auth With Connected App</usage>
+<usage>Auth With Token</usage>
+<usage>Create New Opportunity</usage>
+<usage>Create Salesforce Object</usage>
+<usage>Delete Salesforce Object</usage>
+<usage>Describe Salesforce Object</usage>
+<usage>Execute Apex</usage>
+<usage>Execute Dataloader Insert</usage>
+<usage>Get Opportunity Id</usage>
+<usage>Get Pricebook Id</usage>
+<usage>Get Products In Pricelist</usage>
+<usage>Get Salesforce Object By Id</usage>
+<usage>Get Salesforce Object Metadata</usage>
+<usage>Read Dictionary From File</usage>
+<usage>Salesforce Query</usage>
+<usage>Salesforce Query Result As Table</usage>
+<usage>Set Account</usage>
+<usage>Set Domain</usage>
+<usage>Set Pricebook</usage>
+<usage>Update Salesforce Object</usage>
+<usage>Upsert Salesforce Object</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

@@ -1,0 +1,1927 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Desktop.Windows" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/Desktop/Windows.py" lineno="105">
+<version/>
+<doc>`Windows` is a library for managing the Windows operating system.
+
+**DEPRECATION WARNING! USE RPA.Windows library instead.**
+
+For Windows desktop automation Robocorp recommends the ``RPA.Windows`` library.
+
+No further updates will be released for this library and new functionality will continue
+to be developed in ``RPA.Windows`` library.
+
+**Running Windows applications**
+
+Windows applications can be started in several ways. The library supports
+the following keywords:
+
+- Open Application (dispatch Office applications)
+- Open File (open the file as process which opens the associated application)
+- Open Executable (uses pywinauto start)
+- Open Using Run Dialog (uses Windows run dialog)
+- Open From Search (uses Windows search dialog)
+
+**Locators**
+
+`Locator` is used to identify the element for interaction - usually for a mouse click.
+
+Locators can investigated for application once it has been opened by calling
+the keyword `get_windows_elements` which can store locator information into JSON file
+and `screenshot` of the element into an image file.
+
+**Identifying locator**
+
+The element needs to be identified by a unique method, for example, "Three" for button 3
+in the Calculator application. It can be given either as `Three` or `name:Three`.
+
+Possible search criterias:
+
+- name
+- class (class_name)
+- type (control_type)
+- id (automation_id)
+- any if none was defined
+
+The current method of inspecting elements on Windows is `inspect.exe` which is part
+of `Windows SDK &lt;https://docs.microsoft.com/en-us/windows/win32/winauto/inspect-objects&gt;`_.
+
+**Keyboard**
+
+The keyword `send_keys` can be used to send keys to the active window. The keyword
+`type_keys` sends keys to the active window element.
+
+Special key codes are documented on `pywinauto &lt;https://pywinauto.readthedocs.io/en/latest/code/pywinauto.keyboard.html#&gt;`_
+documentation page.
+
+**FAQ**
+
+Q. I see error message `AttributeError: module 'win32com.gen_py.00020813-0000-0000-C000-000000000046x0x1x9' has no attribute 'CLSIDToClassMap'`
+
+A. From PowerShell run this command: `Remove-Item -path $env:LOCALAPPDATA\Temp\gen_py -recurse`
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library          RPA.Desktop.Windows
+    Suite Teardown   Close all applications
+
+    *** Tasks ***
+    Open Calculator using run dialog
+        ${result}=              Open using run dialog    calc.exe   Calculator
+        ${result}=              Get Window Elements
+        Send Keys               5*2=
+        ${result}=              Get element             partial name:Display is
+        Log Many                ${result}
+        ${result}=              Get element rich text   id:CalculatorResults
+        Should Be Equal As Strings  ${result}  Display is 10
+        ${result}=              Get element rectangle   partial name:Display is
+        ${result}=              Is Element Visible      CalculatorResults
+        ${result}=              Is Element Enabled      partial name:Display is
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Desktop.Windows import Windows
+
+    win = Windows()
+
+    def open_calculator():
+        win.open_from_search("calc.exe", "Calculator")
+        elements = win.get_window_elements()
+
+    def make_calculations(expression):
+        win.send_keys(expression)
+        result = win.get_element_rich_text('id:CalculatorResults')
+        return int(result.strip('Display is '))
+
+    if __name__ == "__main__":
+        open_calculator()
+        exp = '5*2='
+        result = make_calculations(exp)
+        print(f"Calculation result of '{exp}' is '{result}'")
+        win.close_all_applications()</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="215">
+<arguments repr="backend: str = uia">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="backend: str = uia">
+<name>backend</name>
+<type name="str" typedoc="string">str</type>
+<default>uia</default>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Boot Time In Seconds From Epoch" source="./RPA/Desktop/OperatingSystem.py" lineno="92">
+<arguments repr="">
+</arguments>
+<doc>Get machine boot time
+
+:return: boot time in seconds from Epoch
+
+Example:
+
+.. code-block:: robotframework
+
+    ${epoch}  Boot Time In Seconds From Epoch</doc>
+<shortdoc>Get machine boot time</shortdoc>
+</kw>
+<kw name="Calculate Rectangle Center" lineno="1949">
+<arguments repr="rectangle: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="rectangle: Any">
+<name>rectangle</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Calculate x and y center coordinates from rectangle.
+
+:param rectangle: element rectangle coordinates
+:return: x and y coordinates of rectangle center
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Using Run Dialog   calc  Calculator
+    &amp;{rect}=        Get Element Rectangle    CalculatorResults
+    ${x}  ${y}=     Calculate Rectangle Center   ${rect}</doc>
+<shortdoc>Calculate x and y center coordinates from rectangle.</shortdoc>
+</kw>
+<kw name="Click Type" lineno="1481">
+<arguments repr="x: int | None = None, y: int | None = None, click_type: str = click">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="x: int | None = None">
+<name>x</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="y: int | None = None">
+<name>y</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="click_type: str = click">
+<name>click_type</name>
+<type name="str" typedoc="string">str</type>
+<default>click</default>
+</arg>
+</arguments>
+<doc>Mouse click on coordinates x and y.
+
+Default click type is `click` meaning `left`
+
+:param x: horizontal coordinate for click, defaults to None
+:param y: vertical coordinate for click, defaults to None
+:param click_type: "click", "right" or "double", defaults to "click"
+:raises ValueError: if coordinates are not valid
+
+Example:
+
+.. code-block:: robotframework
+
+    Click Type  x=450  y=100
+    Click Type  x=450  y=100  click_type=right
+    Click Type  x=450  y=100  click_type=double</doc>
+<shortdoc>Mouse click on coordinates x and y.</shortdoc>
+</kw>
+<kw name="Close All Applications" lineno="813">
+<arguments repr="">
+</arguments>
+<doc>Close all applications
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Application   Excel
+    Open Application   Word
+    Open Executable    notepad.exe   Untitled - Notepad
+    Close All Applications</doc>
+<shortdoc>Close all applications</shortdoc>
+</kw>
+<kw name="Connect By Handle" lineno="768">
+<arguments repr="handle: int, windowtitle: str | None = None, existing_app: bool = False, parse_elements: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="handle: int">
+<name>handle</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="windowtitle: str | None = None">
+<name>windowtitle</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="existing_app: bool = False">
+<name>existing_app</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="parse_elements: bool = True">
+<name>parse_elements</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Connect to application by its handle
+
+:param handle: handle of the application
+:param windowtitle: name of the window, defaults to active window if None
+:param existing_app: set True if selecting window which library has already
+ accessed, default False
+:param parse_elements: set False to not to parse elements of the window,
+ default True
+
+Example:
+
+.. code-block:: robotframework
+
+    ${appid}  Connect By Handle  88112</doc>
+<shortdoc>Connect to application by its handle</shortdoc>
+</kw>
+<kw name="Connect By Pid" lineno="744">
+<arguments repr="app_pid: str, windowtitle: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="app_pid: str">
+<name>app_pid</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="windowtitle: str | None = None">
+<name>windowtitle</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Connect to application by its pid
+
+:param app_pid: process id of the application
+:param windowtitle: name of the window, defaults to active window if None
+
+Example:
+
+.. code-block:: robotframework
+
+    ${appid}  Connect By PID  3231</doc>
+<shortdoc>Connect to application by its pid</shortdoc>
+</kw>
+<kw name="Drag And Drop" lineno="1856">
+<arguments repr="src: Any, target: Any, src_locator: str, target_locator: str | None = None, handle_ctrl_key: bool = False, drop_delay: float = 2.0, origin: str = middle">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="src: Any">
+<name>src</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="target: Any">
+<name>target</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="src_locator: str">
+<name>src_locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_locator: str | None = None">
+<name>target_locator</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="handle_ctrl_key: bool = False">
+<name>handle_ctrl_key</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="drop_delay: float = 2.0">
+<name>drop_delay</name>
+<type name="float" typedoc="float">float</type>
+<default>2.0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="origin: str = middle">
+<name>origin</name>
+<type name="str" typedoc="string">str</type>
+<default>middle</default>
+</arg>
+</arguments>
+<doc>Drag elements from source and drop them on target.
+
+Please note that if CTRL is not pressed down during drag and drop then
+operation is MOVE operation, on CTRL down the operation is COPY operation.
+
+There will be also overwrite notification if dropping over existing files.
+
+:param src: application object or instance id
+:param target: application object or instance id
+:param src_locator: elements to move
+:param handle_ctrl_key: True if keyword should press CTRL down dragging
+:param drop_delay: how many seconds to wait until releasing mouse drop,
+ default 2.0
+:raises ValueError: on validation errors
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}=        Open Using Run Dialog    explorer.exe{VK_SPACE}C:\workfiles\movethese   movethese
+    ${app2}=        Open Using Run Dialog    wordpad.exe   Document - WordPad
+    Drag And Drop   ${app1}   ${app2}   regexp:testfile_\d.txt  name:Rich Text Window   handle_ctrl_key=${True}
+    Drag And Drop   ${app1}   ${app1}   regexp:testfile_\d.txt  name:subdir  handle_ctrl_key=${True}</doc>
+<shortdoc>Drag elements from source and drop them on target.</shortdoc>
+</kw>
+<kw name="Find Element" lineno="1315">
+<arguments repr="locator: str, search_criteria: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="search_criteria: str | None = None">
+<name>search_criteria</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Find element from window by locator and criteria.
+
+:param locator: name of the locator
+:param search_criteria: criteria by which element is matched
+:return: list of matching elements and locators that were found on the window
+
+Example:
+
+.. code-block:: robotframework
+
+    @{elements}   Find Element   CalculatorResults
+    Log Many  ${elements[0]}     # list of matching elements
+    Log Many  ${elements[1]}     # list of all available locators</doc>
+<shortdoc>Find element from window by locator and criteria.</shortdoc>
+</kw>
+<kw name="Get App" lineno="338">
+<arguments repr="app_id: int | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="app_id: int | None = None">
+<name>app_id</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Get application object by id
+
+By default returns active_application application object.
+
+:param app_id: id of the application to get, defaults to None
+:return: application object
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}        Open Application   Excel
+    &amp;{appdetails}  Get App   ${app1}</doc>
+<shortdoc>Get application object by id</shortdoc>
+</kw>
+<kw name="Get Boot Time" source="./RPA/Desktop/OperatingSystem.py" lineno="67">
+<arguments repr="as_datetime: bool = False, datetime_format: str = %Y-%m-%d %H:%M:%S">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_datetime: bool = False">
+<name>as_datetime</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="datetime_format: str = %Y-%m-%d %H:%M:%S">
+<name>datetime_format</name>
+<type name="str" typedoc="string">str</type>
+<default>%Y-%m-%d %H:%M:%S</default>
+</arg>
+</arguments>
+<doc>Get computer boot time in seconds from Epoch or in datetime string.
+
+:param as_datetime: if True returns datetime string, otherwise seconds,
+    defaults to False
+:param datetime_format: datetime string format, defaults to "%Y-%m-%d %H:%M:%S"
+:return: seconds from Epoch or datetime string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${boottime}  Get Boot Time
+    ${boottime}  Get Boot Time   as_datetime=True
+    ${boottime}  Get Boot Time   as_datetime=True  datetime_format=%d.%m.%Y</doc>
+<shortdoc>Get computer boot time in seconds from Epoch or in datetime string.</shortdoc>
+</kw>
+<kw name="Get Dialog Rectangle" lineno="1431">
+<arguments repr="ctrl: Any | None = None, as_dict: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ctrl: Any | None = None">
+<name>ctrl</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_dict: bool = False">
+<name>as_dict</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Get dialog rectangle coordinates
+
+If `ctrl` is None then get coordinates from `dialog`
+
+:param ctrl: name of the window control object, defaults to None
+:return: coordinates: left, top, right, bottom
+
+Example:
+
+.. code-block:: robotframework
+
+    ${left}  ${top}  ${right}  ${bottom}=  Get Dialog Rectangle
+    &amp;{coords}  Get Dialog Rectangle  as_dict=True
+    Log  top=${coords.top} left=${coords.left}</doc>
+<shortdoc>Get dialog rectangle coordinates</shortdoc>
+</kw>
+<kw name="Get Element" lineno="1098">
+<arguments repr="locator: str, screenshot: bool = False, open_dialog: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="screenshot: bool = False">
+<name>screenshot</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="open_dialog: bool = True">
+<name>open_dialog</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Get element by locator.
+
+:param locator: name of the locator
+:param screenshot: takes element screenshot if True, defaults to False
+:param open_dialog: True if dialog should be reopened, default to True
+:return: element if element was identified, else False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${element}  Get Element  CalculatorResults
+    ${element}  Get Element  Result      screenshot=True</doc>
+<shortdoc>Get element by locator.</shortdoc>
+</kw>
+<kw name="Get Element Center" lineno="1465">
+<arguments repr="element: dict">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="element: dict">
+<name>element</name>
+<type name="dict" typedoc="dictionary">dict</type>
+</arg>
+</arguments>
+<doc>Get element center coordinates
+
+:param element: dictionary of element items
+:return: coordinates, x and y
+
+Example:
+
+.. code-block:: robotframework
+
+    @{element}   Find Element  CalculatorResults
+    ${x}  ${y}=  Get Element Center  ${elements[0][0]}</doc>
+<shortdoc>Get element center coordinates</shortdoc>
+</kw>
+<kw name="Get Element Rectangle" lineno="1171">
+<arguments repr="locator: str, as_dict: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_dict: bool = False">
+<name>as_dict</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Get value of element `rectangle` attribute.
+
+:param locator: element locator
+:param as_dict: return values in a dictionary, default `False`
+:return: (left, top, right, bottom) values if found, else False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${left}  ${top}  ${right}  ${bottom}=  Get Element Rectangle  CalculatorResults
+    &amp;{coords}  Get Element Rectangle  CalculatorResults  as_dict=True
+    Log  top=${coords.top} left=${coords.left}</doc>
+<shortdoc>Get value of element `rectangle` attribute.</shortdoc>
+</kw>
+<kw name="Get Element Rich Text" lineno="1146">
+<arguments repr="locator: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get value of element `rich text` attribute.
+
+:param locator: element locator
+:return: `rich_text` value if found, else False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${text}  Get Element Rich Text  CalculatorResults</doc>
+<shortdoc>Get value of element `rich text` attribute.</shortdoc>
+</kw>
+<kw name="Get Machine Name" source="./RPA/Desktop/OperatingSystem.py" lineno="106">
+<arguments repr="">
+</arguments>
+<doc>Get machine name
+
+:return: machine name as string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${machine}  Get Machine Name</doc>
+<shortdoc>Get machine name</shortdoc>
+</kw>
+<kw name="Get Memory Stats" source="./RPA/Desktop/OperatingSystem.py" lineno="234">
+<arguments repr="humanized: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="humanized: bool = True">
+<name>humanized</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Get computer memory stats and return those in bytes
+or in humanized memory format.
+
+:param humanized: if False returns memory information in bytes, defaults to True
+:return: memory information in dictionary format
+
+Example:
+
+.. code-block:: robotframework
+
+    &amp;{mem}     Get Memory Stats
+    &amp;{mem}     Get Memory Stats   humanized=False</doc>
+<shortdoc>Get computer memory stats and return those in bytes or in humanized memory format.</shortdoc>
+</kw>
+<kw name="Get Open Applications" lineno="321">
+<arguments repr="">
+</arguments>
+<doc>Get list of all open applications
+
+Returns a dictionary
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}    Open Application   Excel
+    ${app2}    Open Executable    calc.exe  Calculator
+    ${app3}    Open File          /path/to/myfile.txt
+    &amp;{apps}    Get Open Applications</doc>
+<shortdoc>Get list of all open applications</shortdoc>
+</kw>
+<kw name="Get Spaced String" lineno="556">
+<arguments repr="text">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text">
+<name>text</name>
+</arg>
+</arguments>
+<doc>Replace spaces in a text with `pywinauto.keyboard`
+space characters `{VK_SPACE}`
+
+:param text: replace spaces in this string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${txt}    Get Spaced String   My name is Bond
+    # ${txt} = My{VK_SPACE}name{VK_SPACE}is{VK_SPACE}Bond
+    Send Keys To Input  ${txt}</doc>
+<shortdoc>Replace spaces in a text with `pywinauto.keyboard` space characters `{VK_SPACE}`</shortdoc>
+</kw>
+<kw name="Get Text" lineno="928">
+<arguments repr="locator: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Get text from element
+
+:param locator: element locator
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Using Run Dialog  calc     Calculator
+    Type Into    CalculatorResults   11
+    Type Into    CalculatorResults   55
+    &amp;{val}       Get Text   CalculatorResults</doc>
+<shortdoc>Get text from element</shortdoc>
+</kw>
+<kw name="Get Username" source="./RPA/Desktop/OperatingSystem.py" lineno="120">
+<arguments repr="">
+</arguments>
+<doc>Get username of logged in user
+
+:return: username as string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${user}  Get Username</doc>
+<shortdoc>Get username of logged in user</shortdoc>
+</kw>
+<kw name="Get Window Elements" lineno="1512">
+<arguments repr="screenshot: bool = False, element_json: bool = False, outline: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="screenshot: bool = False">
+<name>screenshot</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="element_json: bool = False">
+<name>element_json</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="outline: bool = False">
+<name>outline</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Get element information about all window dialog controls
+and their descendants.
+
+:param screenshot: save element screenshot if True, defaults to False
+:param element_json: save element json if True, defaults to False
+:param outline: highlight elements if True, defaults to False
+:return: all controls and all elements
+
+Example:
+
+.. code-block:: robotframework
+
+    @{elements}   Get Window Elements
+    Log Many      ${elements[0]}     # list of all available locators
+    Log Many      ${elements[1]}     # list of matching elements
+    @{elements}   Get Window Elements  screenshot=True  element_json=True  outline=True</doc>
+<shortdoc>Get element information about all window dialog controls and their descendants.</shortdoc>
+</kw>
+<kw name="Get Window List" lineno="1968">
+<arguments repr="">
+</arguments>
+<doc>Get list of open windows
+
+Window dictionaries contain:
+
+- automation_id
+- control_id
+- title
+- pid
+- handle
+- is_active
+- keyboard_focus
+- rectangle
+
+:return: list of window dictionaries
+
+Example:
+
+.. code-block:: robotframework
+
+    @{windows}    Get Window List
+    FOR  ${window}  IN  @{windows}
+        Log Many  ${window}
+    END</doc>
+<shortdoc>Get list of open windows</shortdoc>
+</kw>
+<kw name="Is Element Enabled" lineno="1223">
+<arguments repr="locator: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Is element enabled.
+
+:param locator: element locator
+:return: True if enabled, else False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${res}=   Is Element Enabled  CalculatorResults</doc>
+<shortdoc>Is element enabled.</shortdoc>
+</kw>
+<kw name="Is Element Matching" lineno="1417">
+<arguments repr="itemdict: dict, locator: str, criteria: str, wildcard: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="itemdict: dict">
+<name>itemdict</name>
+<type name="dict" typedoc="dictionary">dict</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="criteria: str">
+<name>criteria</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wildcard: bool = False">
+<name>wildcard</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Is element matching. Check if locator is found in `any` field
+or `criteria` field in the window items.
+
+:param itemDict: dictionary of element items
+:param locator: name of the locator
+:param criteria: criteria on which to match element
+:param wildcard: whether to do reg exp match or not, default False
+:return: True if element is matching locator and criteria, False if not</doc>
+<shortdoc>Is element matching. Check if locator is found in `any` field or `criteria` field in the window items.</shortdoc>
+</kw>
+<kw name="Is Element Visible" lineno="1207">
+<arguments repr="locator: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Is element visible.
+
+:param locator: element locator
+:return: True if visible, else False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${res}=   Is Element Visible  CalculatorResults</doc>
+<shortdoc>Is element visible.</shortdoc>
+</kw>
+<kw name="Kill Process" source="./RPA/Desktop/OperatingSystem.py" lineno="197">
+<arguments repr="process_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_name: str">
+<name>process_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Kill process by name
+
+:param process_name: name of the process
+:return: True if succeeds False if not
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process Exists  calc  strict=False
+    ${status}   Kill Process    ${process.name()}</doc>
+<shortdoc>Kill process by name</shortdoc>
+</kw>
+<kw name="Kill Process By Pid" source="./RPA/Desktop/OperatingSystem.py" lineno="218">
+<arguments repr="pid: int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pid: int">
+<name>pid</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+</arguments>
+<doc>Kill process by pid
+
+:param pid: process identifier
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process Exists  calc  strict=False
+    ${status}   Kill Process By PID   ${process.pid}</doc>
+<shortdoc>Kill process by pid</shortdoc>
+</kw>
+<kw name="Lock Screen" lineno="1764">
+<arguments repr="">
+</arguments>
+<doc>Put windows into lock mode
+
+Example:
+
+.. code-block:: robotframework
+
+    Lock Screen</doc>
+<shortdoc>Put windows into lock mode</shortdoc>
+</kw>
+<kw name="Log In" lineno="1775">
+<arguments repr="username: str, password: str, domain: str = .">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="username: str">
+<name>username</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="password: str">
+<name>password</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="domain: str = .">
+<name>domain</name>
+<type name="str" typedoc="string">str</type>
+<default>.</default>
+</arg>
+</arguments>
+<doc>Log into Windows `domain` with `username` and `password`.
+
+:param username: name of the user
+:param password: password of the user
+:param domain: windows domain for the user, defaults to "."
+:return: handle
+
+Example:
+
+.. code-block:: robotframework
+
+    Log In  username=myname  password=mypassword  domain=company</doc>
+<shortdoc>Log into Windows `domain` with `username` and `password`.</shortdoc>
+</kw>
+<kw name="Menu Select" lineno="1239">
+<arguments repr="menuitem: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="menuitem: str">
+<name>menuitem</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Select item from menu
+
+:param menuitem: name of the menu item
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Using Run Dialog   notepad     Untitled - Notepad
+    Menu Select             File-&gt;Print</doc>
+<shortdoc>Select item from menu</shortdoc>
+</kw>
+<kw name="Minimize Dialog" lineno="610">
+<arguments repr="windowtitle: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="windowtitle: str | None = None">
+<name>windowtitle</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Minimize window by its title
+
+:param windowtitle: name of the window, default `None` means that
+ active window is going to be minimized
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Using Run Dialog  calc     Calculator
+    Open Using Run Dialog  notepad  Untitled - Notepad
+    Minimize Dialog    # Current window (Notepad)
+    Minimize Dialog    Calculator</doc>
+<shortdoc>Minimize window by its title</shortdoc>
+</kw>
+<kw name="Mouse Click" lineno="965">
+<arguments repr="locator: str | None = None, x: int = 0, y: int = 0, off_x: int = 0, off_y: int = 0, image: str | None = None, method: str = locator, ctype: str = click, focus: str = center, tolerance: int | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="locator: str | None = None">
+<name>locator</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="x: int = 0">
+<name>x</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="y: int = 0">
+<name>y</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="off_x: int = 0">
+<name>off_x</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="off_y: int = 0">
+<name>off_y</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image: str | None = None">
+<name>image</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="method: str = locator">
+<name>method</name>
+<type name="str" typedoc="string">str</type>
+<default>locator</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ctype: str = click">
+<name>ctype</name>
+<type name="str" typedoc="string">str</type>
+<default>click</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="focus: str = center">
+<name>focus</name>
+<type name="str" typedoc="string">str</type>
+<default>center</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="tolerance: int | None = None">
+<name>tolerance</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Mouse click `locator`, `coordinates`, or `image`
+
+When using method `locator`,`image` or `ocr` mouse is clicked by default at
+center coordinates.
+
+Click types are:
+
+- `click` normal left button mouse click
+- `double`
+- `right`
+
+:param locator: element locator on active window
+:param x: coordinate x on desktop
+:param y: coordinate y on desktop
+:param off_x: offset x (used for locator and image clicks)
+:param off_y: offset y (used for locator and image clicks)
+:param image: image to click on desktop
+:param method: one of the available methods to mouse click, default "locator"
+:param ctype: type of mouse click
+:param focus: default point for element click is 'center', can be set to 'topleft'
+ to click top left corner of the element
+:param tolerance: image matching tolerance between 0 and 1
+
+Example:
+
+.. code-block:: robotframework
+
+    Mouse Click  method=coordinates  100   100
+    Mouse Click  CalculatorResults
+    Mouse Click  method=image  image=myimage.png  off_x=10  off_y=10  ctype=right
+    Mouse Click  method=image  image=myimage.png  tolerance=0.8
+    ${elements}  ${other}=     Find Element  class:Button
+    FOR  ${element}  IN  @{elements}
+        Run Keyword If   ${element}[visible]   Mouse Click  ${element}
+    END
+    Mouse Click  id:TrickyCheckbox  focus=topleft</doc>
+<shortdoc>Mouse click `locator`, `coordinates`, or `image`</shortdoc>
+</kw>
+<kw name="Mouse Click Coords" lineno="1075">
+<arguments repr="x: int, y: int, ctype: str = click, delay_time: float | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="x: int">
+<name>x</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="y: int">
+<name>y</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ctype: str = click">
+<name>ctype</name>
+<type name="str" typedoc="string">str</type>
+<default>click</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="delay_time: float | None = None">
+<name>delay_time</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Click at coordinates on desktop
+
+:param x: horizontal coordinate on the windows to click
+:param y: vertical coordinate on the windows to click
+:param ctype: click type "click", "right" or "double", defaults to "click"
+:param delay: delay in seconds after, default is no delay
+
+Example:
+
+.. code-block:: robotframework
+
+    Mouse Click Coords  x=450  y=100
+    Mouse Click Coords  x=300  y=300  ctype=right
+    Mouse Click Coords  x=450  y=100  delay=5.0</doc>
+<shortdoc>Click at coordinates on desktop</shortdoc>
+</kw>
+<kw name="Mouse Click Image" lineno="1043">
+<arguments repr="template: str, off_x: int = 0, off_y: int = 0, ctype: str = click, tolerance: float | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="template: str">
+<name>template</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="off_x: int = 0">
+<name>off_x</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="off_y: int = 0">
+<name>off_y</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ctype: str = click">
+<name>ctype</name>
+<type name="str" typedoc="string">str</type>
+<default>click</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="tolerance: float | None = None">
+<name>tolerance</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Click at template image on desktop
+
+:param image: image to click on desktop
+:param off_x: horizontal offset from top left corner to click on
+:param off_y: vertical offset from top left corner to click on
+:param ctype: type of mouse click
+:param tolerance: matching tolerance between 0 and 1
+
+Example:
+
+.. code-block:: robotframework
+
+    Mouse Click  image=myimage.png  off_x=10  off_y=10  ctype=right
+    Mouse Click  image=myimage.png  tolerance=0.8</doc>
+<shortdoc>Click at template image on desktop</shortdoc>
+</kw>
+<kw name="Open Application" lineno="359">
+<arguments repr="application: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="application: str">
+<name>application</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Open application by dispatch method
+
+This keyword is used to launch Microsoft applications like
+Excel, Word, Outlook and Powerpoint.
+
+:param application: name of the application as `str`
+:return: application instance id
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}    Open Application   Excel
+    ${app2}    Open Application   Word</doc>
+<shortdoc>Open application by dispatch method</shortdoc>
+</kw>
+<kw name="Open Dialog" lineno="686">
+<arguments repr="windowtitle: str | None = None, highlight: bool = False, timeout: int = 10, existing_app: bool = False, wildcard: bool = False, parse_elements: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="windowtitle: str | None = None">
+<name>windowtitle</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="highlight: bool = False">
+<name>highlight</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 10">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="existing_app: bool = False">
+<name>existing_app</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wildcard: bool = False">
+<name>wildcard</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="parse_elements: bool = True">
+<name>parse_elements</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Open window by its title.
+
+:param windowtitle: name of the window, defaults to active window if None
+:param highlight: draw outline for window if True, default False
+:param timeout: time to wait for dialog to appear
+:param existing_app: set True if selecting window which library has already
+ accessed, default False
+:param wildcard: set True for inclusive window title search, default False
+:param parse_elements: set False to not to parse elements of the window,
+ default True
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Dialog       Untitled - Notepad
+    Open Dialog       Untitled - Notepad   highlight=True   timeout=5
+    Open Dialog       Notepad   wildcard=True</doc>
+<shortdoc>Open window by its title.</shortdoc>
+</kw>
+<kw name="Open Executable" lineno="432">
+<arguments repr="executable: str, windowtitle: str, backend: str | None = None, work_dir: str | None = None, wildcard: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="executable: str">
+<name>executable</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="windowtitle: str">
+<name>windowtitle</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="backend: str | None = None">
+<name>backend</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="work_dir: str | None = None">
+<name>work_dir</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wildcard: bool = False">
+<name>wildcard</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Open Windows executable. Window title name is required
+to get handle on the application.
+
+:param executable: name of the executable
+:param windowtitle: name of the window
+:param backend: set Windows backend, default None means using
+ library default value
+:param work_dir: path to working directory, default None
+:param wildcard: set True for inclusive window title search, default False
+:return: application instance id
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}    Open Executable   calc.exe  Calculator
+    ${app2}    Open Executable   notepad.exe  Notepad   wildcard=True</doc>
+<shortdoc>Open Windows executable. Window title name is required to get handle on the application.</shortdoc>
+</kw>
+<kw name="Open File" lineno="388">
+<arguments repr="filename: str, windowtitle: str | None = None, wildcard: bool = False, timeout: int = 10">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="windowtitle: str | None = None">
+<name>windowtitle</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wildcard: bool = False">
+<name>wildcard</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 10">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+</arguments>
+<doc>Open associated application when opening file
+
+Keyword `Open Dialog` is used if `windowtitle` is given.
+
+:param filename: path to file
+:param windowtitle: name of the window
+:param wildcard: set True for inclusive window title search, default False
+:param timeout: time to wait for dialog to appear
+:return: application id or None
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}    Open File   /path/to/myfile.txt</doc>
+<shortdoc>Open associated application when opening file</shortdoc>
+</kw>
+<kw name="Open From Search" lineno="506">
+<arguments repr="executable: str, windowtitle: str, timeout: int = 10, wildcard: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="executable: str">
+<name>executable</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="windowtitle: str">
+<name>windowtitle</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 10">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wildcard: bool = False">
+<name>wildcard</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Open application using Windows search dialog.
+Window title name is required to get handle on the application.
+
+:param executable: name of the executable
+:param windowtitle: name of the window
+:param timeout: time to wait for dialog to appear
+:param wildcard: set True for inclusive window title search, default False
+:return: application instance id
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}    Open From Search  calculator  Calculator
+    ${app2}    Open From Search  notepad  Notepad  wildcard=True</doc>
+<shortdoc>Open application using Windows search dialog. Window title name is required to get handle on the application.</shortdoc>
+</kw>
+<kw name="Open Using Run Dialog" lineno="472">
+<arguments repr="executable: str, windowtitle: str, timeout: int = 10, wildcard: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="executable: str">
+<name>executable</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="windowtitle: str">
+<name>windowtitle</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int = 10">
+<name>timeout</name>
+<type name="int" typedoc="integer">int</type>
+<default>10</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="wildcard: bool = False">
+<name>wildcard</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Open application using Windows run dialog.
+Window title name is required to get handle on the application.
+
+:param executable: name of the executable
+:param windowtitle: name of the window
+:param timeout: time to wait for dialog to appear
+:param wildcard: set True for inclusive window title search, default False
+:return: application instance id
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}    Open Using Run Dialog  notepad  Untitled - Notepad
+    ${app2}    Open Using Run Dialog  notepad  Notepad    wildcard=True</doc>
+<shortdoc>Open application using Windows run dialog. Window title name is required to get handle on the application.</shortdoc>
+</kw>
+<kw name="Process Exists" source="./RPA/Desktop/OperatingSystem.py" lineno="151">
+<arguments repr="process_name: str, strict: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_name: str">
+<name>process_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="strict: bool = True">
+<name>strict</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Check if process exists by its name
+
+:param process_name: search for this process
+:param strict: defines how match is made, default `True`
+ which means that process name needs to be exact match
+ and `False` does inclusive matching
+:return: process instance or False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process Exists  calc
+    ${process}  Process Exists  calc  strict=False</doc>
+<shortdoc>Check if process exists by its name</shortdoc>
+</kw>
+<kw name="Process Id Exists" source="./RPA/Desktop/OperatingSystem.py" lineno="177">
+<arguments repr="pid: int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pid: int">
+<name>pid</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+</arguments>
+<doc>Check if process exists by its id
+
+:param pid: process identifier
+:return: process instance or False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process ID Exists  4567
+    Run Keyword If   ${process}  Log  Process exists</doc>
+<shortdoc>Check if process exists by its id</shortdoc>
+</kw>
+<kw name="Put System To Sleep" lineno="1742">
+<arguments repr="">
+</arguments>
+<doc>Put Windows into sleep mode
+
+Example:
+
+.. code-block:: robotframework
+
+    Put System To Sleep</doc>
+<shortdoc>Put Windows into sleep mode</shortdoc>
+</kw>
+<kw name="Quit Application" lineno="832">
+<arguments repr="app_id: int | None = None, send_keys: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="app_id: int | None = None">
+<name>app_id</name>
+<type name="Union" union="true">int | None<type name="int" typedoc="integer">int</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="send_keys: bool = False">
+<name>send_keys</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Quit an application by application id or
+active application if `app_id` is None.
+
+:param app_id: application_id, defaults to None
+:param send_keys: if ALT+F4 should be used to quit, default False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}   Open Application   Excel
+    ${app2}   Open Application   Word
+    Quit Application  ${app1}</doc>
+<shortdoc>Quit an application by application id or active application if `app_id` is None.</shortdoc>
+</kw>
+<kw name="Refresh Window" lineno="2015">
+<arguments repr="">
+</arguments>
+<doc>Get controls and elements for current windows.
+
+Should be called always when window content changes on
+Windows desktop.
+
+:return: controls (list) and elements (list)</doc>
+<shortdoc>Get controls and elements for current windows.</shortdoc>
+</kw>
+<kw name="Restore Dialog" lineno="633">
+<arguments repr="windowtitle: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="windowtitle: str | None = None">
+<name>windowtitle</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Restore window by its title
+
+:param windowtitle: name of the window, default `None` means that
+ active window is going to be restored
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Using Run Dialog  notepad  Untitled - Notepad
+    Minimize Dialog
+    Sleep             1s
+    Restore Dialog
+    Sleep             1s
+    Restore Dialog    Untitled - Notepad</doc>
+<shortdoc>Restore window by its title</shortdoc>
+</kw>
+<kw name="Screenshot" lineno="1618">
+<arguments repr="filename: str, element: dict | None = None, ctrl: Any | None = None, desktop: bool = False, overwrite: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="filename: str">
+<name>filename</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="element: dict | None = None">
+<name>element</name>
+<type name="Union" union="true">dict | None<type name="dict" typedoc="dictionary">dict</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="ctrl: Any | None = None">
+<name>ctrl</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="desktop: bool = False">
+<name>desktop</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = True">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Save screenshot into filename.
+
+:param filename: name of the file
+:param element: take element screenshot, defaults to None
+:param ctrl: take control screenshot, defaults to None
+:param desktop: take desktop screenshot if True, defaults to False
+:param overwrite: overwrite existing image (deprecated, always True)
+
+Example:
+
+.. code-block:: robotframework
+
+    @{element}   Find Element  CalculatorResults
+    Screenshot   element.png   ${elements[0][0]}
+    Screenshot   desktop.png   desktop=True
+    Screenshot   desktop.png   desktop=True  overwrite=True</doc>
+<shortdoc>Save screenshot into filename.</shortdoc>
+</kw>
+<kw name="Send Keys" lineno="913">
+<arguments repr="keys: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="keys: str">
+<name>keys</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Send keys into active windows.
+
+:param keys: list of keys to send
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Executable  calc.exe  Calculator
+    Send Keys        2{+}3{=}</doc>
+<shortdoc>Send keys into active windows.</shortdoc>
+</kw>
+<kw name="Send Keys To Input" lineno="573">
+<arguments repr="keys_to_type: str, with_enter: bool = True, send_delay: float = 0.5, enter_delay: float = 1.5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="keys_to_type: str">
+<name>keys_to_type</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="with_enter: bool = True">
+<name>with_enter</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="send_delay: float = 0.5">
+<name>send_delay</name>
+<type name="float" typedoc="float">float</type>
+<default>0.5</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="enter_delay: float = 1.5">
+<name>enter_delay</name>
+<type name="float" typedoc="float">float</type>
+<default>1.5</default>
+</arg>
+</arguments>
+<doc>Send keys to windows and add ENTER if `with_enter` is True
+
+At the end of send_keys there is by default 0.5 second delay.
+At the end of ENTER there is by default 1.5 second delay.
+
+:param keys_to_type: keys to type into Windows
+:param with_enter: send ENTER if `with_enter` is True
+:param send_delay: delay after send_keys
+:param enter_delay: delay after ENTER
+
+Example:
+
+.. code-block:: robotframework
+
+    ${txt}    Get Spaced String   My name is Bond, James Bond
+    Send Keys To Input  ${txt}    with_enter=False
+    Send Keys To Input  {ENTER}THE   send_delay=5.0  with_enter=False
+    Send Keys To Input  {VK_SPACE}-{VK_SPACE}END   enter_delay=5.0</doc>
+<shortdoc>Send keys to windows and add ENTER if `with_enter` is True</shortdoc>
+</kw>
+<kw name="Set Automation Speed" lineno="2055">
+<arguments repr="speed: Speed = DEFAULT">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="speed: Speed = DEFAULT">
+<name>speed</name>
+<type name="Speed" typedoc="Speed">Speed</type>
+<default>DEFAULT</default>
+</arg>
+</arguments>
+<doc>Set global automation timings
+
+:param speed: possible values 'default', 'fast' or 'slow'</doc>
+<shortdoc>Set global automation timings</shortdoc>
+</kw>
+<kw name="Set Windows Backend" lineno="235">
+<arguments repr="backend: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="backend: str">
+<name>backend</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Set Windows backend which is used to interact with Windows
+applications
+
+Allowed values defined by `SUPPORTED_BACKENDS`
+
+:param backend: name of the backend to use
+
+Example:
+
+.. code-block:: robotframework
+
+    Set Windows Backend   uia
+    Open Executable   calc.exe  Calculator
+    Set Windows Backend   win32
+    Open Executable   calc.exe  Calculator</doc>
+<shortdoc>Set Windows backend which is used to interact with Windows applications</shortdoc>
+</kw>
+<kw name="Switch To Application" lineno="295">
+<arguments repr="app_id: int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="app_id: int">
+<name>app_id</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+</arguments>
+<doc>Switch to application by id.
+
+:param app_id: application's id
+:raises ValueError: if application is not found by given id
+
+Example:
+
+.. code-block:: robotframework
+
+    ${app1}    Open Application   Excel
+    ${app2}    Open Application   Word
+    Switch To Application   ${app1}</doc>
+<shortdoc>Switch to application by id.</shortdoc>
+</kw>
+<kw name="Type Into" lineno="889">
+<arguments repr="locator: str, keys: str, empty_field: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="keys: str">
+<name>keys</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="empty_field: bool = False">
+<name>empty_field</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Type keys into element matched by given locator.
+
+:param locator: element locator
+:param keys:    list of keys to type
+:param empty_field: if field should be emptied before typing, default False
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Executable  calc.exe  Calculator
+    Type Into        CalculatorResults  11
+    Type Into        CalculatorResults  22  empty_field=True</doc>
+<shortdoc>Type keys into element matched by given locator.</shortdoc>
+</kw>
+<kw name="Type Keys" lineno="872">
+<arguments repr="keys: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="keys: str">
+<name>keys</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Type keys into active window element.
+
+:param keys: list of keys to type
+
+Example:
+
+.. code-block:: robotframework
+
+    Open Executable  notepad.exe  Untitled - Notepad
+    Type Keys   My text</doc>
+<shortdoc>Type keys into active window element.</shortdoc>
+</kw>
+<kw name="Wait For Element" lineno="1262">
+<arguments repr="locator: str, use_refreshing: bool = False, search_criteria: str | None = None, timeout: float = 30.0, interval: float = 2.0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str">
+<name>locator</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_refreshing: bool = False">
+<name>use_refreshing</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="search_criteria: str | None = None">
+<name>search_criteria</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: float = 30.0">
+<name>timeout</name>
+<type name="float" typedoc="float">float</type>
+<default>30.0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="interval: float = 2.0">
+<name>interval</name>
+<type name="float" typedoc="float">float</type>
+<default>2.0</default>
+</arg>
+</arguments>
+<doc>Wait for element to appear into the window.
+
+Can return 1 or more elements matching locator, or raises
+`ElementNotFoundError` if element is not found within timeout.
+
+:param locator: name of the locator
+:param use_refreshing: wait for element(s) which are not there yet e.g. listbox
+ item or popups, default False
+:param search_criteria: criteria by which element is matched
+:param timeout: defines how long to wait for element to appear,
+ defaults to 30.0 seconds
+:param interval: how often to poll for element,
+ defaults to 2.0 seconds (minimum is 0.5 seconds)
+
+Example:
+
+.. code-block:: robotframework
+
+    @{elements}  Wait For Element  CalculatorResults
+    @{elements}  Wait For Element  Results   timeout=10  interval=1.5</doc>
+<shortdoc>Wait for element to appear into the window.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="Speed">
+<doc>Values for pywinauto Timings</doc>
+<members>
+<member name="DEFAULT" value="1"/>
+<member name="SLOW" value="2"/>
+<member name="FAST" value="3"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Calculate Rectangle Center</usage>
+<usage>Drag And Drop</usage>
+<usage>Get Dialog Rectangle</usage>
+<usage>Screenshot</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Connect By Handle</usage>
+<usage>Drag And Drop</usage>
+<usage>Get Boot Time</usage>
+<usage>Get Dialog Rectangle</usage>
+<usage>Get Element</usage>
+<usage>Get Element Rectangle</usage>
+<usage>Get Memory Stats</usage>
+<usage>Get Window Elements</usage>
+<usage>Is Element Matching</usage>
+<usage>Open Dialog</usage>
+<usage>Open Executable</usage>
+<usage>Open File</usage>
+<usage>Open From Search</usage>
+<usage>Open Using Run Dialog</usage>
+<usage>Process Exists</usage>
+<usage>Quit Application</usage>
+<usage>Screenshot</usage>
+<usage>Send Keys To Input</usage>
+<usage>Type Into</usage>
+<usage>Wait For Element</usage>
+</usages>
+</type>
+<type name="dictionary" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#dict|dictionary]
+literals. They are converted to actual dictionaries using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+dictionaries and other containers.
+
+If the type has nested types like ``dict[str, int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``{'a': 1, 'b': 2}``, ``{'key': 1, 'nested': {'key': 2}}``
+</doc>
+<accepts>
+<type>string</type>
+<type>Mapping</type>
+</accepts>
+<usages>
+<usage>Get Element Center</usage>
+<usage>Is Element Matching</usage>
+<usage>Screenshot</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Drag And Drop</usage>
+<usage>Mouse Click Coords</usage>
+<usage>Mouse Click Image</usage>
+<usage>Send Keys To Input</usage>
+<usage>Wait For Element</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Click Type</usage>
+<usage>Connect By Handle</usage>
+<usage>Get App</usage>
+<usage>Kill Process By Pid</usage>
+<usage>Mouse Click</usage>
+<usage>Mouse Click Coords</usage>
+<usage>Mouse Click Image</usage>
+<usage>Open Dialog</usage>
+<usage>Open File</usage>
+<usage>Open From Search</usage>
+<usage>Open Using Run Dialog</usage>
+<usage>Process Id Exists</usage>
+<usage>Quit Application</usage>
+<usage>Switch To Application</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Click Type</usage>
+<usage>Connect By Handle</usage>
+<usage>Connect By Pid</usage>
+<usage>Drag And Drop</usage>
+<usage>Find Element</usage>
+<usage>Get App</usage>
+<usage>Get Dialog Rectangle</usage>
+<usage>Minimize Dialog</usage>
+<usage>Mouse Click</usage>
+<usage>Mouse Click Coords</usage>
+<usage>Mouse Click Image</usage>
+<usage>Open Dialog</usage>
+<usage>Open Executable</usage>
+<usage>Open File</usage>
+<usage>Quit Application</usage>
+<usage>Restore Dialog</usage>
+<usage>Screenshot</usage>
+<usage>Wait For Element</usage>
+</usages>
+</type>
+<type name="Speed" type="Enum">
+<doc>Values for pywinauto Timings</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Set Automation Speed</usage>
+</usages>
+<members>
+<member name="DEFAULT" value="1"/>
+<member name="SLOW" value="2"/>
+<member name="FAST" value="3"/>
+</members>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Click Type</usage>
+<usage>Connect By Handle</usage>
+<usage>Connect By Pid</usage>
+<usage>Drag And Drop</usage>
+<usage>Find Element</usage>
+<usage>Get Boot Time</usage>
+<usage>Get Element</usage>
+<usage>Get Element Rectangle</usage>
+<usage>Get Element Rich Text</usage>
+<usage>Get Text</usage>
+<usage>Is Element Enabled</usage>
+<usage>Is Element Matching</usage>
+<usage>Is Element Visible</usage>
+<usage>Kill Process</usage>
+<usage>Log In</usage>
+<usage>Menu Select</usage>
+<usage>Minimize Dialog</usage>
+<usage>Mouse Click</usage>
+<usage>Mouse Click Coords</usage>
+<usage>Mouse Click Image</usage>
+<usage>Open Application</usage>
+<usage>Open Dialog</usage>
+<usage>Open Executable</usage>
+<usage>Open File</usage>
+<usage>Open From Search</usage>
+<usage>Open Using Run Dialog</usage>
+<usage>Process Exists</usage>
+<usage>Restore Dialog</usage>
+<usage>Screenshot</usage>
+<usage>Send Keys</usage>
+<usage>Send Keys To Input</usage>
+<usage>Set Windows Backend</usage>
+<usage>Type Into</usage>
+<usage>Type Keys</usage>
+<usage>Wait For Element</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

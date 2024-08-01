@@ -1,0 +1,1174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Desktop" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/Desktop/__init__.py" lineno="37">
+<version/>
+<doc>`Desktop` is a cross-platform library for navigating and interacting with
+desktop environments. It can be used to automate applications through
+the same interfaces that are available to human users.
+
+The library includes the following features:
+
+- Mouse and keyboard input emulation
+- Starting and stopping applications
+- Finding elements through image template matching
+- Scraping text from given regions
+- Taking screenshots
+- Clipboard management
+
+.. warning:: Windows element selectors are not currently supported, and require the use of ``RPA.Desktop.Windows``
+
+**Installation**
+
+The basic features such as mouse and keyboard input and application
+control work with a default ``rpaframework`` install.
+
+Advanced computer-vision features such as image template matching and
+OCR require an additional library called ``rpaframework-recognition``.
+
+The dependency should be added separately by specifing it in your *conda.yaml*
+as ``rpaframework-recognition==5.0.1`` for example. If installing recognition
+through ``pip`` instead of ``conda``, the OCR feature also requires ``tesseract``.
+
+**Locating elements**
+
+To automate actions on the desktop, a robot needs to interact with various
+graphical elements such as buttons or input fields. The locations of these
+elements can be found using a feature called `locators`.
+
+A locator describes the properties or features of an element. This information
+can be later used to locate similar elements even when window positions or
+states change.
+
+The currently supported locator types are:
+
+=========== ================================================ ===========
+Name        Arguments                                        Description
+=========== ================================================ ===========
+alias       name (str)                                       A custom named locator from the locator database, the default.
+image       path (str)                                       Image of an element that is matched to current screen content.
+point       x (int), y (int)                                 Pixel coordinates as absolute position.
+offset      x (int), y (int)                                 Pixel coordinates relative to current mouse position.
+size        width (int), height (int)                        Region of fixed size, around point or screen top-left
+region      left (int), top (int), right (int), bottom (int) Bounding coordinates for a rectangular region.
+ocr         text (str), confidence (float, optional)         Text to find from the current screen.
+=========== ================================================ ===========
+
+A locator is defined by its type and arguments, divided by a colon.
+Some example usages are shown below. Note that the prefix for ``alias`` can
+be omitted as its the default type.
+
+.. code-block:: robotframework
+
+    Click       point:50,100
+    Click       region:20,20,100,30
+
+    Move mouse  image:%{ROBOT_ROOT}/logo.png
+    Move mouse  offset:200,0
+    Click
+
+    Click       alias:SpareBin.Login
+    Click       SpareBin.Login
+
+    Click       ocr:"Create New Account"
+
+You can also pass internal ``region`` objects as locators:
+
+.. code-block:: robotframework
+
+    ${region}=  Find Element  ocr:"Customer name"
+    Click       ${region}
+
+**Locator chaining**
+
+Often it is not enough to have one locator, but instead an element
+is defined through a relationship of various locators. For this use
+case the library supports a special syntax, which we will call
+locator chaining.
+
+An example of chaining:
+
+.. code-block:: robotframework
+
+    # Read text from area on the right side of logo
+    Read text    image:logo.png + offset:600,0 + size:400,200
+
+The supported operators are:
+
+========== =========================================
+Operator   Description
+========== =========================================
+then, +    Base locator relative to the previous one
+and, &amp;&amp;, &amp; Both locators should be found
+or, ||, |  Either of the locators should be found
+not, !     The locator should not be found
+========== =========================================
+
+Further examples:
+
+.. code-block:: robotframework
+
+    # Click below either label
+    Click    (image:name.png or image:email.png) then offset:0,300
+
+    # Wait until dialog disappears
+    Wait for element    not image:cookie.png
+
+**Named locators**
+
+The library supports storing locators in a database, which contains
+all of the required fields and various bits of metadata. This enables
+having one source of truth, which can be updated if a website's or applications's
+UI changes. Robot Framework scripts can then only contain a reference
+to a stored locator by name.
+
+The main way to create named locators is with `VSCode`_.
+
+Read more on identifying elements and crafting locators:
+
+- `Desktop automation and RPA &lt;https://robocorp.com/docs/development-guide/desktop&gt;`_
+- `How to find user interface elements using locators and keyboard shortcuts in Windows applications &lt;https://robocorp.com/docs/development-guide/desktop/how-to-find-user-interface-elements-using-locators-and-keyboard-shortcuts-in-windows-applications&gt;`_
+
+.. _VSCode: https://robocorp.com/docs/developer-tools/visual-studio-code/overview
+
+**Keyboard and mouse**
+
+Keyboard keywords can emulate typing text, but also pressing various function keys.
+The name of a key is case-insensitive and spaces will be converted to underscores,
+i.e. the key ``Page Down`` and ``page_down`` are equivalent.
+
+The following function keys are supported:
+
+=============== ===========
+Key             Description
+=============== ===========
+shift           A generic Shift key. This is a modifier.
+shift_l         The left Shift key. This is a modifier.
+shift_r         The right Shift key. This is a modifier.
+ctrl            A generic Ctrl key. This is a modifier.
+ctrl_l          he left Ctrl key. This is a modifier.
+ctrl_r          The right Ctrl key. This is a modifier.
+alt             A generic Alt key. This is a modifier.
+alt_l           The left Alt key. This is a modifier.
+alt_r           The right Alt key. This is a modifier.
+alt_gr          The AltGr key. This is a modifier.
+cmd             A generic command button (Windows / Command / Super key). This may be a modifier.
+cmd_l           The left command button (Windows / Command / Super key). This may be a modifier.
+cmd_r           The right command button (Windows / Command / Super key). This may be a modifier.
+up              An up arrow key.
+down            A down arrow key.
+left            A left arrow key.
+right           A right arrow key.
+enter           The Enter or Return key.
+space           The Space key.
+tab             The Tab key.
+backspace       The Backspace key.
+delete          The Delete key.
+esc             The Esc key.
+home            The Home key.
+end             The End key.
+page_down       The Page Down key.
+page_up         The Page Up key.
+caps_lock       The Caps Lock key.
+f1 to f20       The function keys.
+insert          The Insert key. This may be undefined for some platforms.
+menu            The Menu key. This may be undefined for some platforms.
+num_lock        The Num Lock key. This may be undefined for some platforms.
+pause           The Pause / Break key. This may be undefined for some platforms.
+print_screen    The Print Screen key. This may be undefined for some platforms.
+scroll_lock     The Scroll Lock key. This may be undefined for some platforms.
+=============== ===========
+
+When controlling the mouse, there are different types of actions that can be
+done. Same formatting rules as function keys apply. They are as follows:
+
+============ ===========
+Action       Description
+============ ===========
+click        Click with left mouse button
+left_click   Click with left mouse button
+double_click Double click with left mouse button
+triple_click Triple click with left mouse button
+right_click  Click with right mouse button
+============ ===========
+
+The supported mouse button types are ``left``, ``right``, and ``middle``.
+
+**Examples**
+
+Both Robot Framework and Python examples follow.
+
+The library must be imported first.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Desktop
+
+.. code-block:: python
+
+    from RPA.Desktop import Desktop
+    desktop = Desktop()
+
+The library can open applications and interact with them through
+keyboard and mouse events.
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Write entry in accounting
+        [Arguments]    ${entry}
+        Open application    erp_client.exe
+        Click         image:%{ROBOT_ROOT}/images/create.png
+        Type text     ${entry}
+        Press keys    ctrl    s
+        Press keys    enter
+
+.. code-block:: python
+
+    def write_entry_in_accounting(entry):
+        desktop.open_application("erp_client.exe")
+        desktop.click(f"image:{ROBOT_ROOT}/images/create.png")
+        desktop.type_text(entry)
+        desktop.press_keys("ctrl", "s")
+        desktop.press_keys("enter")
+
+
+Targeting can be currently done using coordinates (absolute or relative),
+but using template matching is preferred.
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Write to field
+        [Arguments]  ${text}
+        Move mouse   image:input_label.png
+        Move mouse   offset:200,0
+        Click
+        Type text    ${text}
+        Press keys   enter
+
+.. code-block:: python
+
+    def write_to_field(text):
+        desktop.move_mouse("image:input_label.png")
+        desktop.move_mouse("offset:200,0")
+        desktop.click()
+        desktop.type_text(text)
+        desktop.press_keys("enter")
+
+
+Elements can be found by text too.
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Click New
+        Click       ocr:New
+
+.. code-block:: python
+
+    def click_new():
+        desktop.click('ocr:"New"')
+
+
+It is recommended to wait for the elements to be visible before
+trying any interaction. You can also pass ``region`` objects as locators.
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Click New
+        ${region}=  Wait For element  ocr:New
+        Click       ${region}
+
+.. code-block:: python
+
+    def click_new():
+        region = desktop.wait_for_element("ocr:New")
+        desktop.click(region)
+
+Another way to find elements by offsetting from an anchor:
+
+.. code-block:: robotframework
+
+    *** Keywords ***
+    Type Notes
+        [Arguments]        ${text}
+        Click With Offset  ocr:Notes  500  0
+        Type Text          ${text}
+
+.. code-block:: python
+
+    def type_notes(text):
+        desktop.click_with_offset("ocr:Notes", 500, 0)
+        desktop.type_text(text)</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="344">
+<arguments repr="locators_path: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="locators_path: str | None = None">
+<name>locators_path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Clear Clipboard" source="./RPA/Desktop/keywords/clipboard.py" lineno="52">
+<arguments repr="">
+</arguments>
+<doc>Clear the system clipboard.</doc>
+<shortdoc>Clear the system clipboard.</shortdoc>
+</kw>
+<kw name="Click" source="./RPA/Desktop/keywords/mouse.py" lineno="110">
+<arguments repr="locator: str | Locator | None = None, action: Action = click">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="locator: str | Locator | None = None">
+<name>locator</name>
+<type name="Union" union="true">str | Locator | None<type name="str" typedoc="string">str</type><type name="Locator">Locator</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="action: Action = click">
+<name>action</name>
+<type name="Action" typedoc="Action">Action</type>
+<default>click</default>
+</arg>
+</arguments>
+<doc>Click at the element indicated by locator.
+
+:param locator: Locator for click position
+:param action:  Click action, e.g. right click
+
+Example:
+
+.. code-block:: robotframework
+
+    Click
+    Click    LoginForm.Button
+    Click    coordinates:500,200    triple click</doc>
+<shortdoc>Click at the element indicated by locator.</shortdoc>
+</kw>
+<kw name="Click With Offset" source="./RPA/Desktop/keywords/mouse.py" lineno="140">
+<arguments repr="locator: str | Locator | None = None, x: int = 0, y: int = 0, action: Action = click">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="locator: str | Locator | None = None">
+<name>locator</name>
+<type name="Union" union="true">str | Locator | None<type name="str" typedoc="string">str</type><type name="Locator">Locator</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="x: int = 0">
+<name>x</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="y: int = 0">
+<name>y</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="action: Action = click">
+<name>action</name>
+<type name="Action" typedoc="Action">Action</type>
+<default>click</default>
+</arg>
+</arguments>
+<doc>Click at a given pixel offset from the given locator.
+
+:param locator: Locator for click start position
+:param x:       Click horizontal offset in pixels
+:param y:       Click vertical offset in pixels
+:param action:  Click action, e.g. right click
+
+Example:
+
+.. code-block:: robotframework
+
+    Click with offset    Robocorp.Logo    y=400</doc>
+<shortdoc>Click at a given pixel offset from the given locator.</shortdoc>
+</kw>
+<kw name="Close All Applications" source="./RPA/Desktop/keywords/application.py" lineno="199">
+<arguments repr="">
+</arguments>
+<doc>Close all opened applications.
+
+Example:
+
+.. code-block:: robotframework
+
+    Open file    order1.docx
+    Open file    order2.docx
+    Open file    order3.docx
+    # Do something with Word
+    Close all applications</doc>
+<shortdoc>Close all opened applications.</shortdoc>
+</kw>
+<kw name="Close Application" source="./RPA/Desktop/keywords/application.py" lineno="175">
+<arguments repr="app: Application">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="app: Application">
+<name>app</name>
+<type name="Application">Application</type>
+</arg>
+</arguments>
+<doc>Close given application. Needs to be started
+with this library.
+
+:param app: App instance
+
+Example:
+
+.. code-block:: robotframework
+
+    # Open a file with a default application
+    ${word}=    Open file    template.docx
+    # Do something with Word
+    Close application    ${word}
+
+    # Open a an application with a specific executable
+    ${ie}=    Open application    iexplore.exe
+    # Do something with IE
+    Close application    ${ie}</doc>
+<shortdoc>Close given application. Needs to be started with this library.</shortdoc>
+</kw>
+<kw name="Copy To Clipboard" source="./RPA/Desktop/keywords/clipboard.py" lineno="11">
+<arguments repr="locator: str | Locator">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+</arguments>
+<doc>Read value to system clipboard from given input element.
+
+:param locator: Locator for element
+:returns:       Current clipboard value
+
+Example:
+
+.. code-block:: robotframework
+
+    ${value}=    Copy to clipboard    ResultPage.Counter
+    Log    Copied text: ${value}</doc>
+<shortdoc>Read value to system clipboard from given input element.</shortdoc>
+</kw>
+<kw name="Define Region" source="./RPA/Desktop/keywords/screen.py" lineno="184">
+<arguments repr="left: int, top: int, right: int, bottom: int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="left: int">
+<name>left</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="top: int">
+<name>top</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="right: int">
+<name>right</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="bottom: int">
+<name>bottom</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+</arguments>
+<doc>Return a new ``Region`` with the given dimensions.
+
+:param left: Left edge coordinate.
+:param top: Top edge coordinate.
+:param right: Right edge coordinate.
+:param bottom: Bottom edge coordinate.
+
+Usage examples:
+
+.. code-block:: robotframework
+
+    ${region}=  Define Region  10  10  50  30
+
+.. code-block:: python
+
+    region = desktop.define_region(10, 10, 50, 30)</doc>
+<shortdoc>Return a new ``Region`` with the given dimensions.</shortdoc>
+</kw>
+<kw name="Drag And Drop" source="./RPA/Desktop/keywords/mouse.py" lineno="233">
+<arguments repr="source: str | Locator, destination: str | Locator, start_delay: float = 2.0, end_delay: float = 0.5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str | Locator">
+<name>source</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="destination: str | Locator">
+<name>destination</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="start_delay: float = 2.0">
+<name>start_delay</name>
+<type name="float" typedoc="float">float</type>
+<default>2.0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="end_delay: float = 0.5">
+<name>end_delay</name>
+<type name="float" typedoc="float">float</type>
+<default>0.5</default>
+</arg>
+</arguments>
+<doc>Drag mouse from source to destination while holding the left mouse button.
+
+:param source:      Locator for start position
+:param destination: Locator for destination position
+:param start_delay: Delay in seconds after pressing down mouse button
+:param end_delay:   Delay in seconds before releasing mouse button</doc>
+<shortdoc>Drag mouse from source to destination while holding the left mouse button.</shortdoc>
+</kw>
+<kw name="Find Element" source="./RPA/Desktop/keywords/finder.py" lineno="287">
+<arguments repr="locator: str | Locator">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+</arguments>
+<doc>Find an element defined by locator, and return its position.
+Raises ``ElementNotFound`` if` no matches were found, or
+``MultipleElementsFound`` if there were multiple matches.
+
+:param locator: Locator string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${match}=    Find element    image:logo.png
+    Log    Found logo at ${match.right}, ${match.top}</doc>
+<shortdoc>Find an element defined by locator, and return its position. Raises ``ElementNotFound`` if` no matches were found, or ``MultipleElementsFound`` if there were multiple matches.</shortdoc>
+</kw>
+<kw name="Find Elements" source="./RPA/Desktop/keywords/finder.py" lineno="265">
+<arguments repr="locator: str | Locator">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+</arguments>
+<doc>Find all elements defined by locator, and return their positions.
+
+:param locator: Locator string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${matches}=    Find elements    image:icon.png
+    FOR    ${match}  IN  @{matches}
+        Log    Found icon at ${match.right}, ${match.top}
+    END</doc>
+<shortdoc>Find all elements defined by locator, and return their positions.</shortdoc>
+</kw>
+<kw name="Get Clipboard Value" source="./RPA/Desktop/keywords/clipboard.py" lineno="57">
+<arguments repr="">
+</arguments>
+<doc>Read current value from system clipboard.
+
+Example:
+
+.. code-block:: robotframework
+
+    Copy to clipboard       coordinates:401,198
+    ${text}=    Get clipboard value
+    Log    We just copied '${text}'</doc>
+<shortdoc>Read current value from system clipboard.</shortdoc>
+</kw>
+<kw name="Get Display Dimensions" source="./RPA/Desktop/keywords/screen.py" lineno="158">
+<arguments repr="">
+</arguments>
+<doc>Returns the dimensions of the current virtual display,
+which is the combined size of all physical monitors.</doc>
+<shortdoc>Returns the dimensions of the current virtual display, which is the combined size of all physical monitors.</shortdoc>
+</kw>
+<kw name="Get Mouse Position" source="./RPA/Desktop/keywords/mouse.py" lineno="175">
+<arguments repr="">
+</arguments>
+<doc>Get current mouse position in pixel coordinates.
+
+Example:
+
+.. code-block:: robotframework
+
+    ${position}=    Get mouse position
+    Log    Current mouse position is ${position.x}, ${position.y}</doc>
+<shortdoc>Get current mouse position in pixel coordinates.</shortdoc>
+</kw>
+<kw name="Highlight Elements" source="./RPA/Desktop/keywords/screen.py" lineno="166">
+<arguments repr="locator: str | Locator">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+</arguments>
+<doc>Draw an outline around all matching elements.</doc>
+<shortdoc>Draw an outline around all matching elements.</shortdoc>
+</kw>
+<kw name="Move Mouse" source="./RPA/Desktop/keywords/mouse.py" lineno="192">
+<arguments repr="locator: str | Locator">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+</arguments>
+<doc>Move mouse to given coordinates.
+
+:param locator: Locator for mouse position
+
+Example:
+
+.. code-block:: robotframework
+
+    Move mouse    Robocorp.Logo
+    Move mouse    offset:0,400</doc>
+<shortdoc>Move mouse to given coordinates.</shortdoc>
+</kw>
+<kw name="Move Region" source="./RPA/Desktop/keywords/screen.py" lineno="207">
+<arguments repr="region: Region, left: int, top: int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="region: Region">
+<name>region</name>
+<type name="Region">Region</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="left: int">
+<name>left</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="top: int">
+<name>top</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+</arguments>
+<doc>Return a new ``Region`` with an offset from the given region.
+
+:param region: The region to move.
+:param left: Amount of pixels to move left/right.
+:param top: Amount of pixels to move up/down.
+
+Usage examples:
+
+.. code-block:: robotframework
+
+    ${region}=          Find Element  ocr:"Net Assets"
+    ${moved_region}=    Move Region  ${region}  500  0
+
+.. code-block:: python
+
+    region = desktop.find_element('ocr:"Net Assets"')
+    moved_region = desktop.move_region(region, 500, 0)</doc>
+<shortdoc>Return a new ``Region`` with an offset from the given region.</shortdoc>
+</kw>
+<kw name="Open Application" source="./RPA/Desktop/keywords/application.py" lineno="79">
+<arguments repr="name_or_path: str, *args">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="name_or_path: str">
+<name>name_or_path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+</arguments>
+<doc>Start a given application by name (if in PATH),
+or by path to executable.
+
+:param name_or_path: Name or path of application
+:param args:         Command line arguments for application
+:returns:            Application instance
+
+Example:
+
+.. code-block:: robotframework
+
+    Open application    notepad.exe
+    Open application    c:\path\to\program.exe    --example-argument</doc>
+<shortdoc>Start a given application by name (if in PATH), or by path to executable.</shortdoc>
+</kw>
+<kw name="Open File" source="./RPA/Desktop/keywords/application.py" lineno="98">
+<arguments repr="path: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str">
+<name>path</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Open a file with the default application.
+
+:param path: Path to file
+
+Example:
+
+.. code-block:: robotframework
+
+    Open file    orders.xlsx</doc>
+<shortdoc>Open a file with the default application.</shortdoc>
+</kw>
+<kw name="Paste From Clipboard" source="./RPA/Desktop/keywords/clipboard.py" lineno="33">
+<arguments repr="locator: str | Locator">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+</arguments>
+<doc>Paste value from system clipboard into given element.
+
+:param locator: Locator for element
+
+Example:
+
+.. code-block:: robotframework
+
+    Copy to clipboard       coordinates:401,198
+    Paste from clipboard    coordinates:822,710</doc>
+<shortdoc>Paste value from system clipboard into given element.</shortdoc>
+</kw>
+<kw name="Press Keys" source="./RPA/Desktop/keywords/keyboard.py" lineno="73">
+<arguments repr="*keys: str">
+<arg kind="VAR_POSITIONAL" required="false" repr="*keys: str">
+<name>keys</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Press multiple keys down simultaneously.
+
+:param keys: Keys to press
+
+Example:
+
+.. code-block:: robotframework
+
+    Press keys    ctrl  alt  delete
+
+    Press keys    ctrl  a
+    Press keys    ctrl  c
+    ${all_text}=  Get clipboard value
+    Log    Text box content was: ${all_text}</doc>
+<shortdoc>Press multiple keys down simultaneously.</shortdoc>
+</kw>
+<kw name="Press Mouse Button" source="./RPA/Desktop/keywords/mouse.py" lineno="211">
+<arguments repr="button: Any = left">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="button: Any = left">
+<name>button</name>
+<type name="Any" typedoc="Any">Any</type>
+<default>left</default>
+</arg>
+</arguments>
+<doc>Press down mouse button and keep it pressed.</doc>
+<shortdoc>Press down mouse button and keep it pressed.</shortdoc>
+</kw>
+<kw name="Read Text" source="./RPA/Desktop/keywords/text.py" lineno="24">
+<arguments repr="locator: str | None = None, invert: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="locator: str | None = None">
+<name>locator</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="invert: bool = False">
+<name>invert</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Read text using OCR from the screen, or an area of the
+screen defined by the given locator.
+
+:param locator: Location of element to read text from
+:param invert:  Invert image colors, useful for reading white text
+                on dark background
+
+Usage examples:
+
+.. code-block:: robotframework
+
+    ${label_region}=  Find Element  image:label.png
+    ${value_region}=  Move Region   ${label_region}  100  0
+    ${text}=          Read Text     ${value_region}
+
+.. code-block:: python
+
+    label_region = desktop.find_element("image:label.png")
+    value_region = desktop.move_region(label_region, 100, 0)
+    text = desktop.read_text(value_region)</doc>
+<shortdoc>Read text using OCR from the screen, or an area of the screen defined by the given locator.</shortdoc>
+</kw>
+<kw name="Release Mouse Button" source="./RPA/Desktop/keywords/mouse.py" lineno="222">
+<arguments repr="button: Any = left">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="button: Any = left">
+<name>button</name>
+<type name="Any" typedoc="Any">Any</type>
+<default>left</default>
+</arg>
+</arguments>
+<doc>Release mouse button that was previously pressed.</doc>
+<shortdoc>Release mouse button that was previously pressed.</shortdoc>
+</kw>
+<kw name="Resize Region" source="./RPA/Desktop/keywords/screen.py" lineno="231">
+<arguments repr="region: Region, left: int = 0, top: int = 0, right: int = 0, bottom: int = 0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="region: Region">
+<name>region</name>
+<type name="Region">Region</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="left: int = 0">
+<name>left</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="top: int = 0">
+<name>top</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="right: int = 0">
+<name>right</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="bottom: int = 0">
+<name>bottom</name>
+<type name="int" typedoc="integer">int</type>
+<default>0</default>
+</arg>
+</arguments>
+<doc>Return a resized new ``Region`` from a given region.
+
+Extends edges the given amount outward from the center,
+i.e. positive left values move the left edge to the left.
+
+:param region: The region to resize.
+:param left: Amount of pixels to resize left edge.
+:param top: Amount of pixels to resize top edge.
+:param right: Amount of pixels to resize right edge.
+:param bottom: Amount of pixels to resize bottom edge.
+
+Usage examples:
+
+.. code-block:: robotframework
+
+    ${region}=          Find Element  ocr:"Net Assets"
+    ${resized_region}=  Resize Region  ${region}  bottom=10
+
+.. code-block:: python
+
+    region = desktop.find_element('ocr:"Net Assets"')
+    resized_region = desktop.resize_region(region, bottom=10)</doc>
+<shortdoc>Return a resized new ``Region`` from a given region.</shortdoc>
+</kw>
+<kw name="Set Clipboard Value" source="./RPA/Desktop/keywords/clipboard.py" lineno="71">
+<arguments repr="text: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Write given value to system clipboard.
+
+Example:
+
+.. code-block:: robotframework
+
+    Set clipboard value     This is some text.
+    Paste from clipboard    coordinates:822,710</doc>
+<shortdoc>Write given value to system clipboard.</shortdoc>
+</kw>
+<kw name="Set Default Confidence" source="./RPA/Desktop/keywords/finder.py" lineno="364">
+<arguments repr="confidence: float | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="confidence: float | None = None">
+<name>confidence</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Set the default template matching confidence.
+
+:param confidence: Value from 1 to 100</doc>
+<shortdoc>Set the default template matching confidence.</shortdoc>
+</kw>
+<kw name="Set Default Timeout" source="./RPA/Desktop/keywords/finder.py" lineno="356">
+<arguments repr="timeout: float = 3.0">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: float = 3.0">
+<name>timeout</name>
+<type name="float" typedoc="float">float</type>
+<default>3.0</default>
+</arg>
+</arguments>
+<doc>Set the default time to wait for elements.
+
+:param timeout: Time in seconds</doc>
+<shortdoc>Set the default time to wait for elements.</shortdoc>
+</kw>
+<kw name="Take Screenshot" source="./RPA/Desktop/keywords/screen.py" lineno="120">
+<arguments repr="path: str | None = None, locator: str | Locator | None = None, embed: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | None = None">
+<name>path</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="locator: str | Locator | None = None">
+<name>locator</name>
+<type name="Union" union="true">str | Locator | None<type name="str" typedoc="string">str</type><type name="Locator">Locator</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="embed: bool = True">
+<name>embed</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Take a screenshot of the whole screen, or an element
+identified by the given locator.
+
+:param path: Path to screenshot. The string ``{index}`` will be replaced with
+    an index number to avoid overwriting previous screenshots.
+:param locator: Element to crop screenshot to
+:param embed: Embed screenshot into Robot Framework log</doc>
+<shortdoc>Take a screenshot of the whole screen, or an element identified by the given locator.</shortdoc>
+</kw>
+<kw name="Type Text" source="./RPA/Desktop/keywords/keyboard.py" lineno="47">
+<arguments repr="text: str, *modifiers: str, enter: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="VAR_POSITIONAL" required="false" repr="*modifiers: str">
+<name>modifiers</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="NAMED_ONLY" required="false" repr="enter: bool = False">
+<name>enter</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Type text one letter at a time.
+
+:param text:       Text to write
+:param modifiers:  Modifier or functions keys held during typing
+:param enter:      Press Enter / Return key after typing text
+
+Example:
+
+.. code-block:: robotframework
+
+    Type text    this text will be uppercase    shift</doc>
+<shortdoc>Type text one letter at a time.</shortdoc>
+</kw>
+<kw name="Type Text Into" source="./RPA/Desktop/keywords/keyboard.py" lineno="103">
+<arguments repr="locator: str | Locator, text: str, clear: bool = False, enter: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="clear: bool = False">
+<name>clear</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="enter: bool = False">
+<name>enter</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Type text at the position indicated by given locator.
+
+:param locator: Locator of input element
+:param text:    Text to write
+:param clear:   Clear element before writing
+:param enter:      Press Enter / Return key after typing text
+
+Example:
+
+.. code-block:: robotframework
+
+    Type text into    LoginForm.Name      Marky Mark
+    Type text into    LoginForm.Password  ${PASSWORD}</doc>
+<shortdoc>Type text at the position indicated by given locator.</shortdoc>
+</kw>
+<kw name="Wait For Element" source="./RPA/Desktop/keywords/finder.py" lineno="317">
+<arguments repr="locator: str | Locator, timeout: float | None = None, interval: float = 0.5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="locator: str | Locator">
+<name>locator</name>
+<type name="Union" union="true">str | Locator<type name="str" typedoc="string">str</type><type name="Locator">Locator</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: float | None = None">
+<name>timeout</name>
+<type name="Union" union="true">float | None<type name="float" typedoc="float">float</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="interval: float = 0.5">
+<name>interval</name>
+<type name="float" typedoc="float">float</type>
+<default>0.5</default>
+</arg>
+</arguments>
+<doc>Wait for an element defined by locator to exist, or
+raise a TimeoutException if none were found within timeout.
+
+:param locator: Locator string
+
+Example:
+
+.. code-block:: robotframework
+
+    Wait for element    alias:CookieConsent    timeout=30
+    Click    image:%{ROBOT_ROOT}/accept.png</doc>
+<shortdoc>Wait for an element defined by locator to exist, or raise a TimeoutException if none were found within timeout.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+<enums>
+<enum name="Action">
+<doc>Possible mouse click actions.</doc>
+<members>
+<member name="click" value="0"/>
+<member name="left_click" value="0"/>
+<member name="double_click" value="1"/>
+<member name="triple_click" value="2"/>
+<member name="right_click" value="3"/>
+</members>
+</enum>
+</enums>
+</datatypes>
+<typedocs>
+<type name="Action" type="Enum">
+<doc>Possible mouse click actions.</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Click</usage>
+<usage>Click With Offset</usage>
+</usages>
+<members>
+<member name="click" value="0"/>
+<member name="left_click" value="0"/>
+<member name="double_click" value="1"/>
+<member name="triple_click" value="2"/>
+<member name="right_click" value="3"/>
+</members>
+</type>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Press Mouse Button</usage>
+<usage>Release Mouse Button</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Read Text</usage>
+<usage>Take Screenshot</usage>
+<usage>Type Text</usage>
+<usage>Type Text Into</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Drag And Drop</usage>
+<usage>Set Default Confidence</usage>
+<usage>Set Default Timeout</usage>
+<usage>Wait For Element</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Click With Offset</usage>
+<usage>Define Region</usage>
+<usage>Move Region</usage>
+<usage>Resize Region</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Click</usage>
+<usage>Click With Offset</usage>
+<usage>Read Text</usage>
+<usage>Set Default Confidence</usage>
+<usage>Take Screenshot</usage>
+<usage>Wait For Element</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Click</usage>
+<usage>Click With Offset</usage>
+<usage>Copy To Clipboard</usage>
+<usage>Drag And Drop</usage>
+<usage>Find Element</usage>
+<usage>Find Elements</usage>
+<usage>Highlight Elements</usage>
+<usage>Move Mouse</usage>
+<usage>Open Application</usage>
+<usage>Open File</usage>
+<usage>Paste From Clipboard</usage>
+<usage>Press Keys</usage>
+<usage>Read Text</usage>
+<usage>Set Clipboard Value</usage>
+<usage>Take Screenshot</usage>
+<usage>Type Text</usage>
+<usage>Type Text Into</usage>
+<usage>Wait For Element</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

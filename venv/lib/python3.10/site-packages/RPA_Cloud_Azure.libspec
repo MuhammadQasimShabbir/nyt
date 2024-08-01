@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Cloud.Azure" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/Cloud/Azure.py" lineno="592">
+<version/>
+<doc>`Azure` is a library for operating with Microsoft Azure API endpoints.
+
+List of supported service names:
+
+- computervision (`Azure Computer Vision API`_)
+- face (`Azure Face API`_)
+- speech (`Azure Speech Services API`_)
+- textanalytics (`Azure Text Analytics API`_)
+
+**Azure authentication**
+
+Authentication for Azure is set with `service subscription key` which can be given to the library
+in two different ways.
+
+- Method 1 as environment variables, either service specific environment variable
+  for example ``AZURE_TEXTANALYTICS_KEY`` or with common key ``AZURE_SUBSCRIPTION_KEY`` which
+  will be used for all the services.
+- Method 2 as Robocorp Vault secret. The vault name needs to be given in library init or
+  with keyword ``Set Robocorp Vault``. Secret keys are expected to match environment variable
+  names.
+
+Method 1. subscription key using environment variable
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library   RPA.Cloud.Azure
+
+    *** Tasks ***
+    Init Azure services
+        # NO parameters for client, expecting to get subscription key
+        # with AZURE_TEXTANALYTICS_KEY or AZURE_SUBSCRIPTION_KEY environment variable
+        Init Text Analytics Service
+
+Method 2. setting Robocorp Vault in the library init
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library   RPA.Cloud.Azure  robocorp_vault_name=azure
+
+    *** Tasks ***
+    Init Azure services
+        Init Text Analytics Service  use_robocorp_vault=${TRUE}
+
+Method 2. setting Robocorp Vault with keyword
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library   RPA.Cloud.Azure
+
+    *** Tasks ***
+    Init Azure services
+        Set Robocorp Vault          vault_name=googlecloud
+        Init Text Analytics Service  use_robocorp_vault=${TRUE}
+
+**References**
+
+List of supported language locales - `Azure locale list`_
+
+List of supported region identifiers - `Azure region list`_
+
+.. _Azure Computer Vision API: https://docs.microsoft.com/en-us/azure/cognitive-services/computer-vision/
+.. _Azure Face API: https://docs.microsoft.com/en-us/azure/cognitive-services/face/
+.. _Azure Speech Services API: https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/
+.. _Azure Text Analytics API: https://docs.microsoft.com/en-us/azure/cognitive-services/text-analytics/
+.. _Azure locale list: https://docs.microsoft.com/en-gb/azure/cognitive-services/speech-service/language-support#speech-to-text
+.. _Azure region list: https://docs.microsoft.com/en-gb/azure/cognitive-services/speech-service/regions#speech-to-text-text-to-speech-and-translation
+
+**Examples**
+
+**Robot Framework**
+
+This is a section which describes how to use the library in your
+Robot Framework tasks.
+
+.. code-block:: robotframework
+
+   *** Settings ***
+   Library  RPA.Cloud.Azure
+
+   *** Variables ***
+   ${IMAGE_URL}   IMAGE_URL
+   ${FEATURES}    Faces,ImageType
+
+   *** Tasks ***
+   Visioning image information
+      Init Computer Vision Service
+      &amp;{result}   Vision Analyze  image_url=${IMAGE_URL}  visual_features=${FEATURES}
+      @{faces}    Set Variable  ${result}[faces]
+      FOR  ${face}  IN   @{faces}
+         Log  Age: ${face}[age], Gender: ${face}[gender], Rectangle: ${face}[faceRectangle]
+      END
+
+**Python**
+
+This is a section which describes how to use the library in your
+own Python modules.
+
+.. code-block:: python
+
+   library = Azure()
+   library.init_text_analytics_service()
+   library.init_face_service()
+   library.init_computer_vision_service()
+   library.init_speech_service("westeurope")
+
+   response = library.sentiment_analyze(
+      text="The rooms were wonderful and the staff was helpful."
+   )
+   response = library.detect_face(
+      image_file=PATH_TO_FILE,
+      face_attributes="age,gender,smile,hair,facialHair,emotion",
+   )
+   for item in response:
+      gender = item["faceAttributes"]["gender"]
+      age = item["faceAttributes"]["age"]
+      print(f"Detected a face, gender:{gender}, age: {age}")
+
+   response = library.vision_analyze(
+      image_url=URL_TO_IMAGE,
+      visual_features="Faces,ImageType",
+   )
+   meta = response['metadata']
+   print(
+      f"Image dimensions meta['width']}x{meta['height']} pixels"
+   )
+
+   for face in response["faces"]:
+      left = face["faceRectangle"]["left"]
+      top = face["faceRectangle"]["top"]
+      width = face["faceRectangle"]["width"]
+      height = face["faceRectangle"]["height"]
+      print(f"Detected a face, gender:{face['gender']}, age: {face['age']}")
+      print(f"      Face rectangle: (left={left}, top={top})")
+      print(f"      Face rectangle: (width={width}, height={height})")
+
+   library.text_to_speech(
+       text="Developer tools for open-source RPA leveraging the Robot Framework ecosystem",
+       neural_voice_style="cheerful",
+       target_file='output.mp3'
+   )</doc>
+<tags>
+</tags>
+<inits>
+<init name="__init__" lineno="741">
+<arguments repr="region: str = northeurope, robocorp_vault_name: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="region: str = northeurope">
+<name>region</name>
+<type name="str" typedoc="string">str</type>
+<default>northeurope</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="robocorp_vault_name: str | None = None">
+<name>robocorp_vault_name</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Initialize self.  See help(type(self)) for accurate signature.</doc>
+<shortdoc>Initialize self.  See help(type(self)) for accurate signature.</shortdoc>
+</init>
+</inits>
+<keywords>
+<kw name="Detect Face" lineno="295">
+<arguments repr="image_file: str | None = None, image_url: str | None = None, face_attributes: str | None = None, face_landmarks: bool = False, recognition_model: str = recognition_02, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_file: str | None = None">
+<name>image_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_url: str | None = None">
+<name>image_url</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="face_attributes: str | None = None">
+<name>face_attributes</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="face_landmarks: bool = False">
+<name>face_landmarks</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="recognition_model: str = recognition_02">
+<name>recognition_model</name>
+<type name="str" typedoc="string">str</type>
+<default>recognition_02</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Detect facial attributes in the image
+
+:param image_file: filepath of image file
+:param image_url: URI to image, if given will be used instead of `image_file`
+:param face_attributes: comma separated list of attributes,
+    for example. "age,gender,smile"
+:param face_landmarks: return face landmarks of the detected faces
+    or not. The default value is `False`
+:param recognition_model: model used by Azure to detech faces, options
+    are "recognition_01" or "recognition_02", default is "recognition_02"
+:param json_file: filepath to write results into
+:return: analysis in json format
+
+Read more about `face_attributes` at `Face detection explained`_:
+
+- age
+- gender
+- smile
+- facialHair
+- headPose
+- glasses
+- emotion
+- hair
+- makeup
+- accessories
+- blur
+- exposure
+- nouse
+
+.. _Face detection explained: https://docs.microsoft.com/en-us/azure/cognitive-services/face/concepts/face-detection</doc>
+<shortdoc>Detect facial attributes in the image</shortdoc>
+</kw>
+<kw name="Detect Language" lineno="224">
+<arguments repr="text: str, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Detect languages in the given text
+
+:param text: A UTF-8 text string
+:param json_file: filepath to write results into
+:return: analysis in json format</doc>
+<shortdoc>Detect languages in the given text</shortdoc>
+</kw>
+<kw name="Find Entities" lineno="257">
+<arguments repr="text: str, language: str | None = None, json_file=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="language: str | None = None">
+<name>language</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file=None">
+<name>json_file</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Detect entities in the given text
+
+:param text: A UTF-8 text string
+:param language: if input language is known
+:param json_file: filepath to write results into
+:return: analysis in json format</doc>
+<shortdoc>Detect entities in the given text</shortdoc>
+</kw>
+<kw name="Init Computer Vision Service" lineno="360">
+<arguments repr="region: str | None = None, use_robocorp_vault: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="region: str | None = None">
+<name>region</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_robocorp_vault: bool = False">
+<name>use_robocorp_vault</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Initialize Azure Computer Vision
+
+:param region: identifier for service region
+:param use_robocorp_vault: use secret stored into `Robocorp Vault`</doc>
+<shortdoc>Initialize Azure Computer Vision</shortdoc>
+</kw>
+<kw name="Init Face Service" lineno="283">
+<arguments repr="region: str | None = None, use_robocorp_vault: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="region: str | None = None">
+<name>region</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_robocorp_vault: bool = False">
+<name>use_robocorp_vault</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Initialize Azure Face
+
+:param region: identifier for service region
+:param use_robocorp_vault: use secret stored into `Robocorp Vault`</doc>
+<shortdoc>Initialize Azure Face</shortdoc>
+</kw>
+<kw name="Init Speech Service" lineno="479">
+<arguments repr="region: str | None = None, use_robocorp_vault: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="region: str | None = None">
+<name>region</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_robocorp_vault: bool = False">
+<name>use_robocorp_vault</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Initialize Azure Speech
+
+:param region: identifier for service region
+:param use_robocorp_vault: use secret stored into `Robocorp Vault`</doc>
+<shortdoc>Initialize Azure Speech</shortdoc>
+</kw>
+<kw name="Init Text Analytics Service" lineno="192">
+<arguments repr="region: str | None = None, use_robocorp_vault: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="region: str | None = None">
+<name>region</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="use_robocorp_vault: bool = False">
+<name>use_robocorp_vault</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Initialize Azure Text Analyticts
+
+:param region: identifier for service region
+:param use_robocorp_vault: use secret stored into `Robocorp Vault`</doc>
+<shortdoc>Initialize Azure Text Analyticts</shortdoc>
+</kw>
+<kw name="Key Phrases" lineno="238">
+<arguments repr="text: str, language: str | None = None, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="language: str | None = None">
+<name>language</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Detect key phrases in the given text
+
+:param text: A UTF-8 text string
+:param language: if input language is known
+:param json_file: filepath to write results into
+:return: analysis in json format</doc>
+<shortdoc>Detect key phrases in the given text</shortdoc>
+</kw>
+<kw name="List Supported Voices" lineno="565">
+<arguments repr="locale: str | None = None, neural_only: bool = False, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="locale: str | None = None">
+<name>locale</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="neural_only: bool = False">
+<name>neural_only</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>List supported voices for Azure API Speech Services.
+
+:param locale: list only voices specific to locale, by default return all voices
+:param neural_only: `True` if only neural voices should be returned,
+    `False` by default
+:param json_file: filepath to write results into
+:return: voices in json
+
+Available voice selection might differ between regions.</doc>
+<shortdoc>List supported voices for Azure API Speech Services.</shortdoc>
+</kw>
+<kw name="Sentiment Analyze" lineno="204">
+<arguments repr="text: str, language: str | None = None, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="language: str | None = None">
+<name>language</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Analyze sentiments in the given text
+
+:param text: A UTF-8 text string
+:param language: if input language is known
+:param json_file: filepath to write results into
+:return: analysis in json format</doc>
+<shortdoc>Analyze sentiments in the given text</shortdoc>
+</kw>
+<kw name="Set Robocorp Vault" lineno="174">
+<arguments repr="vault_name">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="vault_name">
+<name>vault_name</name>
+</arg>
+</arguments>
+<doc>Set Robocorp Vault name
+
+:param vault_name: Robocorp Vault name</doc>
+<shortdoc>Set Robocorp Vault name</shortdoc>
+</kw>
+<kw name="Text To Speech" lineno="491">
+<arguments repr="text: str, language: str = en-US, name: str = en-US-AriaRUS, gender: str = FEMALE, encoding: str = MP3, neural_voice_style: Any | None = None, target_file: str = synthesized.mp3">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="text: str">
+<name>text</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="language: str = en-US">
+<name>language</name>
+<type name="str" typedoc="string">str</type>
+<default>en-US</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="name: str = en-US-AriaRUS">
+<name>name</name>
+<type name="str" typedoc="string">str</type>
+<default>en-US-AriaRUS</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="gender: str = FEMALE">
+<name>gender</name>
+<type name="str" typedoc="string">str</type>
+<default>FEMALE</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = MP3">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>MP3</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="neural_voice_style: Any | None = None">
+<name>neural_voice_style</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="target_file: str = synthesized.mp3">
+<name>target_file</name>
+<type name="str" typedoc="string">str</type>
+<default>synthesized.mp3</default>
+</arg>
+</arguments>
+<doc>Synthesize speech synchronously
+
+:param text: input text to synthesize
+:param language: voice language, defaults to "en-US"
+:param name: voice name, defaults to "en-US-AriaRUS"
+:param gender: voice gender, defaults to "FEMALE"
+:param encoding: result encoding type, defaults to "MP3"
+:param neural_voice_style: if given then neural voice is used,
+    example style. "cheerful"
+:param target_file: save synthesized output to file,
+    defaults to "synthesized.mp3"
+:return: synthesized output in bytes
+
+Neural voices are only supported for Speech resources created in
+East US, South East Asia, and West Europe regions.</doc>
+<shortdoc>Synthesize speech synchronously</shortdoc>
+</kw>
+<kw name="Vision Analyze" lineno="372">
+<arguments repr="image_file: str | None = None, image_url: str | None = None, visual_features: str | None = None, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_file: str | None = None">
+<name>image_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_url: str | None = None">
+<name>image_url</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="visual_features: str | None = None">
+<name>visual_features</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Identify features in the image
+
+:param image_file: filepath of image file
+:param image_url: URI to image, if given will be used instead of `image_file`
+:param visual_features: comma separated list of features,
+    for example. "Categories,Description,Color"
+:param json_file: filepath to write results into
+:return: analysis in json format
+
+See `Computer Vision API`_ for valid feature names and their explanations:
+
+- Adult
+- Brands
+- Categories
+- Color
+- Description
+- Faces
+- ImageType
+- Objects
+- Tags
+
+.. _Computer Vision API: https://westcentralus.dev.cognitive.microsoft.com/docs/services/computer-vision-v3-ga</doc>
+<shortdoc>Identify features in the image</shortdoc>
+</kw>
+<kw name="Vision Describe" lineno="413">
+<arguments repr="image_file: str | None = None, image_url: str | None = None, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_file: str | None = None">
+<name>image_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_url: str | None = None">
+<name>image_url</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Describe image with tags and captions
+
+:param image_file: filepath of image file
+:param image_url: URI to image, if given will be used instead of `image_file`
+:param json_file: filepath to write results into
+:return: analysis in json format</doc>
+<shortdoc>Describe image with tags and captions</shortdoc>
+</kw>
+<kw name="Vision Detect Objects" lineno="449">
+<arguments repr="image_file: str | None = None, image_url: str | None = None, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_file: str | None = None">
+<name>image_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_url: str | None = None">
+<name>image_url</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Detect objects in the image
+
+:param image_file: filepath of image file
+:param image_url: URI to image, if given will be used instead of `image_file`
+:param json_file: filepath to write results into
+:return: analysis in json format</doc>
+<shortdoc>Detect objects in the image</shortdoc>
+</kw>
+<kw name="Vision Ocr" lineno="431">
+<arguments repr="image_file: str | None = None, image_url: str | None = None, json_file: str | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_file: str | None = None">
+<name>image_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="image_url: str | None = None">
+<name>image_url</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="json_file: str | None = None">
+<name>json_file</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Optical Character Recognition (OCR) detects text in an image
+
+:param image_file: filepath of image file
+:param image_url: URI to image, if given will be used instead of `image_file`
+:param json_file: filepath to write results into
+:return: analysis in json format</doc>
+<shortdoc>Optical Character Recognition (OCR) detects text in an image</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Text To Speech</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Detect Face</usage>
+<usage>Init Computer Vision Service</usage>
+<usage>Init Face Service</usage>
+<usage>Init Speech Service</usage>
+<usage>Init Text Analytics Service</usage>
+<usage>List Supported Voices</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Detect Face</usage>
+<usage>Detect Language</usage>
+<usage>Find Entities</usage>
+<usage>Init Computer Vision Service</usage>
+<usage>Init Face Service</usage>
+<usage>Init Speech Service</usage>
+<usage>Init Text Analytics Service</usage>
+<usage>Key Phrases</usage>
+<usage>List Supported Voices</usage>
+<usage>Sentiment Analyze</usage>
+<usage>Text To Speech</usage>
+<usage>Vision Analyze</usage>
+<usage>Vision Describe</usage>
+<usage>Vision Detect Objects</usage>
+<usage>Vision Ocr</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>__init__</usage>
+<usage>Detect Face</usage>
+<usage>Detect Language</usage>
+<usage>Find Entities</usage>
+<usage>Init Computer Vision Service</usage>
+<usage>Init Face Service</usage>
+<usage>Init Speech Service</usage>
+<usage>Init Text Analytics Service</usage>
+<usage>Key Phrases</usage>
+<usage>List Supported Voices</usage>
+<usage>Sentiment Analyze</usage>
+<usage>Text To Speech</usage>
+<usage>Vision Analyze</usage>
+<usage>Vision Describe</usage>
+<usage>Vision Detect Objects</usage>
+<usage>Vision Ocr</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

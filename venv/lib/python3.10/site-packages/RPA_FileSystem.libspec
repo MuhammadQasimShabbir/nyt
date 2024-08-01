@@ -1,0 +1,1316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.FileSystem" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/FileSystem.py" lineno="70">
+<version/>
+<doc>The `FileSystem` library can be used to interact with files and directories
+on the local computer. It can inspect and list files, remove and create them,
+read contents from files, and write data out.
+
+It shadows the built-in `OperatingSystem` library but contains keywords
+which are more RPA-oriented.
+
+**Examples**
+
+**Robot Framework**
+
+The library allows, for instance, iterating over files and inspecting them.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.FileSystem
+
+    *** Keywords ***
+    Delete large files
+        ${files}=    List files in directory    archive/orders/
+        FOR    ${file}  IN  @{FILES}
+            Run keyword if    ${file.size} &gt; 10**8    Remove file    ${file}
+        END
+
+    Read process output
+        Start external program
+        Wait until modified    process.log
+        ${output}=  Read file  process.log
+        [Return]    ${output}
+
+**Python**
+
+The library can also be used inside Python.
+
+.. code-block:: python
+
+    from RPA.FileSystem import FileSystem
+
+    def move_to_archive():
+        lib = FileSystem()
+
+        matches = lib.find_files("**/*.xlsx")
+        if matches:
+            lib.create_directory("archive")
+            lib.move_files(matches, "archive")</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Absolute Path" lineno="815">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns the absolute path to a file, and resolves symlinks.
+
+:param path:    path that will be resolved
+:return:        absolute path to file as a string</doc>
+<shortdoc>Returns the absolute path to a file, and resolves symlinks.</shortdoc>
+</kw>
+<kw name="Append To Binary File" lineno="501">
+<arguments repr="path: str | Path, content: Any">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="content: Any">
+<name>content</name>
+<type name="Any" typedoc="Any">Any</type>
+</arg>
+</arguments>
+<doc>Appends binary content to the given file.
+
+See ``Create Binary File`` for usage example.
+
+:param path:        path to file to append to
+:param content:     content to append</doc>
+<shortdoc>Appends binary content to the given file.</shortdoc>
+</kw>
+<kw name="Append To File" lineno="483">
+<arguments repr="path: str | Path, content: str, encoding: str = utf-8">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="content: str">
+<name>content</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+</arguments>
+<doc>Appends text to the given file.
+
+See ``Create File`` for usage example.
+
+:param path:        path to file to append to
+:param content:     content to append
+:param encoding:    character encoding of appended content</doc>
+<shortdoc>Appends text to the given file.</shortdoc>
+</kw>
+<kw name="Change File Extension" lineno="776">
+<arguments repr="path: str | Path, extension: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="extension: str">
+<name>extension</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Replaces file extension for file at given path. the file
+extension can be removed by passing an empty string.
+
+:param path:        path to file to rename
+:param extension:   new extension, e.g. .xlsx
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Change a file extension
+        Change file extension
+        ...    devdata/work-items-in/default/orders.xls
+        ...    .xlsx</doc>
+<shortdoc>Replaces file extension for file at given path. the file extension can be removed by passing an empty string.</shortdoc>
+</kw>
+<kw name="Copy Directory" lineno="662">
+<arguments repr="source: str | Path, destination: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str | Path">
+<name>source</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="destination: str | Path">
+<name>destination</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Copy directory from source path to destination path.
+
+:param source:      path to source directory
+:param destination: path to copy destination
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Copy a directory
+        Copy directory    output    temp</doc>
+<shortdoc>Copy directory from source path to destination path.</shortdoc>
+</kw>
+<kw name="Copy File" lineno="617">
+<arguments repr="source: str | Path, destination: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str | Path">
+<name>source</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="destination: str | Path">
+<name>destination</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Copy a file from source path to destination path.
+
+See ``Is Directory Empty`` for usage example.
+
+:param source:      path to source file
+:param destination: path to copy destination</doc>
+<shortdoc>Copy a file from source path to destination path.</shortdoc>
+</kw>
+<kw name="Copy Files" lineno="635">
+<arguments repr="sources: List[str | Path], destination: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="sources: List[str | Path]">
+<name>sources</name>
+<type name="List" typedoc="list">List[str | Path]<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="destination: str | Path">
+<name>destination</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Copy multiple files to destination folder.
+
+:param sources:     list of source files
+:param destination: path to destination folder
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Copy some files
+        ${files}=    Find files    devdata/*.json
+        Copy files    ${files}    output</doc>
+<shortdoc>Copy multiple files to destination folder.</shortdoc>
+</kw>
+<kw name="Create Binary File" lineno="456">
+<arguments repr="path: str | Path, content: Any | None = None, overwrite: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="content: Any | None = None">
+<name>content</name>
+<type name="Union" union="true">Any | None<type name="Any" typedoc="Any">Any</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Creates a new binary file, and writes content if any is given.
+
+:param path:        path to file to write
+:param content:     content to write to file (optional)
+:param overwrite:   replace destination file if it already exists
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Create a new file
+        ${content}=    Get
+        ...    url=https://file-examples.com/storage/fe88505b6162b2538a045ce/2017/10/file_example_JPG_100kB.jpg
+        Create binary file    output/sample.jpg    content=${content.content}    overwrite=${True}</doc>
+<shortdoc>Creates a new binary file, and writes content if any is given.</shortdoc>
+</kw>
+<kw name="Create Directory" lineno="516">
+<arguments repr="path: str | Path, parents: bool = False, exist_ok: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="parents: bool = False">
+<name>parents</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="exist_ok: bool = True">
+<name>exist_ok</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Creates a directory and (optionally) non-existing parent directories.
+
+:param path:        path to new directory
+:param parents:     create missing parent directories (defaults to ``False``)
+:param exist_ok:    continue without errors if directory
+                    already exists (defaults to ``True``)
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Create new path
+        Create directory    output/my/new/path    parents=${True}</doc>
+<shortdoc>Creates a directory and (optionally) non-existing parent directories.</shortdoc>
+</kw>
+<kw name="Create File" lineno="423">
+<arguments repr="path: str | Path, content: str | None = None, encoding: str = utf-8, overwrite: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="content: str | None = None">
+<name>content</name>
+<type name="Union" union="true">str | None<type name="str" typedoc="string">str</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Creates a new text file, and writes content if any is given.
+
+:param path:        path to file to write
+:param content:     content to write to file (optional)
+:param encoding:    character encoding of written content (default ``utf-8``)
+:param overwrite:   replace destination file if it already
+                    exists (default ``False``)
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Create a new file
+        ${content}=    Get    url=https://www.example.com
+        Create file    output/newfile.html    content=${content.text}
+        ...    overwrite=${True}</doc>
+<shortdoc>Creates a new text file, and writes content if any is given.</shortdoc>
+</kw>
+<kw name="Does Directory Exist" lineno="285">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns True if the given directory exists, False if not.
+
+See ``Does Directory Not Exist`` for usage example.
+
+:param path:    path to inspected directory
+:return: true or false if the directory exists</doc>
+<shortdoc>Returns True if the given directory exists, False if not.</shortdoc>
+</kw>
+<kw name="Does Directory Not Exist" lineno="296">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns True if the directory does not exist, False if it does.
+
+:param path:    path to inspected directory
+:return: true or false if the directory does not exists
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks  ***
+    Check for directory
+        ${directory_exists}=    Does directory not exist    output
+        IF    ${directory_exists}    Create directory    output</doc>
+<shortdoc>Returns True if the directory does not exist, False if it does.</shortdoc>
+</kw>
+<kw name="Does File Exist" lineno="253">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns True if the given file exists, False if not.
+
+:param path:    path to inspected file
+:return: true or false if file exists
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks  ***
+    Check for file
+        ${log_exists}=    Does file exist    output/log.html
+        IF    ${log_exists}
+            ${file}=    Find files    output/log.html
+            Open user browser    ${file}[0]
+        END</doc>
+<shortdoc>Returns True if the given file exists, False if not.</shortdoc>
+</kw>
+<kw name="Does File Not Exist" lineno="274">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns True if the file does not exist, False if it does.
+
+See ``Does File Exist`` for usage example.
+
+:param path:    path to inspected file
+:return: true or false if the files does not exist</doc>
+<shortdoc>Returns True if the file does not exist, False if it does.</shortdoc>
+</kw>
+<kw name="Empty Directory" lineno="597">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Removes all the files in the given directory.
+
+:param path:    directory to remove files from
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Empty out directory
+        Empty directory    output</doc>
+<shortdoc>Removes all the files in the given directory.</shortdoc>
+</kw>
+<kw name="Find Files" lineno="127">
+<arguments repr="pattern: str | Path, include_dirs: bool = True, include_files: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pattern: str | Path">
+<name>pattern</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="include_dirs: bool = True">
+<name>include_dirs</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="include_files: bool = True">
+<name>include_files</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Find files recursively according to a pattern.
+
+:param pattern:         search path in glob format pattern,
+                        e.g. *.xls or **/orders.txt
+:param include_dirs:    include directories in results (defaults to True)
+:param include_files:   include files in results (defaults to True)
+:return:                list of paths that match the pattern
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks  ***
+    Finding files recursively
+        ${files}=    Find files    **/*.log
+        FOR    ${file}    IN    @{files}
+            Read file    ${file}
+        END</doc>
+<shortdoc>Find files recursively according to a pattern.</shortdoc>
+</kw>
+<kw name="Get File Creation Date" lineno="875">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns the creation time in seconds.
+Note: Linux sets this whenever file metadata changes
+
+:param path:    path to file to inspect
+:return: creation time in seconds as a float</doc>
+<shortdoc>Returns the creation time in seconds. Note: Linux sets this whenever file metadata changes</shortdoc>
+</kw>
+<kw name="Get File Extension" lineno="858">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns the suffix for the file.
+
+:param path:    path to file
+:return: file suffix as a string</doc>
+<shortdoc>Returns the suffix for the file.</shortdoc>
+</kw>
+<kw name="Get File Modified Date" lineno="866">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns the modified time in seconds.
+
+:param path:    path to file to inspect
+:return: modified time in seconds as a float</doc>
+<shortdoc>Returns the modified time in seconds.</shortdoc>
+</kw>
+<kw name="Get File Name" lineno="842">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns only the full file name portion of a path.
+
+:param path: path to file
+:return: filename portion of a path as a string</doc>
+<shortdoc>Returns only the full file name portion of a path.</shortdoc>
+</kw>
+<kw name="Get File Owner" lineno="894">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Return the name of the user who owns the file.
+
+:param path:    path to file to inspect
+:return: file owner as a string</doc>
+<shortdoc>Return the name of the user who owns the file.</shortdoc>
+</kw>
+<kw name="Get File Size" lineno="885">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns the file size in bytes.
+
+:param path:    path to file to inspect
+:return: file size in bytes as an int</doc>
+<shortdoc>Returns the file size in bytes.</shortdoc>
+</kw>
+<kw name="Get File Stem" lineno="850">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns the name of the file without its extension.
+
+:param path: path to file
+:return: filename without its suffix as a string</doc>
+<shortdoc>Returns the name of the file without its extension.</shortdoc>
+</kw>
+<kw name="Is Directory Empty" lineno="314">
+<arguments repr="path: str | Path | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | Path | None = None">
+<name>path</name>
+<type name="Union" union="true">str | Path | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Returns True if the given directory has no files or subdirectories.
+
+:param path:    path to inspected directory
+:return: true or false if the directory is empty
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks  ***
+    Check for empty directory
+        ${directory_empty}=    Is directory empty    output
+        IF    ${directory_empty}
+            Copy file    ${source}    output/new_file.txt
+        END</doc>
+<shortdoc>Returns True if the given directory has no files or subdirectories.</shortdoc>
+</kw>
+<kw name="Is Directory Not Empty" lineno="338">
+<arguments repr="path: str | Path | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | Path | None = None">
+<name>path</name>
+<type name="Union" union="true">str | Path | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Returns True if the given directory has any files or subdirectories.
+
+See ``Is Directory Empty`` for usage example.
+
+:param path:    path to inspected directory
+:return: true or false if the directory is not empty</doc>
+<shortdoc>Returns True if the given directory has any files or subdirectories.</shortdoc>
+</kw>
+<kw name="Is File Empty" lineno="349">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns True if the given file has no content, i.e. has zero size.
+
+:param path:    path to inspected file
+:return: true or false if the file is empty</doc>
+<shortdoc>Returns True if the given file has no content, i.e. has zero size.</shortdoc>
+</kw>
+<kw name="Is File Not Empty" lineno="360">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Returns True if the given file has content, i.e. larger than zero size.
+
+:param path:    path to inspected file
+:return: true or false if the file is not empty
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Check for empty file
+        ${file_empty}=    Is file not empty    output/log.html
+        IF    ${file_empty}
+            Copy file    output/log.html    ${alt_dir}
+        END</doc>
+<shortdoc>Returns True if the given file has content, i.e. larger than zero size.</shortdoc>
+</kw>
+<kw name="Join Path" lineno="797">
+<arguments repr="*parts: str | Path">
+<arg kind="VAR_POSITIONAL" required="false" repr="*parts: str | Path">
+<name>parts</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Joins multiple parts of a path together.
+
+:param parts:  Components of the path, e.g. dir, subdir, filename.ext
+:return: complete file path as a single string
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Join path together
+        Join path    output/nested    folder</doc>
+<shortdoc>Joins multiple parts of a path together.</shortdoc>
+</kw>
+<kw name="List Directories In Directory" lineno="196">
+<arguments repr="path: str | Path | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | Path | None = None">
+<name>path</name>
+<type name="Union" union="true">str | Path | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Lists all the directories in the given directory, relative to it.
+
+:param path:    base directory for search, defaults to current working dir
+:return: list of directories in selected directory
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks  ***
+    List directories
+        ${directories}=    List directories in directory    devdata
+        FOR    ${path}    IN    @{directories}
+            Log    ${path}
+        END</doc>
+<shortdoc>Lists all the directories in the given directory, relative to it.</shortdoc>
+</kw>
+<kw name="List Files In Directory" lineno="175">
+<arguments repr="path: str | Path | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | Path | None = None">
+<name>path</name>
+<type name="Union" union="true">str | Path | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Lists all the files in the given directory, relative to it.
+
+:param path: base directory for search, defaults to current working directory
+:return: list of files in directory
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks  ***
+    List directory file
+        ${files}=    List files in directory    output
+        FOR    ${file}    IN    @{files}
+            Log    ${file}
+        END</doc>
+<shortdoc>Lists all the files in the given directory, relative to it.</shortdoc>
+</kw>
+<kw name="Log Directory Tree" lineno="217">
+<arguments repr="path: str | Path | None = None">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="path: str | Path | None = None">
+<name>path</name>
+<type name="Union" union="true">str | Path | None<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type><type name="None" typedoc="None">None</type></type>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Logs all the files in the directory recursively.
+
+:param path:    base directory to start from, defaults to current working dir
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks  ***
+    List directory tree
+        Log directory tree</doc>
+<shortdoc>Logs all the files in the directory recursively.</shortdoc>
+</kw>
+<kw name="Move Directory" lineno="747">
+<arguments repr="source: str | Path, destination: str | Path, overwrite: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str | Path">
+<name>source</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="destination: str | Path">
+<name>destination</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Move a directory from source path to destination path.
+
+:param source:      source directory path for moving
+:param destination: path to move to
+:param overwrite:   replace destination directory if it already
+                    exists (defaults to ``False``)
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Move a directory
+        Move directory    output    temp</doc>
+<shortdoc>Move a directory from source path to destination path.</shortdoc>
+</kw>
+<kw name="Move File" lineno="687">
+<arguments repr="source: str | Path, destination: str | Path, overwrite: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="source: str | Path">
+<name>source</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="destination: str | Path">
+<name>destination</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Move a file from source path to destination path,
+optionally overwriting the destination.
+
+:param source:      source file path for moving
+:param destination: path to move to
+:param overwrite:   replace destination file if it already
+                    exists (defaults to ``False``)
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Move a file
+        Create directory    temp
+        Move file    output/log.html    temp/log.html</doc>
+<shortdoc>Move a file from source path to destination path, optionally overwriting the destination.</shortdoc>
+</kw>
+<kw name="Move Files" lineno="719">
+<arguments repr="sources: List[str | Path], destination: str | Path, overwrite: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="sources: List[str | Path]">
+<name>sources</name>
+<type name="List" typedoc="list">List[str | Path]<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="destination: str | Path">
+<name>destination</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="overwrite: bool = False">
+<name>overwrite</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Move multiple files to the destination folder.
+
+:param sources:     list of files to move
+:param destination: path to move destination
+:param overwrite:   replace destination files if they already exist
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Move some files
+        Create directory    temp
+        Move files    output/log.html    output/output.xml    temp</doc>
+<shortdoc>Move multiple files to the destination folder.</shortdoc>
+</kw>
+<kw name="Normalize Path" lineno="823">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Removes redundant separators or up-level references from path.
+
+:param path:    path that will be normalized
+:return:        path to file as a string
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Get normal path
+        # Normalized path becomes ../inputs/input.xlsx
+        ${normalized_path}=    Normalize path    ..//inputs/./new/../input.xlsx
+        Create work items    ${normalized_path}</doc>
+<shortdoc>Removes redundant separators or up-level references from path.</shortdoc>
+</kw>
+<kw name="Read Binary File" lineno="393">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Reads a file in binary mode and returns the content.
+Does not attempt to decode the content in any way.
+
+:param path:        path to file to read
+:return: the file content as bytes
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Read picture as binary
+        ${pictures}=    Find files    **/*.png
+        FOR    ${picture}    IN    @{pictures}
+            Read binary file    ${picture}
+        END</doc>
+<shortdoc>Reads a file in binary mode and returns the content. Does not attempt to decode the content in any way.</shortdoc>
+</kw>
+<kw name="Read File" lineno="380">
+<arguments repr="path: str | Path, encoding: str = utf-8">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="encoding: str = utf-8">
+<name>encoding</name>
+<type name="str" typedoc="string">str</type>
+<default>utf-8</default>
+</arg>
+</arguments>
+<doc>Reads a file as text, with given `encoding`, and returns the content."
+
+See ``Find Files`` for usage example.
+
+:param path:        path to file to read
+:param encoding:    character encoding of file (default ``utf-8``)
+:return: file content as string</doc>
+<shortdoc>Reads a file as text, with given `encoding`, and returns the content."</shortdoc>
+</kw>
+<kw name="Remove Directory" lineno="577">
+<arguments repr="path: str | Path, recursive: bool = False">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="recursive: bool = False">
+<name>recursive</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+</arguments>
+<doc>Removes the given directory, and optionally everything it contains.
+
+:param path:        path to directory
+:param recursive:   remove all subdirectories and files (default to ``False``)
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Delete a directory
+        Remove directory    output    recursive=${True}</doc>
+<shortdoc>Removes the given directory, and optionally everything it contains.</shortdoc>
+</kw>
+<kw name="Remove File" lineno="537">
+<arguments repr="path: str | Path, missing_ok: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="missing_ok: bool = True">
+<name>missing_ok</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Removes the given file.
+
+:param path:        path to the file to remove
+:param missing_ok:  ignore non-existent file (defaults to ``True``)
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Delete a file
+        Remove file    output/log.html</doc>
+<shortdoc>Removes the given file.</shortdoc>
+</kw>
+<kw name="Remove Files" lineno="558">
+<arguments repr="*paths: str | Path, missing_ok: bool = True">
+<arg kind="VAR_POSITIONAL" required="false" repr="*paths: str | Path">
+<name>paths</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="NAMED_ONLY" required="false" repr="missing_ok: bool = True">
+<name>missing_ok</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Removes multiple files.
+
+:param paths:       paths to files to be removed
+:param missing_ok:  ignore non-existent files (default to ``True``)
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Delete some files
+        Remove files    output/log.html    output/output.xml</doc>
+<shortdoc>Removes multiple files.</shortdoc>
+</kw>
+<kw name="Run Keyword If File Exists" lineno="989">
+<arguments repr="path: str | Path, keyword: str, *args">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="keyword: str">
+<name>keyword</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="VAR_POSITIONAL" required="false" repr="*args">
+<name>args</name>
+</arg>
+</arguments>
+<doc>If file exists at `path`, execute given keyword with arguments.
+
+:param path:    path to file to inspect
+:param keyword: Robot Framework keyword to execute
+:param args:    arguments to keyword
+
+Example:
+
+.. code:: robotframework
+
+    *** Tasks ***
+    Execute if orders exists
+        Run keyword if file exists    orders.xlsx    Process orders</doc>
+<shortdoc>If file exists at `path`, execute given keyword with arguments.</shortdoc>
+</kw>
+<kw name="Touch File" lineno="415">
+<arguments repr="path: str | Path">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+</arguments>
+<doc>Creates a file with no content, or if file already exists,
+updates the modification and access times.
+
+:param path:        path to file which is touched</doc>
+<shortdoc>Creates a file with no content, or if file already exists, updates the modification and access times.</shortdoc>
+</kw>
+<kw name="Wait Until Created" lineno="926">
+<arguments repr="path: str | Path, timeout: int | float = 5.0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int | float = 5.0">
+<name>timeout</name>
+<type name="Union" union="true">int | float<type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type></type>
+<default>5.0</default>
+</arg>
+</arguments>
+<doc>Poll path until it exists, or raise exception if timeout
+is reached.
+
+:param path:    path to poll
+:param timeout: time in seconds until keyword fails
+:return: path to the created file as a string
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Wait for existence
+        Wait until created    orders.xlsx    10
+        Process orders    orders.xlsx</doc>
+<shortdoc>Poll path until it exists, or raise exception if timeout is reached.</shortdoc>
+</kw>
+<kw name="Wait Until Modified" lineno="951">
+<arguments repr="path: str | Path, timeout: int | float = 5.0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int | float = 5.0">
+<name>timeout</name>
+<type name="Union" union="true">int | float<type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type></type>
+<default>5.0</default>
+</arg>
+</arguments>
+<doc>Poll path until it has been modified after the keyword was called,
+or raise exception if timeout is reached.
+
+:param path:    path to poll
+:param timeout: time in seconds until keyword fails
+:return: path to the modified file as a string
+
+Example:
+
+.. code-block:: robotframework
+
+    *** Tasks ***
+    Wait for change
+        Wait until modified    orders.xlsx    10
+        Process orders    orders.xlsx</doc>
+<shortdoc>Poll path until it has been modified after the keyword was called, or raise exception if timeout is reached.</shortdoc>
+</kw>
+<kw name="Wait Until Removed" lineno="977">
+<arguments repr="path: str | Path, timeout: int | float = 5.0">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="path: str | Path">
+<name>path</name>
+<type name="Union" union="true">str | Path<type name="str" typedoc="string">str</type><type name="Path" typedoc="Path">Path</type></type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="timeout: int | float = 5.0">
+<name>timeout</name>
+<type name="Union" union="true">int | float<type name="int" typedoc="integer">int</type><type name="float" typedoc="float">float</type></type>
+<default>5.0</default>
+</arg>
+</arguments>
+<doc>Poll path until it doesn't exist, or raise exception if timeout
+is reached.
+
+:param path:    path to poll
+:param timeout: time in seconds until keyword fails</doc>
+<shortdoc>Poll path until it doesn't exist, or raise exception if timeout is reached.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="Any" type="Standard">
+<doc>Any value is accepted. No conversion is done.
+</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Append To Binary File</usage>
+<usage>Create Binary File</usage>
+</usages>
+</type>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Create Binary File</usage>
+<usage>Create Directory</usage>
+<usage>Create File</usage>
+<usage>Find Files</usage>
+<usage>Move Directory</usage>
+<usage>Move File</usage>
+<usage>Move Files</usage>
+<usage>Remove Directory</usage>
+<usage>Remove File</usage>
+<usage>Remove Files</usage>
+</usages>
+</type>
+<type name="float" type="Standard">
+<doc>Conversion is done using Python's
+[https://docs.python.org/library/functions.html#float|float] built-in function.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``3.14``, ``2.9979e8``, ``10 000.000 01``
+</doc>
+<accepts>
+<type>string</type>
+<type>Real</type>
+</accepts>
+<usages>
+<usage>Wait Until Created</usage>
+<usage>Wait Until Modified</usage>
+<usage>Wait Until Removed</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Wait Until Created</usage>
+<usage>Wait Until Modified</usage>
+<usage>Wait Until Removed</usage>
+</usages>
+</type>
+<type name="list" type="Standard">
+<doc>Strings must be Python [https://docs.python.org/library/stdtypes.html#list|list]
+literals. They are converted to actual lists using the
+[https://docs.python.org/library/ast.html#ast.literal_eval|ast.literal_eval]
+function. They can contain any values ``ast.literal_eval`` supports, including
+lists and other containers.
+
+If the type has nested types like ``list[int]``, items are converted
+to those types automatically. This in new in Robot Framework 6.0.
+
+Examples: ``['one', 'two']``, ``[('one', 1), ('two', 2)]``
+</doc>
+<accepts>
+<type>string</type>
+<type>Sequence</type>
+</accepts>
+<usages>
+<usage>Copy Files</usage>
+<usage>Move Files</usage>
+</usages>
+</type>
+<type name="None" type="Standard">
+<doc>String ``NONE`` (case-insensitive) is converted to Python ``None`` object.
+Other values cause an error.
+</doc>
+<accepts>
+<type>string</type>
+</accepts>
+<usages>
+<usage>Create Binary File</usage>
+<usage>Create File</usage>
+<usage>Is Directory Empty</usage>
+<usage>Is Directory Not Empty</usage>
+<usage>List Directories In Directory</usage>
+<usage>List Files In Directory</usage>
+<usage>Log Directory Tree</usage>
+</usages>
+</type>
+<type name="Path" type="Standard">
+<doc>Strings are converted [https://docs.python.org/library/pathlib.html|Path] objects.
+On Windows ``/`` is converted to ``\`` automatically.
+
+Examples: ``/tmp/absolute/path``, ``relative/path/to/file.ext``, ``name.txt``
+</doc>
+<accepts>
+<type>string</type>
+<type>PurePath</type>
+</accepts>
+<usages>
+<usage>Absolute Path</usage>
+<usage>Append To Binary File</usage>
+<usage>Append To File</usage>
+<usage>Change File Extension</usage>
+<usage>Copy Directory</usage>
+<usage>Copy File</usage>
+<usage>Copy Files</usage>
+<usage>Create Binary File</usage>
+<usage>Create Directory</usage>
+<usage>Create File</usage>
+<usage>Does Directory Exist</usage>
+<usage>Does Directory Not Exist</usage>
+<usage>Does File Exist</usage>
+<usage>Does File Not Exist</usage>
+<usage>Empty Directory</usage>
+<usage>Find Files</usage>
+<usage>Get File Creation Date</usage>
+<usage>Get File Extension</usage>
+<usage>Get File Modified Date</usage>
+<usage>Get File Name</usage>
+<usage>Get File Owner</usage>
+<usage>Get File Size</usage>
+<usage>Get File Stem</usage>
+<usage>Is Directory Empty</usage>
+<usage>Is Directory Not Empty</usage>
+<usage>Is File Empty</usage>
+<usage>Is File Not Empty</usage>
+<usage>Join Path</usage>
+<usage>List Directories In Directory</usage>
+<usage>List Files In Directory</usage>
+<usage>Log Directory Tree</usage>
+<usage>Move Directory</usage>
+<usage>Move File</usage>
+<usage>Move Files</usage>
+<usage>Normalize Path</usage>
+<usage>Read Binary File</usage>
+<usage>Read File</usage>
+<usage>Remove Directory</usage>
+<usage>Remove File</usage>
+<usage>Remove Files</usage>
+<usage>Run Keyword If File Exists</usage>
+<usage>Touch File</usage>
+<usage>Wait Until Created</usage>
+<usage>Wait Until Modified</usage>
+<usage>Wait Until Removed</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Absolute Path</usage>
+<usage>Append To Binary File</usage>
+<usage>Append To File</usage>
+<usage>Change File Extension</usage>
+<usage>Copy Directory</usage>
+<usage>Copy File</usage>
+<usage>Copy Files</usage>
+<usage>Create Binary File</usage>
+<usage>Create Directory</usage>
+<usage>Create File</usage>
+<usage>Does Directory Exist</usage>
+<usage>Does Directory Not Exist</usage>
+<usage>Does File Exist</usage>
+<usage>Does File Not Exist</usage>
+<usage>Empty Directory</usage>
+<usage>Find Files</usage>
+<usage>Get File Creation Date</usage>
+<usage>Get File Extension</usage>
+<usage>Get File Modified Date</usage>
+<usage>Get File Name</usage>
+<usage>Get File Owner</usage>
+<usage>Get File Size</usage>
+<usage>Get File Stem</usage>
+<usage>Is Directory Empty</usage>
+<usage>Is Directory Not Empty</usage>
+<usage>Is File Empty</usage>
+<usage>Is File Not Empty</usage>
+<usage>Join Path</usage>
+<usage>List Directories In Directory</usage>
+<usage>List Files In Directory</usage>
+<usage>Log Directory Tree</usage>
+<usage>Move Directory</usage>
+<usage>Move File</usage>
+<usage>Move Files</usage>
+<usage>Normalize Path</usage>
+<usage>Read Binary File</usage>
+<usage>Read File</usage>
+<usage>Remove Directory</usage>
+<usage>Remove File</usage>
+<usage>Remove Files</usage>
+<usage>Run Keyword If File Exists</usage>
+<usage>Touch File</usage>
+<usage>Wait Until Created</usage>
+<usage>Wait Until Modified</usage>
+<usage>Wait Until Removed</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Images" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:06+00:00" specversion="5" source="./RPA/Images.py" lineno="68">
+<version/>
+<doc>`Images` is a library for general image manipulation.
+For image-based desktop automation, use the ``RPA.Desktop`` library.
+
+**Coordinates**
+
+The coordinates used in the library are pairs of x and y values that
+represent pixels. The upper left corner of the image or screen
+is (0, 0). The x-coordinate increases towards the right, and the y-coordinate
+increases towards the bottom.
+
+Regions are represented as tuples of (left, top, right, bottom). For example,
+a 400 by 200-pixel region in the upper left corner would be (0, 0, 400, 200).
+
+**Template matching**
+
+Template matching refers to an operation where the (potential) location of
+a smaller image is searched from a larger image. It can be used for verifying
+certain conditions or locating UI elements for desktop or web automation.
+
+**Requirements**
+
+The default installation depends on `Pillow &lt;https://python-pillow.org/&gt;`_
+library, which is used for general image manipulation operations.
+
+For more robust and faster template matching, the library can use a combination
+of `NumPy &lt;https://numpy.org/&gt;`_ and `OpenCV &lt;https://opencv.org/&gt;`_.
+They can be installed by opting in to the recognition dependency:
+
+``pip install rpaframework rpaframework-recognition``
+
+**Examples**
+
+**Robot Framework**
+
+The `Images` library can be imported and used directly in Robot Framework,
+for instance, for capturing screenshots or verifying something on the screen.
+
+Desktop automation based on images should be done using the corresponding
+desktop library, i.e. ``RPA.Desktop``.
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Images
+
+    *** Keywords ***
+    Should show success
+        [Documentation]    Raises ImageNotFoundError if success image is not on screen
+        Find template on screen    ${CURDIR}${/}success.png
+
+    Save screenshot to results
+        [Documentation]    Saves screenshot of desktop with unique name
+        ${timestamp}=      Get current date    result_format=%H%M%S
+        Take screenshot    filename=${OUTPUT_DIR}${/}desktop_${timestamp}.png
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Images import Images
+
+    def draw_matches_on_image(source, template):
+        matches = lib.find_template_in_image(source, template)
+        for match in matches:
+            lib.show_region_in_image(source, match)
+
+        source.save("matches.png")</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Crop Image" lineno="145">
+<arguments repr="image, region, filename=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="image">
+<name>image</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="region">
+<name>region</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="filename=None">
+<name>filename</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Crop an existing image.
+
+:param image:       Image to crop
+:param region:      Region to crop image to
+:param filename:    Save cropped image to filename</doc>
+<shortdoc>Crop an existing image.</shortdoc>
+</kw>
+<kw name="Find Template In Image" lineno="163">
+<arguments repr="image, template, region=None, limit=None, tolerance=None">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="image">
+<name>image</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="template">
+<name>template</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="region=None">
+<name>region</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="limit=None">
+<name>limit</name>
+<default>None</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="tolerance=None">
+<name>tolerance</name>
+<default>None</default>
+</arg>
+</arguments>
+<doc>Attempt to find the template from the given image.
+
+:param image:       Path to image or Image instance, used to search from
+:param template:    Path to image or Image instance, used to search with
+:param limit:       Limit returned results to maximum of `limit`.
+:param region:      Area to search from. Can speed up search significantly.
+:param tolerance:   Tolerance for matching, value between 0.1 and 1.0
+:return:            List of matching regions
+:raises ImageNotFoundError: No match was found
+:raises ValueError: Template is larger than search region</doc>
+<shortdoc>Attempt to find the template from the given image.</shortdoc>
+</kw>
+<kw name="Get Pixel Color In Image" lineno="227">
+<arguments repr="image, point">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="image">
+<name>image</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="point">
+<name>point</name>
+</arg>
+</arguments>
+<doc>Get the RGB value of a pixel in the image.
+
+:param image:   image to get pixel from
+:param point:   coordinates for pixel or Point object
+:return: RGB value of pixel in image</doc>
+<shortdoc>Get the RGB value of a pixel in the image.</shortdoc>
+</kw>
+<kw name="Show Region In Image" lineno="211">
+<arguments repr="image, region, color=red, width=5">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="image">
+<name>image</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="region">
+<name>region</name>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="color=red">
+<name>color</name>
+<default>red</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="width=5">
+<name>width</name>
+<default>5</default>
+</arg>
+</arguments>
+<doc>Draw a rectangle onto the image around the given region.
+
+:param image:   image to draw onto
+:param region:  coordinates for region or Region object
+:param color:   color of rectangle
+:param width:   line width of rectangle
+:return:    Image of the selected region</doc>
+<shortdoc>Draw a rectangle onto the image around the given region.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+</typedocs>
+</keywordspec>

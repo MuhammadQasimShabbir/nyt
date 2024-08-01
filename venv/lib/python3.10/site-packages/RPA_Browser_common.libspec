@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Browser.common" type="LIBRARY" format="ROBOT" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/Browser/common.py" lineno="1">
+<version/>
+<doc>Documentation for library ``RPA.Browser.common``.</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Auto Headless" lineno="27">
+<arguments repr="super_func">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="super_func">
+<name>super_func</name>
+</arg>
+</arguments>
+<doc>Automatically handles the headless switch in a keyword.</doc>
+<shortdoc>Automatically handles the headless switch in a keyword.</shortdoc>
+</kw>
+<kw name="Get Headless State" lineno="13">
+<arguments repr="headless: bool | str = AUTO">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="headless: bool | str = AUTO">
+<name>headless</name>
+<type name="Union" union="true">bool | str<type name="bool" typedoc="boolean">bool</type><type name="str" typedoc="string">str</type></type>
+<default>AUTO</default>
+</arg>
+</arguments>
+<doc>Parse argument for headless mode.</doc>
+<shortdoc>Parse argument for headless mode.</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Get Headless State</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Get Headless State</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

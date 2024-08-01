@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<keywordspec name="RPA.Desktop.OperatingSystem" type="LIBRARY" format="REST" scope="GLOBAL" generated="2024-07-04T11:59:05+00:00" specversion="5" source="./RPA/Desktop/OperatingSystem.py" lineno="21">
+<version/>
+<doc>`OperatingSystem` is a cross-platform library for managing
+computer properties and actions.
+
+**Examples**
+
+**Robot Framework**
+
+.. code-block:: robotframework
+
+    *** Settings ***
+    Library    RPA.Desktop.OperatingSystem
+
+    *** Tasks ***
+    Get computer information
+        ${boot_time}=   Get Boot Time  as_datetime=${TRUE}
+        ${machine}=     Get Machine Name
+        ${username}=    Get Username
+        &amp;{memory}=      Get Memory Stats
+        Log Many        ${memory}
+
+**Python**
+
+.. code-block:: python
+
+    from RPA.Desktop.OperatingSystem import OperatingSystem
+
+    def get_computer_information():
+        ops = OperatingSystem()
+        print(f"Boot time    : { ops.get_boot_time(as_datetime=True) }"
+              f"Machine name : { ops.get_machine_name() }"
+              f"Username     : { ops.get_username() }"
+              f"Memory       : { ops.get_memory_stats() }")
+
+    if __name__ == "__main__":
+        get_computer_information()</doc>
+<tags>
+</tags>
+<inits>
+</inits>
+<keywords>
+<kw name="Boot Time In Seconds From Epoch" lineno="92">
+<arguments repr="">
+</arguments>
+<doc>Get machine boot time
+
+:return: boot time in seconds from Epoch
+
+Example:
+
+.. code-block:: robotframework
+
+    ${epoch}  Boot Time In Seconds From Epoch</doc>
+<shortdoc>Get machine boot time</shortdoc>
+</kw>
+<kw name="Get Boot Time" lineno="67">
+<arguments repr="as_datetime: bool = False, datetime_format: str = %Y-%m-%d %H:%M:%S">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="as_datetime: bool = False">
+<name>as_datetime</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>False</default>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="datetime_format: str = %Y-%m-%d %H:%M:%S">
+<name>datetime_format</name>
+<type name="str" typedoc="string">str</type>
+<default>%Y-%m-%d %H:%M:%S</default>
+</arg>
+</arguments>
+<doc>Get computer boot time in seconds from Epoch or in datetime string.
+
+:param as_datetime: if True returns datetime string, otherwise seconds,
+    defaults to False
+:param datetime_format: datetime string format, defaults to "%Y-%m-%d %H:%M:%S"
+:return: seconds from Epoch or datetime string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${boottime}  Get Boot Time
+    ${boottime}  Get Boot Time   as_datetime=True
+    ${boottime}  Get Boot Time   as_datetime=True  datetime_format=%d.%m.%Y</doc>
+<shortdoc>Get computer boot time in seconds from Epoch or in datetime string.</shortdoc>
+</kw>
+<kw name="Get Machine Name" lineno="106">
+<arguments repr="">
+</arguments>
+<doc>Get machine name
+
+:return: machine name as string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${machine}  Get Machine Name</doc>
+<shortdoc>Get machine name</shortdoc>
+</kw>
+<kw name="Get Memory Stats" lineno="234">
+<arguments repr="humanized: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="humanized: bool = True">
+<name>humanized</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Get computer memory stats and return those in bytes
+or in humanized memory format.
+
+:param humanized: if False returns memory information in bytes, defaults to True
+:return: memory information in dictionary format
+
+Example:
+
+.. code-block:: robotframework
+
+    &amp;{mem}     Get Memory Stats
+    &amp;{mem}     Get Memory Stats   humanized=False</doc>
+<shortdoc>Get computer memory stats and return those in bytes or in humanized memory format.</shortdoc>
+</kw>
+<kw name="Get Username" lineno="120">
+<arguments repr="">
+</arguments>
+<doc>Get username of logged in user
+
+:return: username as string
+
+Example:
+
+.. code-block:: robotframework
+
+    ${user}  Get Username</doc>
+<shortdoc>Get username of logged in user</shortdoc>
+</kw>
+<kw name="Kill Process" lineno="197">
+<arguments repr="process_name: str">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_name: str">
+<name>process_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+</arguments>
+<doc>Kill process by name
+
+:param process_name: name of the process
+:return: True if succeeds False if not
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process Exists  calc  strict=False
+    ${status}   Kill Process    ${process.name()}</doc>
+<shortdoc>Kill process by name</shortdoc>
+</kw>
+<kw name="Kill Process By Pid" lineno="218">
+<arguments repr="pid: int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pid: int">
+<name>pid</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+</arguments>
+<doc>Kill process by pid
+
+:param pid: process identifier
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process Exists  calc  strict=False
+    ${status}   Kill Process By PID   ${process.pid}</doc>
+<shortdoc>Kill process by pid</shortdoc>
+</kw>
+<kw name="Process Exists" lineno="151">
+<arguments repr="process_name: str, strict: bool = True">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="process_name: str">
+<name>process_name</name>
+<type name="str" typedoc="string">str</type>
+</arg>
+<arg kind="POSITIONAL_OR_NAMED" required="false" repr="strict: bool = True">
+<name>strict</name>
+<type name="bool" typedoc="boolean">bool</type>
+<default>True</default>
+</arg>
+</arguments>
+<doc>Check if process exists by its name
+
+:param process_name: search for this process
+:param strict: defines how match is made, default `True`
+ which means that process name needs to be exact match
+ and `False` does inclusive matching
+:return: process instance or False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process Exists  calc
+    ${process}  Process Exists  calc  strict=False</doc>
+<shortdoc>Check if process exists by its name</shortdoc>
+</kw>
+<kw name="Process Id Exists" lineno="177">
+<arguments repr="pid: int">
+<arg kind="POSITIONAL_OR_NAMED" required="true" repr="pid: int">
+<name>pid</name>
+<type name="int" typedoc="integer">int</type>
+</arg>
+</arguments>
+<doc>Check if process exists by its id
+
+:param pid: process identifier
+:return: process instance or False
+
+Example:
+
+.. code-block:: robotframework
+
+    ${process}  Process ID Exists  4567
+    Run Keyword If   ${process}  Log  Process exists</doc>
+<shortdoc>Check if process exists by its id</shortdoc>
+</kw>
+<kw name="Put System To Sleep" lineno="135">
+<arguments repr="">
+</arguments>
+<doc>Puts system to sleep mode
+
+Example:
+
+.. code-block:: robotframework
+
+    Put System To Sleep</doc>
+<shortdoc>Puts system to sleep mode</shortdoc>
+</kw>
+</keywords>
+<datatypes>
+</datatypes>
+<typedocs>
+<type name="boolean" type="Standard">
+<doc>Strings ``TRUE``, ``YES``, ``ON`` and ``1`` are converted to Boolean ``True``,
+the empty string as well as strings ``FALSE``, ``NO``, ``OFF`` and ``0``
+are converted to Boolean ``False``, and the string ``NONE`` is converted
+to the Python ``None`` object. Other strings and other accepted values are
+passed as-is, allowing keywords to handle them specially if
+needed. All string comparisons are case-insensitive.
+
+Examples: ``TRUE`` (converted to ``True``), ``off`` (converted to ``False``),
+``example`` (used as-is)
+</doc>
+<accepts>
+<type>string</type>
+<type>integer</type>
+<type>float</type>
+<type>None</type>
+</accepts>
+<usages>
+<usage>Get Boot Time</usage>
+<usage>Get Memory Stats</usage>
+<usage>Process Exists</usage>
+</usages>
+</type>
+<type name="integer" type="Standard">
+<doc>Conversion is done using Python's [https://docs.python.org/library/functions.html#int|int]
+built-in function. Floating point
+numbers are accepted only if they can be represented as integers exactly.
+For example, ``1.0`` is accepted and ``1.1`` is not.
+
+Starting from RF 4.1, it is possible to use hexadecimal, octal and binary
+numbers by prefixing values with ``0x``, ``0o`` and ``0b``, respectively.
+
+Starting from RF 4.1, spaces and underscores can be used as visual separators
+for digit grouping purposes.
+
+Examples: ``42``, ``-1``, ``0b1010``, ``10 000 000``, ``0xBAD_C0FFEE``
+</doc>
+<accepts>
+<type>string</type>
+<type>float</type>
+</accepts>
+<usages>
+<usage>Kill Process By Pid</usage>
+<usage>Process Id Exists</usage>
+</usages>
+</type>
+<type name="string" type="Standard">
+<doc>All arguments are converted to Unicode strings.</doc>
+<accepts>
+<type>Any</type>
+</accepts>
+<usages>
+<usage>Get Boot Time</usage>
+<usage>Kill Process</usage>
+<usage>Process Exists</usage>
+</usages>
+</type>
+</typedocs>
+</keywordspec>

@@ -1,0 +1,49 @@
+Metadata-Version: 2.1
+Name: robocorp-storage
+Version: 1.0.4
+Summary: Robocorp Asset Storage library
+Home-page: https://github.com/robocorp/robocorp/
+License: Apache-2.0
+Author: Cosmin P.
+Author-email: cosmin@robocorp.com
+Requires-Python: >=3.8,<4.0
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Dist: requests (>=2.28.2,<3.0.0)
+Requires-Dist: tenacity (>=8.0.1,<9.0.0)
+Requires-Dist: typing-extensions (>=4.6.3,<5.0.0) ; python_version < "3.8"
+Project-URL: Repository, https://github.com/robocorp/robocorp/
+Description-Content-Type: text/markdown
+
+# robocorp-storage
+
+`robocorp-storage` is a library which provides read and write access to the [Asset Storage](https://robocorp.com/docs/control-room/asset-storage) in Robocorp Control Room.
+
+## Getting started
+
+```python
+from robocorp import storage
+
+def store_email():
+    storage.set_text("cosmin", "cosmin@robocorp.com")
+    print("E-mail:", storage.get_text("cosmin"))
+    storage.delete_asset("cosmin")
+```
+
+## Guides
+
+- [Handling different asset types](https://github.com/robocorp/robocorp/blob/master/storage/docs/guides/00-asset-types.md)
+
+## API Reference
+
+Explore our [API](https://github.com/robocorp/robocorp/blob/master/storage/docs/api/README.md) for extensive documentation.
+
+## Changelog
+
+A list of releases and corresponding changes can be found in the [changelog](https://github.com/robocorp/robocorp/blob/master/storage/docs/CHANGELOG.md).
+

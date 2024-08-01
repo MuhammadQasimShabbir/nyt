@@ -1,0 +1,3 @@
+[console_scripts]
+java_tree_reader=JABWrapper.context_tree_reader:main
+

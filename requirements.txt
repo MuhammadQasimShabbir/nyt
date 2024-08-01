@@ -1,0 +1,7 @@
+openpyxl
+rpaframework==11.3.0
+datetime
+selenium
+beautifulsoup4
+requests
+Pillow
